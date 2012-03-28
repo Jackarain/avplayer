@@ -1,0 +1,12 @@
+EXPORTS
+    swr_alloc @1
+    swr_alloc_set_opts @2
+    swr_convert @3
+    swr_free @4
+    swr_init @5
+    swr_set_channel_mapping @6
+    swr_set_compensation @7
+    swr_set_matrix @8
+    swresample_configuration @9
+    swresample_license @10
+    swresample_version @11

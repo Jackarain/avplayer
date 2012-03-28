@@ -1,0 +1,127 @@
+//Microsoft Visual C++ 生成的资源脚本。
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// 从 TEXTINCLUDE 2 资源生成。
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 图标
+//
+
+// ID 值最低的图标放在最前面，以确保应用程序图标
+// 在所有系统中保持一致。
+
+IDI_AVPLAYER       ICON         "avplayer.ico"
+IDI_SMALL               ICON         "small.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 菜单
+//
+
+IDC_AVPLAYER MENU 
+BEGIN
+    POPUP "文件(&F)"
+    BEGIN
+        MENUITEM "退出(&X)",                IDM_EXIT
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+        MENUITEM "关于(&A) ...",           IDM_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 快捷键
+//
+
+IDC_AVPLAYER ACCELERATORS
+BEGIN
+    "?",            IDM_ABOUT,              ASCII,  ALT
+    "/",            IDM_ABOUT,              ASCII,  ALT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 对话框
+//
+
+IDD_ABOUTBOX DIALOG   22, 17, 230, 75
+STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "关于"
+FONT 9, "宋体"
+BEGIN
+    ICON            IDI_AVPLAYER,IDC_MYICON,14,9,16,16
+    LTEXT           "avplayer 1.0 版",IDC_STATIC,49,10,119,8,SS_NOPREFIX
+    LTEXT           "版权所有 (C) 2012",IDC_STATIC,49,20,119,8
+    DEFPUSHBUTTON   "确定",IDOK,195,6,30,11,WS_GROUP
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+1 TEXTINCLUDE  
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE  
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE  
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 字符串表
+//
+
+STRINGTABLE  
+BEGIN
+   IDC_AVPLAYER   "AVPLAYER"
+   IDS_APP_TITLE       "avplayer"
+END
+
+#endif
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// 从 TEXTINCLUDE 3 资源生成。
+//
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // 不是 APSTUDIO_INVOKED

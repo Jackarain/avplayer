@@ -1,0 +1,14 @@
+prefix=/d/ffmpeg/build
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libswresample
+Description: FFmpeg audio rescaling library
+Version: 0.7.100
+Requires: 
+Requires.private: libavutil = 51.41.100
+Conflicts:
+Libs: -L${libdir} -lswresample 
+Libs.private: -lm
+Cflags: -I${includedir}
