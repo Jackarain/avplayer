@@ -279,6 +279,8 @@ int read_packet(void *opaque, uint8_t *buf, int buf_size)
 	avplay *play = (avplay*)opaque;
 	read_bytes = play->m_media_source->read_data(play->m_media_source->ctx, 
 		buf, play->m_media_source->offset, buf_size);
+	if (read_bytes == -1)
+		return 0;
 	play->m_media_source->offset += read_bytes;
 	return read_bytes;
 }
