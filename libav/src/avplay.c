@@ -15,7 +15,7 @@ lldiv_t lldiv (long long num, long long denom)
 }
 #endif /* WIN32 */
 
-/* ¶¨ÒåboolÖµ */
+/* å®šä¹‰boolå€¼ */
 #ifndef _MSC_VER
 enum bool_type
 {
@@ -25,26 +25,29 @@ enum bool_type
 
 enum sync_type
 {
-	AV_SYNC_AUDIO_MASTER, /* Ä¬ÈÏÑ¡Ôñ. */
-	AV_SYNC_VIDEO_MASTER, /* Í¬²½µ½ÊÓÆµÊ±¼ä´Á. */
-	AV_SYNC_EXTERNAL_CLOCK, /* Í¬²½µ½Íâ²¿Ê±ÖÓ. */
+	AV_SYNC_AUDIO_MASTER, /* é»˜è®¤é€‰æ‹©. */
+	AV_SYNC_VIDEO_MASTER, /* åŒæ­¥åˆ°è§†é¢‘æ—¶é—´æˆ³. */
+	AV_SYNC_EXTERNAL_CLOCK, /* åŒæ­¥åˆ°å¤–éƒ¨æ—¶é’Ÿ. */
 };
 
-/* ¶ÓÁĞÀàĞÍ.	*/
-#define QUEUE_PACKET			0
+/* é˜Ÿåˆ—ç±»å‹.	*/
+#define QUEUE_PACKET				0
 #define QUEUE_AVFRAME			1
 
 #define IO_BUFFER_SIZE			32768
-#define MAX_PKT_BUFFER_SIZE		5242880
+#define MAX_PKT_BUFFER_SIZE	5242880
 #define MIN_AUDIO_BUFFER_SIZE	MAX_PKT_BUFFER_SIZE /* 327680 */
 #define MIN_AV_FRAMES			5
 #define AUDIO_BUFFER_MAX_SIZE	(AVCODEC_MAX_AUDIO_FRAME_SIZE * 2)
 #define AVDECODE_BUFFER_SIZE	2
-#define DEVIATION				6
+#define DEVIATION					6
 
 #define AV_SYNC_THRESHOLD		0.01f
-#define AV_NOSYNC_THRESHOLD		10.0f
+#define AV_NOSYNC_THRESHOLD	10.0f
 #define AUDIO_DIFF_AVG_NB		20
+
+#define SEEKING_FLAG				-1
+#define NOSEEKING_FLAG			0
 
 #ifndef _MSC_VER
 #define Sleep(x) usleep(x * 1000)
@@ -58,43 +61,43 @@ typedef struct AVFrameList
 	struct AVFrameList *next;
 } AVFrameList;
 
-/* ¶ÓÁĞ²Ù×÷. */
+/* é˜Ÿåˆ—æ“ä½œ. */
 static void queue_init(av_queue *q);
 static void queue_flush(av_queue *q);
 static void queue_end(av_queue *q);
 
-/* Èë¶Ó³ö¶ÓÁĞ²Ù×÷. */
+/* å…¥é˜Ÿå‡ºé˜Ÿåˆ—æ“ä½œ. */
 static int get_queue(av_queue *q, void *p);
 static int put_queue(av_queue *q, void *p);
 static void chk_queue(avplay *play, av_queue *q, int size);
 
-/* ffmpegÏà¹Ø²Ù×÷º¯Êı. */
+/* ffmpegç›¸å…³æ“ä½œå‡½æ•°. */
 static int stream_index(enum AVMediaType type, AVFormatContext *ctx);
 static int open_decoder(AVCodecContext *ctx);
 
-/* ¶ÁÈ¡Êı¾İÏß³Ì.	*/
+/* è¯»å–æ•°æ®çº¿ç¨‹.	*/
 static void* read_pkt_thrd(void *param);
 static void* video_dec_thrd(void *param);
 static void* audio_dec_thrd(void *param);
 
-/* äÖÈ¾Ïß³Ì. */
+/* æ¸²æŸ“çº¿ç¨‹. */
 static void* audio_render_thrd(void *param);
 static void* video_render_thrd(void *param);
 
-/* ÊÓÆµÖ¡¸´ÖÆ. */
+/* è§†é¢‘å¸§å¤åˆ¶. */
 static void video_copy(avplay *play, AVFrame *dst, AVFrame *src);
 static void audio_copy(avplay *play, AVFrame *dst, AVFrame *src);
 
-/* ¸üĞÂÊÓÆµpts. */
+/* æ›´æ–°è§†é¢‘pts. */
 static void update_video_pts(avplay *play, double pts, int64_t pos);
 
-/* Ê±ÖÓº¯Êı. */
+/* æ—¶é’Ÿå‡½æ•°. */
 static double video_clock(avplay *play);
 static double audio_clock(avplay *play);
 static double external_clock(avplay *play);
 static double master_clock(avplay *play);
 
-/* ¶ÁĞ´Êı¾İº¯Êı. */
+/* è¯»å†™æ•°æ®å‡½æ•°. */
 static int read_packet(void *opaque, uint8_t *buf, int buf_size);
 static int write_packet(void *opaque, uint8_t *buf, int buf_size);
 static int64_t seek_packet(void *opaque, int64_t offset, int whence);
@@ -309,12 +312,12 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 				play->m_current_play_index);
 			if (!mi)
 				assert(0);
-			/* ´Óµ±Ç°ÎÄ¼şµÄÆğÊ¼Î»ÖÃ¿ªÊ¼¼ÆËã. */
+			/* ä»å½“å‰æ–‡ä»¶çš„èµ·å§‹ä½ç½®å¼€å§‹è®¡ç®—. */
 			play->m_media_source->offset = mi->start_pos + offset;
 		}
 		break;
 	case SEEK_CUR:
-		/* Ö±½Ó¸ù¾İµ±Ç°Î»ÖÃ¼ÆËãoffset. */
+		/* ç›´æ¥æ ¹æ®å½“å‰ä½ç½®è®¡ç®—offset. */
 		offset += play->m_media_source->offset;
 		play->m_media_source->offset = offset;
 		break;
@@ -326,19 +329,19 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 				size = play->m_media_source->media->file_size;
 			if (play->m_media_source->type == MEDIA_TYPE_BT)
 			{
-				/* ÕÒµ½ÕıÔÚ²¥·ÅµÄÎÄ¼ş. */
+				/* æ‰¾åˆ°æ­£åœ¨æ’­æ”¾çš„æ–‡ä»¶. */
 				media_info *mi = find_media_info(play->m_media_source, 
 					play->m_current_play_index);
 				if (mi)
 					size = mi->file_size;
 				else
 					assert(0);
-				/* ¼ÆËãÎÄ¼şÎ²µÄÎ»ÖÃ. */
+				/* è®¡ç®—æ–‡ä»¶å°¾çš„ä½ç½®. */
 				size += mi->start_pos;
 			}
-			/* ¼ÆËãµ±Ç°Î»ÖÃ. */
+			/* è®¡ç®—å½“å‰ä½ç½®. */
 			offset += size;
-			/* ±£´æµ±Ç°Î»ÖÃ. */
+			/* ä¿å­˜å½“å‰ä½ç½®. */
 			play->m_media_source->offset = offset;
 		}
 		break;
@@ -350,7 +353,7 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 				size = play->m_media_source->media->file_size;
 			if (play->m_media_source->type == MEDIA_TYPE_BT)
 			{
-				/* ÕÒµ½ÕıÔÚ²¥·ÅµÄÎÄ¼ş. */
+				/* æ‰¾åˆ°æ­£åœ¨æ’­æ”¾çš„æ–‡ä»¶. */
 				media_info *mi = find_media_info(play->m_media_source, 
 					play->m_current_play_index);
 				if (mi)
@@ -387,12 +390,12 @@ int open_decoder(AVCodecContext *ctx)
    int ret = 0;
    AVCodec *codec = NULL;
 
-   /* ²éÕÒ½âÂëÆ÷. */
+   /* æŸ¥æ‰¾è§£ç å™¨. */
    codec = avcodec_find_decoder(ctx->codec_id);
    if (!codec)
       return -1;
 
-   /* ´ò¿ª½âÂëÆ÷.	*/
+   /* æ‰“å¼€è§£ç å™¨.	*/
    ret = avcodec_open2(ctx, codec, NULL);
    if (ret != 0)
       return ret;
@@ -413,7 +416,7 @@ media_source* alloc_media_source(int type, char *data, int len, int64_t size)
 		ptr->media = calloc(1, sizeof(media_info));
 		ptr->media->start_pos = 0;
 		ptr->media->file_size = size;
-		/* additionÖĞÒÑ¾­±£´æÁËÎÄ¼şÃû, ÕâÀï²»ÔÙÖØ¸´±£´æÎÄ¼şÃû. */
+		/* additionä¸­å·²ç»ä¿å­˜äº†æ–‡ä»¶å, è¿™é‡Œä¸å†é‡å¤ä¿å­˜æ–‡ä»¶å. */
 		ptr->media->name = NULL;
 	}
 
@@ -490,16 +493,16 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	av_register_all();
 	avcodec_register_all();
 
-	/* ³õÊ¼»¯ÓÃÓÚÊı¾İÔ´·ÃÎÊµÄmutex */
+	/* åˆå§‹åŒ–ç”¨äºæ•°æ®æºè®¿é—®çš„mutex */
 	pthread_mutex_init(&play->m_source_mtx, NULL);
 
-	/* ·ÖÅäÒ»¸öformat context. */
+	/* åˆ†é…ä¸€ä¸ªformat context. */
 	play->m_format_ctx = avformat_alloc_context();
 	play->m_format_ctx->flags = AVFMT_FLAG_GENPTS;
 
-	/* ±£´æmedia_sourceÖ¸Õë²¢³õÊ¼»¯, ÓÉavplay¸ºÔğ¹ÜÀíÊÍ·ÅÆäÄÚ´æ. */
+	/* ä¿å­˜media_sourceæŒ‡é’ˆå¹¶åˆå§‹åŒ–, ç”±avplayè´Ÿè´£ç®¡ç†é‡Šæ”¾å…¶å†…å­˜. */
 	play->m_media_source = ms;
-	/* ±£´æÊÓÆµÊä³öÀàĞÍ. */
+	/* ä¿å­˜è§†é¢‘è¾“å‡ºç±»å‹. */
 	play->m_video_render_type = video_out_type;
 
 	if (play->m_media_source->init_source(&ms->ctx, 
@@ -508,7 +511,7 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 		return -1;
 	}
 
-	/* »ñµÃÃ½ÌåÎÄ¼şÁĞ±í. */
+	/* è·å¾—åª’ä½“æ–‡ä»¶åˆ—è¡¨. */
 	if (ms->type == MEDIA_TYPE_BT)
 	{
 		char name[2048] = {0};
@@ -538,7 +541,7 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 		}
 	}
 
-	/* ·ÖÅäÓÃÓÚioµÄ»º³å. */
+	/* åˆ†é…ç”¨äºioçš„ç¼“å†². */
 	play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
 	if (!play->m_io_buffer)
 	{
@@ -546,7 +549,7 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 		return -1;
 	}
 
-	/* ·ÖÅäioÉÏÏÂÎÄ. */
+	/* åˆ†é…ioä¸Šä¸‹æ–‡. */
 	play->m_avio_ctx = avio_alloc_context(play->m_io_buffer, 
 		IO_BUFFER_SIZE, 0, (void*)play, read_packet, NULL, seek_packet);
 	if (!play->m_io_buffer)
@@ -564,7 +567,7 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 		goto FAILED_FLG;
 	}
 
-	/* ´ò¿ªÊäÈëÃ½ÌåÁ÷.	*/
+	/* æ‰“å¼€è¾“å…¥åª’ä½“æµ.	*/
 	play->m_format_ctx->pb = play->m_avio_ctx;
 	ret = avformat_open_input(&play->m_format_ctx, "", iformat, NULL);
 	if (ret < 0)
@@ -579,7 +582,7 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 
 	av_dump_format(play->m_format_ctx, 0, NULL, 0);
 
-	/* µÃµ½audioºÍvideoÔÚstreamsÖĞµÄindex.	*/
+	/* å¾—åˆ°audioå’Œvideoåœ¨streamsä¸­çš„index.	*/
 	play->m_video_index = 
 		stream_index(AVMEDIA_TYPE_VIDEO, play->m_format_ctx);
 	play->m_audio_index = 
@@ -587,13 +590,13 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	if (play->m_video_index == -1 && play->m_audio_index == -1)
 		goto FAILED_FLG;
 
-	/* ±£´æaudioºÍvideoµÄAVCodecContextÖ¸Õë.	*/
+	/* ä¿å­˜audioå’Œvideoçš„AVCodecContextæŒ‡é’ˆ.	*/
 	if (play->m_audio_index != -1)
 		play->m_audio_ctx = play->m_format_ctx->streams[play->m_audio_index]->codec;
 	if (play->m_video_index != -1)
 		play->m_video_ctx = play->m_format_ctx->streams[play->m_video_index]->codec;
 
-	/* ´ò¿ª½âÂëÆ÷. */
+	/* æ‰“å¼€è§£ç å™¨. */
 	if (play->m_audio_index != -1)
 	{
 		ret = open_decoder(play->m_audio_ctx);
@@ -607,23 +610,23 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 			goto FAILED_FLG;
 	}
 
-	/* ±£´æaudioºÍvideoµÄAVStreamÖ¸Õë.	*/
+	/* ä¿å­˜audioå’Œvideoçš„AVStreamæŒ‡é’ˆ.	*/
 	if (play->m_video_index != -1)
 		play->m_video_st = play->m_format_ctx->streams[play->m_video_index];
 	if (play->m_audio_index != -1)
 		play->m_audio_st = play->m_format_ctx->streams[play->m_audio_index];
 
-	/* Ä¬ÈÏÍ¬²½µ½ÒôÆµ.	*/
+	/* é»˜è®¤åŒæ­¥åˆ°éŸ³é¢‘.	*/
 	play->m_av_sync_type = AV_SYNC_AUDIO_MASTER;
 	play->m_abort = TRUE;
 
-	/* ³õÊ¼»¯¸÷±äÁ¿. */
+	/* åˆå§‹åŒ–å„å˜é‡. */
 	av_init_packet(&flush_pkt);
 	flush_pkt.data = "FLUSH";
 	flush_frm.data[0] = "FLUSH";
 	play->m_abort = 0;
 
-	/* ³õÊ¼»¯¶ÓÁĞ. */
+	/* åˆå§‹åŒ–é˜Ÿåˆ—. */
 	play->m_audio_q.m_type = QUEUE_PACKET;
 	queue_init(&play->m_audio_q);
 	play->m_video_q.m_type = QUEUE_PACKET;
@@ -633,10 +636,10 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	play->m_video_dq.m_type = QUEUE_AVFRAME;
 	queue_init(&play->m_video_dq);
 
-	/* ³õÊ¼»¯¶ÁÈ¡ÎÄ¼şÊı¾İ»º³å¼ÆÊımutex. */
+	/* åˆå§‹åŒ–è¯»å–æ–‡ä»¶æ•°æ®ç¼“å†²è®¡æ•°mutex. */
 	pthread_mutex_init(&play->m_buf_size_mtx, NULL);
 
-	/* ´ò¿ª¸÷Ïß³Ì.	*/
+	/* æ‰“å¼€å„çº¿ç¨‹.	*/
 	return 0;
 
 FAILED_FLG:
@@ -653,7 +656,7 @@ int start(avplay *play, int index)
 	pthread_attr_t attr;
 	int ret;
 
-	/* ±£´æÕıÔÚ²¥·ÅµÄË÷ÒıºÅ. */
+	/* ä¿å­˜æ­£åœ¨æ’­æ”¾çš„ç´¢å¼•å·. */
 	play->m_current_play_index = index;
 	if (index > play->m_media_source->media_size)
 		return -1;
@@ -661,7 +664,7 @@ int start(avplay *play, int index)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	/* ´´½¨Ïß³Ì. */
+	/* åˆ›å»ºçº¿ç¨‹. */
 	ret = pthread_create(&play->m_read_pkt_thrd, &attr, read_pkt_thrd,
 		(void*) play);
 	if (ret)
@@ -742,7 +745,7 @@ void wait_for_completion(avplay *play)
 		pthread_join(play->m_audio_render_thrd, &status);
 	if (play->m_video_index != -1)
 		pthread_join(play->m_video_render_thrd, &status);
-	/* ¸ü¸Ä²¥·Å×´Ì¬. */
+	/* æ›´æ”¹æ’­æ”¾çŠ¶æ€. */
 	play->m_play_status = stoped;
 }
 
@@ -750,7 +753,7 @@ void stop(avplay *play)
 {
 	play->m_abort = TRUE;
 
-	/* Í¨Öª¸÷Ïß³ÌÍË³ö. */
+	/* é€šçŸ¥å„çº¿ç¨‹é€€å‡º. */
 	play->m_audio_q.abort_request = TRUE;
 	pthread_cond_signal(&play->m_audio_q.m_cond);
 	play->m_video_q.abort_request = TRUE;
@@ -760,7 +763,7 @@ void stop(avplay *play)
 	play->m_video_dq.abort_request = TRUE;
 	pthread_cond_signal(&play->m_video_dq.m_cond);
 
-	/* ÏÈµÈÏß³ÌÍË³ö, ÔÙÊÍ·Å×ÊÔ´. */
+	/* å…ˆç­‰çº¿ç¨‹é€€å‡º, å†é‡Šæ”¾èµ„æº. */
 	wait_for_completion(play);
 
 	queue_end(&play->m_audio_q);
@@ -768,7 +771,7 @@ void stop(avplay *play)
 	queue_end(&play->m_audio_dq);
 	queue_end(&play->m_video_dq);
 
-	/* ¹Ø±Õ½âÂëÆ÷ÒÔ¼°äÖÈ¾Æ÷. */
+	/* å…³é—­è§£ç å™¨ä»¥åŠæ¸²æŸ“å™¨. */
 	if (play->m_audio_ctx)
 		avcodec_close(play->m_audio_ctx);
 	if (play->m_video_ctx)
@@ -795,40 +798,52 @@ void stop(avplay *play)
 
 void pause(avplay *play)
 {
-	/* ¸ü¸Ä²¥·Å×´Ì¬. */
+	/* æ›´æ”¹æ’­æ”¾çŠ¶æ€. */
 	play->m_play_status = paused;
 }
 
 void resume(avplay *play)
 {
-	/* ¸ü¸Ä²¥·Å×´Ì¬. */
+	/* æ›´æ”¹æ’­æ”¾çŠ¶æ€. */
 	play->m_play_status = playing;
 }
 
 void seek(avplay *play, double sec)
 {
 	double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
+
+	/* æ­£åœ¨seekä¸­, åªä¿å­˜å½“å‰sec, åœ¨seekå®Œæˆå, å†seek. */
+	if (play->m_seeking == SEEKING_FLAG || 
+		(play->m_seeking > NOSEEKING_FLAG && play->m_seek_req))
+	{
+		play->m_seeking = sec * 1000;
+		return ;
+	}
+
+	/* æ­£å¸¸æƒ…å†µä¸‹çš„seek. */
 	if (play->m_format_ctx->duration <= 0)
 	{
 		uint64_t size = avio_size(play->m_format_ctx->pb);
 		if (!play->m_seek_req)
 		{
+			play->m_seek_req = 1;
+			play->m_seeking = SEEKING_FLAG;
 			play->m_seek_pos = sec * size;
 			play->m_seek_rel = 0;
 			play->m_seek_flags &= ~AVSEEK_FLAG_BYTE;
 			play->m_seek_flags |= AVSEEK_FLAG_BYTE;
-			play->m_seek_req = 1;
 		}
 	}
 	else
 	{
 		if (!play->m_seek_req)
 		{
+			play->m_seek_req = 1;
+			play->m_seeking = SEEKING_FLAG;
 			play->m_seek_pos = sec * duration;
 			play->m_seek_rel = 0;
 			play->m_seek_flags &= ~AVSEEK_FLAG_BYTE;
 			/* play->m_seek_flags |= AVSEEK_FLAG_BYTE; */
-			play->m_seek_req = 1;
 		}
 	}
 }
@@ -845,11 +860,11 @@ double duration(avplay *play)
 
 void destory(avplay *play)
 {
-	/* Èç¹ûÕıÔÚ²¥·Å, Ôò¹Ø±Õ²¥·Å. */
+	/* å¦‚æœæ­£åœ¨æ’­æ”¾, åˆ™å…³é—­æ’­æ”¾. */
 	if (play->m_play_status != stoped && play->m_play_status != inited)
 		stop(play);
 
-	/* ¹Ø±ÕÊı¾İÔ´. */
+	/* å…³é—­æ•°æ®æº. */
 	if (play->m_media_source)
 	{
 		free_media_source(play->m_media_source);
@@ -868,7 +883,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	dst->type = 0;
 	assert(dst->data[0]);
 
-	/*×ª»»ÒôÆµ¸ñÊ½.*/
+	/*è½¬æ¢éŸ³é¢‘æ ¼å¼.*/
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
 	{
 		if (!play->m_audio_convert_ctx)
@@ -894,7 +909,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		}
 	}
 
-	/* ÖØ²ÉÑùµ½Ë«ÉùµÀ. */
+	/* é‡é‡‡æ ·åˆ°åŒå£°é“. */
 	if (play->m_audio_ctx->channels > 2)
 	{
 		if (!play->m_resample_ctx)
@@ -966,7 +981,7 @@ double audio_clock(avplay *play)
 	bytes_per_sec = 0;
 	if (play->m_audio_st)
 		bytes_per_sec = play->m_audio_st->codec->sample_rate * 2
-				* FFMIN(play->m_audio_st->codec->channels, 2); /* ¹Ì¶¨Îª2Í¨µÀ.	*/
+				* FFMIN(play->m_audio_st->codec->channels, 2); /* å›ºå®šä¸º2é€šé“.	*/
 	if (play->m_audio_current_pts_drift == 0.0f)
 		play->m_audio_current_pts_drift = pts;
 	if (bytes_per_sec)
@@ -1020,7 +1035,7 @@ double master_clock(avplay *play)
 static
 void chk_queue(avplay *play, av_queue *q, int size)
 {
-	/* ·ÀÖ¹ÄÚ´æ¹ı´ó.	*/
+	/* é˜²æ­¢å†…å­˜è¿‡å¤§.	*/
 	while (1)
 	{
 		pthread_mutex_lock(&q->m_mutex);
@@ -1051,7 +1066,7 @@ void* read_pkt_thrd(void *param)
 		/* Initialize optional fields of a packet with default values.	*/
 		av_init_packet(&packet);
 
-		/* Èç¹ûÔİ¶¨×´Ì¬¸Ä±ä. */
+		/* å¦‚æœæš‚å®šçŠ¶æ€æ”¹å˜. */
 		if (last_paused != play->m_play_status)
 		{
 			last_paused = play->m_play_status;
@@ -1060,6 +1075,10 @@ void* read_pkt_thrd(void *param)
 			if (play->m_play_status == paused)
 				play->m_read_pause_return = av_read_pause(play->m_format_ctx);
 		}
+
+		/* å¦‚æœseekæœªå®Œæˆåˆæ¥äº†æ–°çš„seekè¯·æ±‚. */
+		if (play->m_seeking > NOSEEKING_FLAG)
+			seek(play, (double)play->m_seeking / 1000.0f);
 
 		if (play->m_seek_req)
 		{
@@ -1071,7 +1090,6 @@ void* read_pkt_thrd(void *param)
 			int tns, thh, tmm, tss;
 			double frac = (double)play->m_seek_pos / ((double)play->m_format_ctx->duration / AV_TIME_BASE);
 
-			play->m_seek_req = 0;
 			tns = play->m_format_ctx->duration / AV_TIME_BASE;
 			thh = tns / 3600.0f;
 			tmm = (tns % 3600) / 60.0f;
@@ -1109,9 +1127,11 @@ void* read_pkt_thrd(void *param)
 			}
 			printf("Seek to %2.0f%% (%02d:%02d:%02d) of total duration (%02d:%02d:%02d)\n",
 				frac * 100, hh, mm, ss, thh, tmm, tss);
+
+			play->m_seek_req = 0;
 		}
 
-		/* »º³å¶ÁÂú, ÔÚÕâĞİÃßÈÃ³öcpu.	*/
+		/* ç¼“å†²è¯»æ»¡, åœ¨è¿™ä¼‘çœ è®©å‡ºcpu.	*/
 		while (play->m_pkt_buffer_size > MAX_PKT_BUFFER_SIZE && !play->m_abort)
 			Sleep(32);
 		if (play->m_abort)
@@ -1125,7 +1145,7 @@ void* read_pkt_thrd(void *param)
 			continue;
 		}
 
-		/* ¸üĞÂ»º³å×Ö½ÚÊı.	*/
+		/* æ›´æ–°ç¼“å†²å­—èŠ‚æ•°.	*/
 		pthread_mutex_lock(&play->m_buf_size_mtx);
 		play->m_pkt_buffer_size += packet.size;
 		pthread_mutex_unlock(&play->m_buf_size_mtx);
@@ -1139,7 +1159,7 @@ void* read_pkt_thrd(void *param)
 			put_queue(&play->m_audio_q, &packet);
 	}
 
-	/* ÉèÖÃÎªÍË³ö×´Ì¬.	*/
+	/* è®¾ç½®ä¸ºé€€å‡ºçŠ¶æ€.	*/
 	play->m_abort = TRUE;
 	return NULL;
 }
@@ -1181,21 +1201,21 @@ void* audio_dec_thrd(void *param)
 				pthread_mutex_lock(&play->m_audio_dq.m_mutex);
 				lst = play->m_audio_dq.m_first_pkt;
 				for (; lst != NULL; lst = lst->next)
-					lst->pkt.type = 1;	/*typeÎª1±íÊ¾skip.*/
+					lst->pkt.type = 1;	/*typeä¸º1è¡¨ç¤ºskip.*/
 				pthread_mutex_unlock(&play->m_audio_dq.m_mutex);
 				continue;
 			}
 
-			/* Ê¹ÓÃpts¸üĞÂÒôÆµÊ±ÖÓ. */
+			/* ä½¿ç”¨ptsæ›´æ–°éŸ³é¢‘æ—¶é’Ÿ. */
 			if (pkt.pts != AV_NOPTS_VALUE)
 				play->m_audio_clock = av_q2d(play->m_audio_st->time_base) * (pkt.pts - v_start_time);
 
-			/* ¼ÆËãpkt»º³åÊı¾İ´óĞ¡. */
+			/* è®¡ç®—pktç¼“å†²æ•°æ®å¤§å°. */
 			pthread_mutex_lock(&play->m_audio_q.m_mutex);
 			play->m_pkt_buffer_size -= pkt.size;
 			pthread_mutex_unlock(&play->m_audio_q.m_mutex);
 
-			/* ½âÂëÒôÆµ. */
+			/* è§£ç éŸ³é¢‘. */
 			out_size = 0;
 			pkt2 = pkt;
 			while (!play->m_abort)
@@ -1221,30 +1241,30 @@ void* audio_dec_thrd(void *param)
 				avframe.pts = pkt2.pts;
 				avframe.best_effort_timestamp = pkt2.pts;
 
-				/* ¿½±´µ½avcopyÓÃÓÚÌí¼Óµ½¶ÓÁĞ. */
+				/* æ‹·è´åˆ°avcopyç”¨äºæ·»åŠ åˆ°é˜Ÿåˆ—. */
 				audio_copy(play, &avcopy, &avframe);
 
-				/* ½«¼ÆËãµÄpts¸´ÖÆµ½avcopy.pts.	*/
+				/* å°†è®¡ç®—çš„ptså¤åˆ¶åˆ°avcopy.pts.	*/
 				memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
 
-				/* ¼ÆËãÏÂÒ»¸öaudioµÄptsÖµ.	*/
+				/* è®¡ç®—ä¸‹ä¸€ä¸ªaudioçš„ptså€¼.	*/
 				n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
 
 				play->m_audio_clock += ((double) avcopy.linesize[0]
 						/ (double) (n * play->m_audio_ctx->sample_rate));
 
-				/* Èç¹û²»ÊÇÒÔÒôÆµÍ¬²½ÎªÖ÷, ÔòĞèÒª¼ÆËãÊÇ·ñÒÆ³ıÒ»Ğ©²ÉÑùÒÔÍ¬²½µ½ÆäËü·½Ê½.	*/
+				/* å¦‚æœä¸æ˜¯ä»¥éŸ³é¢‘åŒæ­¥ä¸ºä¸», åˆ™éœ€è¦è®¡ç®—æ˜¯å¦ç§»é™¤ä¸€äº›é‡‡æ ·ä»¥åŒæ­¥åˆ°å…¶å®ƒæ–¹å¼.	*/
 				if (((play->m_av_sync_type == AV_SYNC_VIDEO_MASTER
 						&& play->m_video_st)
 						|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK))
 				{
-					/* ÔİÎŞÊµÏÖ.	*/
+					/* æš‚æ— å®ç°.	*/
 				}
 
-				/* ·ÀÖ¹ÄÚ´æ¹ı´ó.	*/
+				/* é˜²æ­¢å†…å­˜è¿‡å¤§.	*/
 				chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
 
-				/* ¶ªµ½²¥·Å¶ÓÁĞÖĞ.	*/
+				/* ä¸¢åˆ°æ’­æ”¾é˜Ÿåˆ—ä¸­.	*/
 				put_queue(&play->m_audio_dq, &avcopy);
 			}
 			av_free_packet(&pkt);
@@ -1296,7 +1316,7 @@ void* video_dec_thrd(void *param)
 				pthread_mutex_lock(&play->m_video_dq.m_mutex);
 				lst = play->m_video_dq.m_first_pkt;
 				for (; lst != NULL; lst = lst->next)
-					lst->pkt.type = 1; /* typeÎª1±íÊ¾skip. */
+					lst->pkt.type = 1; /* typeä¸º1è¡¨ç¤ºskip. */
 				play->m_video_current_pos = -1;
 				play->m_frame_last_dropped_pts = AV_NOPTS_VALUE;
 				play->m_frame_last_duration = 0;
@@ -1335,19 +1355,19 @@ void* video_dec_thrd(void *param)
 				int64_t diff_delay;
 
 				/*
-				 * ¸´ÖÆÖ¡, ²¢Êä³öÎªPIX_FMT_YUV420P.
+				 * å¤åˆ¶å¸§, å¹¶è¾“å‡ºä¸ºPIX_FMT_YUV420P.
 				 */
 
 				video_copy(play, &avcopy, avframe);
 
 				/*
-				 * ³õÊ¼»¯m_frame_timerÊ±¼ä, Ê¹ÓÃÏµÍ³Ê±¼ä.
+				 * åˆå§‹åŒ–m_frame_timeræ—¶é—´, ä½¿ç”¨ç³»ç»Ÿæ—¶é—´.
 				 */
 				if (play->m_frame_timer == 0.0f)
 					play->m_frame_timer = (double) av_gettime() / 1000000.0f;
 
 				/*
-				 * ¼ÆËãptsÖµ.
+				 * è®¡ç®—ptså€¼.
 				 */
 				pts1 = (avcopy.best_effort_timestamp - a_start_time)
 						* av_q2d(play->m_video_st->time_base);
@@ -1355,7 +1375,7 @@ void* video_dec_thrd(void *param)
 					pts1 = 0;
 				pts = pts1;
 
-				/* Èç¹ûÒÔÒôÆµÍ¬²½ÎªÖ÷, ÔòÔÚ´ËÅĞ¶ÏÊÇ·ñ½øĞĞ¶ª°ü. */
+				/* å¦‚æœä»¥éŸ³é¢‘åŒæ­¥ä¸ºä¸», åˆ™åœ¨æ­¤åˆ¤æ–­æ˜¯å¦è¿›è¡Œä¸¢åŒ…. */
 				if (((play->m_av_sync_type == AV_SYNC_AUDIO_MASTER
 						&& play->m_audio_st)
 						|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK)
@@ -1363,9 +1383,9 @@ void* video_dec_thrd(void *param)
 				{
 					pthread_mutex_lock(&play->m_video_dq.m_mutex);
 					/*
-					 * ×îºóÖ¡µÄptsÊÇ·ñÎªAV_NOPTS_VALUE ÇÒ pts²»µÈÓÚ0
-					 * ¼ÆËãÊÓÆµÊ±ÖÓºÍÖ÷Ê±ÖÓÔ´µÄÊ±¼ä²î.
-					 * ¼ÆËãptsÊ±¼ä²î, µ±Ç°ptsºÍÉÏÒ»Ö¡µÄpts²îÖµ.
+					 * æœ€åå¸§çš„ptsæ˜¯å¦ä¸ºAV_NOPTS_VALUE ä¸” ptsä¸ç­‰äº0
+					 * è®¡ç®—è§†é¢‘æ—¶é’Ÿå’Œä¸»æ—¶é’Ÿæºçš„æ—¶é—´å·®.
+					 * è®¡ç®—ptsæ—¶é—´å·®, å½“å‰ptså’Œä¸Šä¸€å¸§çš„ptså·®å€¼.
 					 */
 					ret = 1;
 					if (play->m_frame_last_pts != AV_NOPTS_VALUE && pts)
@@ -1374,9 +1394,9 @@ void* video_dec_thrd(void *param)
 						double ptsdiff = pts - play->m_frame_last_pts;
 
 						/*
-						 * Èç¹ûclockdiffºÍptsdiffÍ¬Ê±¶¼ÔÚÍ¬²½·§Öµ·¶Î§ÄÚ
-						 * ²¢ÇÒclockdiffÓëptsdiffÖ®ºÍÓëm_frame_last_filter_delayµÄ²î
-						 * Èç¹ûĞ¡ÓÚ0, Ôò¶ªÆúÕâ¸öÊÓÆµÖ¡.
+						 * å¦‚æœclockdiffå’ŒptsdiffåŒæ—¶éƒ½åœ¨åŒæ­¥é˜€å€¼èŒƒå›´å†…
+						 * å¹¶ä¸”clockdiffä¸ptsdiffä¹‹å’Œä¸m_frame_last_filter_delayçš„å·®
+						 * å¦‚æœå°äº0, åˆ™ä¸¢å¼ƒè¿™ä¸ªè§†é¢‘å¸§.
 						 */
 						if (fabs(clockdiff) < AV_NOSYNC_THRESHOLD && ptsdiff > 0
 								&& ptsdiff < AV_NOSYNC_THRESHOLD
@@ -1393,23 +1413,23 @@ void* video_dec_thrd(void *param)
 					pthread_mutex_unlock(&play->m_video_dq.m_mutex);
 					if (ret == 0)
 					{
-						/* ¶ªµô¸ÃÖ¡. */
+						/* ä¸¢æ‰è¯¥å¸§. */
 						av_free(avcopy.data[0]);
 						continue;
 					}
 				}
 
-				/* ¼ÆÂ¼×îºóÓĞĞ§Ö¡Ê±¼ä. */
+				/* è®¡å½•æœ€åæœ‰æ•ˆå¸§æ—¶é—´. */
 				play->m_frame_last_returned_time = av_gettime() / 1000000.0f;
-				/* m_frame_last_filter_delay»ù±¾¶¼ÊÇ0°É. */
+				/* m_frame_last_filter_delayåŸºæœ¬éƒ½æ˜¯0å§. */
 				play->m_frame_last_filter_delay = av_gettime() / 1000000.0f
 						- play->m_frame_last_returned_time;
-				/* Èç¹ûm_frame_last_filter_delay»¹¿ÉÄÜ´óÓÚ1, ÄÇÃ´m_frame_last_filter_delayÖÃ0. */
+				/* å¦‚æœm_frame_last_filter_delayè¿˜å¯èƒ½å¤§äº1, é‚£ä¹ˆm_frame_last_filter_delayç½®0. */
 				if (fabs(play->m_frame_last_filter_delay) > AV_NOSYNC_THRESHOLD / 10.0f)
 					play->m_frame_last_filter_delay = 0.0f;
 
 				/*
-				 *	¸üĞÂµ±Ç°m_video_clockÎªµ±Ç°½âÂëpts.
+				 *	æ›´æ–°å½“å‰m_video_clockä¸ºå½“å‰è§£ç pts.
 				 */
 				if (pts != 0)
 					play->m_video_clock = pts;
@@ -1417,32 +1437,32 @@ void* video_dec_thrd(void *param)
 					pts = play->m_video_clock;
 
 				/*
-				 *	¼ÆËãµ±Ç°Ö¡µÄÑÓ³ÙÊ±³¤.
+				 *	è®¡ç®—å½“å‰å¸§çš„å»¶è¿Ÿæ—¶é•¿.
 				 */
 				frame_delay = av_q2d(play->m_video_st->codec->time_base);
 				frame_delay += avcopy.repeat_pict * (frame_delay * 0.5);
 
 				/*
-				 * m_video_clock¼ÓÉÏ¸ÃÖ¡ÑÓ³ÙÊ±³¤,
-				 * m_video_clockÊÇ¹ÀËã³öÀ´µÄÏÂÒ»Ö¡µÄpts.
+				 * m_video_clockåŠ ä¸Šè¯¥å¸§å»¶è¿Ÿæ—¶é•¿,
+				 * m_video_clockæ˜¯ä¼°ç®—å‡ºæ¥çš„ä¸‹ä¸€å¸§çš„pts.
 				 */
 				play->m_video_clock += frame_delay;
 
 				/*
-				 * ·ÀÖ¹ÄÚ´æ¹ı´ó.
+				 * é˜²æ­¢å†…å­˜è¿‡å¤§.
 				 */
 				chk_queue(play, &play->m_video_dq, AVDECODE_BUFFER_SIZE);
 
-				/* ±£´æframe_delayÎª¸ÃÖ¡µÄduration, ±£´æµ½.pts×Ö¶ÎÖĞ. */
+				/* ä¿å­˜frame_delayä¸ºè¯¥å¸§çš„duration, ä¿å­˜åˆ°.ptså­—æ®µä¸­. */
 				memcpy(&avcopy.pkt_dts, &frame_delay, sizeof(double));
-				/* ±£´æpts. */
+				/* ä¿å­˜pts. */
 				memcpy(&avcopy.pts, &pts, sizeof(double));
-				/* ±£´æpos, pos¼´ÊÇÎÄ¼şÎ»ÖÃ. */
+				/* ä¿å­˜pos, poså³æ˜¯æ–‡ä»¶ä½ç½®. */
 				avcopy.pkt_pos = pkt.pos;
-				/* typeÎª0±íÊ¾no skip. */
+				/* typeä¸º0è¡¨ç¤ºno skip. */
 				avcopy.type = 0;
 
-				/* ¶ª½ø²¥·Å¶ÓÁĞ.	*/
+				/* ä¸¢è¿›æ’­æ”¾é˜Ÿåˆ—.	*/
 				put_queue(&play->m_video_dq, &avcopy);
 			}
 			av_free_packet(&pkt);
@@ -1471,7 +1491,7 @@ void* audio_render_thrd(void *param)
 			if (!inited && play->m_audio_render)
 			{
 				inited = 1;
-				/* ÅäÖÃäÖÈ¾Æ÷. */
+				/* é…ç½®æ¸²æŸ“å™¨. */
 				ret = play->m_audio_render->init_audio(&play->m_audio_render->ctx,
 					FFMIN(play->m_audio_ctx->channels, 2), 16,
 					play->m_audio_ctx->sample_rate, 0);
@@ -1479,7 +1499,7 @@ void* audio_render_thrd(void *param)
 					inited = -1;
 				else
 				{
-					/* ¸ü¸Ä²¥·Å×´Ì¬. */
+					/* æ›´æ”¹æ’­æ”¾çŠ¶æ€. */
 					play->m_play_status = playing;
 				}
 				bytes_per_sec = play->m_audio_ctx->sample_rate
@@ -1499,9 +1519,13 @@ void* audio_render_thrd(void *param)
 			}
 
 			audio_size = audio_frame.linesize[0];
-			/* Çå¿Õ. */
+			/* æ¸…ç©º. */
 			play->m_audio_buf_size = audio_size;
 			play->m_audio_buf_index = 0;
+
+			/* å·²ç»å¼€å§‹æ’­æ”¾, æ¸…ç©ºseekingçš„çŠ¶æ€. */
+			if (play->m_seeking == SEEKING_FLAG)
+				play->m_seeking = NOSEEKING_FLAG;
 
 			while (audio_size > 0)
 			{
@@ -1512,7 +1536,7 @@ void* audio_render_thrd(void *param)
 						audio_frame.data[0] + play->m_audio_buf_index,
 						play->m_audio_buf_size - play->m_audio_buf_index);
 					play->m_audio_buf_index += temp;
-					/* Èç¹û»º³åÒÑÂú, ÔòĞİÃßÒ»Ğ¡»á. */
+					/* å¦‚æœç¼“å†²å·²æ»¡, åˆ™ä¼‘çœ ä¸€å°ä¼š. */
 					if (temp == 0)
 					{
 						if (play->m_audio_dq.m_size > 0)
@@ -1557,12 +1581,12 @@ void* video_render_thrd(void *param)
 
 	while (!play->m_abort)
 	{
-		/* Èç¹ûÊÓÆµ¶ÓÁĞÎª¿Õ */
+		/* å¦‚æœè§†é¢‘é˜Ÿåˆ—ä¸ºç©º */
 		if (play->m_video_dq.m_size == 0)
 		{
 			pthread_mutex_lock(&play->m_video_dq.m_mutex);
-			/* Èç¹û×îºó¶ªÆúÖ¡µÄpts²»Îª¿Õ, ÇÒ´óÓÚ×îºóptsÔò
-			 * Ê¹ÓÃ×îºó¶ªÆúÖ¡µÄptsÖµ¸üĞÂÆäËüÏà¹ØµÄptsÖµ.
+			/* å¦‚æœæœ€åä¸¢å¼ƒå¸§çš„ptsä¸ä¸ºç©º, ä¸”å¤§äºæœ€åptsåˆ™
+			 * ä½¿ç”¨æœ€åä¸¢å¼ƒå¸§çš„ptså€¼æ›´æ–°å…¶å®ƒç›¸å…³çš„ptså€¼.
 			 */
 			if (play->m_frame_last_dropped_pts != AV_NOPTS_VALUE
 					&& play->m_frame_last_dropped_pts > play->m_frame_last_pts)
@@ -1573,7 +1597,7 @@ void* video_render_thrd(void *param)
 			}
 			pthread_mutex_unlock(&play->m_video_dq.m_mutex);
 		}
-		/* »ñµÃÏÂÒ»Ö¡ÊÓÆµ. */
+		/* è·å¾—ä¸‹ä¸€å¸§è§†é¢‘. */
 		ret = get_queue(&play->m_video_dq, &video_frame);
 		if (ret != -1)
 		{
@@ -1594,23 +1618,23 @@ void* video_render_thrd(void *param)
 
 			do
 			{
-				/* ÅĞ¶ÏÊÇ·ñskip. */
+				/* åˆ¤æ–­æ˜¯å¦skip. */
 				if (video_frame.type == 1)
 				{
-					/* Ìø¹ı¸ÃÖ¡. */
+					/* è·³è¿‡è¯¥å¸§. */
 					break;
 				}
 
-				/* ¼ÆËãlast_duration. */
+				/* è®¡ç®—last_duration. */
 				memcpy(&current_pts, &video_frame.pts, sizeof(double));
 				last_duration = current_pts - play->m_frame_last_pts;
 				if (last_duration > 0 && last_duration < 10.0)
 				{
-					/* ¸üĞÂm_frame_last_duration. */
+					/* æ›´æ–°m_frame_last_duration. */
 					play->m_frame_last_duration = last_duration;
 				}
 
-				/* ¸üĞÂÑÓ³ÙÍ¬²½µ½Ö÷Ê±ÖÓÔ´. */
+				/* æ›´æ–°å»¶è¿ŸåŒæ­¥åˆ°ä¸»æ—¶é’Ÿæº. */
 				delay = play->m_frame_last_duration;
 				if (((play->m_av_sync_type == AV_SYNC_AUDIO_MASTER
 						&& play->m_audio_st)
@@ -1634,17 +1658,17 @@ void* video_render_thrd(void *param)
 					}
 				}
 
-				/* µÃµ½µ±Ç°ÏµÍ³Ê±¼ä. */
+				/* å¾—åˆ°å½“å‰ç³»ç»Ÿæ—¶é—´. */
 				time = av_gettime() / 1000000.0f;
 
-				/* Èç¹ûµ±Ç°ÏµÍ³Ê±¼äĞ¡ÓÚ²¥·ÅÊ±¼ä¼ÓÑÓ³ÙÊ±¼ä, Ôò¹ıÒ»»áÖØÊÔ. */
+				/* å¦‚æœå½“å‰ç³»ç»Ÿæ—¶é—´å°äºæ’­æ”¾æ—¶é—´åŠ å»¶è¿Ÿæ—¶é—´, åˆ™è¿‡ä¸€ä¼šé‡è¯•. */
 				if (time < play->m_frame_timer + delay)
 				{
 					Sleep(1);
 					continue;
 				}
 
-				/* ¸üĞÂm_frame_timer. */
+				/* æ›´æ–°m_frame_timer. */
 				if (delay > 0.0f)
 					play->m_frame_timer +=
 					delay * FFMAX(1, floor((time - play->m_frame_timer) / delay));
@@ -1653,7 +1677,7 @@ void* video_render_thrd(void *param)
 				update_video_pts(play, current_pts, video_frame.pkt_pos);
 				pthread_mutex_unlock(&play->m_video_dq.m_mutex);
 
-				/* ¼ÆËãÏÂÒ»Ö¡µÄÊ±¼ä.  */
+				/* è®¡ç®—ä¸‹ä¸€å¸§çš„æ—¶é—´.  */
 				if (play->m_video_dq.m_size > 0)
 				{
 					memcpy(&next_pts, 
@@ -1686,6 +1710,10 @@ void* video_render_thrd(void *param)
 				}
 				printf("%7.3f A-V: %7.3f PTS: %7.3f A: %7.3f V: %7.3f AVG: %1.4f N: %lld\r",
 					master_clock(play), diff, current_pts, audio_clock(play), video_clock(play), avg_diff/*delay*/, frame_num);
+
+				/* å·²ç»å¼€å§‹æ’­æ”¾, æ¸…ç©ºseekingçš„çŠ¶æ€. */
+				if (play->m_seeking == SEEKING_FLAG)
+					play->m_seeking = NOSEEKING_FLAG;
 
 				if (inited == 1 && play->m_video_render)
 				{

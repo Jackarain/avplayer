@@ -33,81 +33,81 @@
 extern "C" {
 #endif
 
-/* ²¥·ÅÆ÷×´Ì¬. */
+/* æ’­æ”¾å™¨çŠ¶æ€. */
 typedef enum play_status
 {
 	inited, playing, paused, stoped
 } play_status;
 
-/* ÓÃÓÚconfig_render²ÎÊı±íÊ¾ËùÅäÖÃµÄrender.  */
+/* ç”¨äºconfig_renderå‚æ•°è¡¨ç¤ºæ‰€é…ç½®çš„render.  */
 #define MEDIA_SOURCE			0
 #define AUDIO_RENDER			1
 #define VIDEO_RENDER			2
 
-/* ÓÃÓÚ±êÊ¶äÖÈ¾Æ÷ÀàĞÍ. */
+/* ç”¨äºæ ‡è¯†æ¸²æŸ“å™¨ç±»å‹. */
 #define VIDEO_RENDER_D3D		0
 #define VIDEO_RENDER_DDRAW		1
 #define VIDEO_RENDER_OPENGL	2
 #define VIDEO_RENDER_SOFT		3
 
-/* ¶ÓÁĞ.	*/
+/* é˜Ÿåˆ—.	*/
 typedef struct av_queue
 {
 	void *m_first_pkt, *m_last_pkt;
-	int m_size; /* ¶ÓÁĞ´óĞ¡.	*/
-	int m_type; /* ¶ÓÁĞÀàĞÍ.	*/
+	int m_size; /* é˜Ÿåˆ—å¤§å°.	*/
+	int m_type; /* é˜Ÿåˆ—ç±»å‹.	*/
 	int abort_request;
 	pthread_mutex_t m_mutex;
 	pthread_cond_t m_cond;
 } av_queue;
 
-/* Ã½ÌåÊı¾İÔ´½Ó¿Ú. */
+/* åª’ä½“æ•°æ®æºæ¥å£. */
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1
 
-/* Ã½ÌåÎÄ¼şĞÅÏ¢. */
+/* åª’ä½“æ–‡ä»¶ä¿¡æ¯. */
 typedef struct media_info 
 {
-	char *name;			// ÎÄ¼şÃû.
-	int64_t start_pos;	// ÆğÊ¼Î»ÖÃ.
-	int64_t file_size;	// ÎÄ¼ş´óĞ¡.
+	char *name;			// æ–‡ä»¶å.
+	int64_t start_pos;	// èµ·å§‹ä½ç½®.
+	int64_t file_size;	// æ–‡ä»¶å¤§å°.
 } media_info;
 
-/* Ã½ÌåÊı¾İÔ´½Ó¿Ú. */
+/* åª’ä½“æ•°æ®æºæ¥å£. */
 typedef struct media_source
 {
 	int (*init_source)(void **ctx, char *data, int len, char *save_path);
 	/*
-	 * name Êä³öÊÓÆµÃû³Æ, ĞèÒªµ÷ÓÃÕß·ÖÅäÄÚ´æ.
-	 * pos  ÊäÈë²éÑ¯µÄĞòºÅ, ´Ó0¿ªÊ¼; Êä³öÎªÊÓÆµÔÚbtÏÂÔØÖĞµÄÆğÊ¼Î»ÖÃÆ«ÒÆ.
-	 * size ÊäÈëname»º³åÇø³¤¶È, Êä³öÊÓÆµ´óĞ¡.
-	 * ·µ»ØtorrentÖĞµÄÊÓÆµÃ½Ìå¸öÊı, ·µ»Ø-1±íÊ¾³ö´í.
+	 * name è¾“å‡ºè§†é¢‘åç§°, éœ€è¦è°ƒç”¨è€…åˆ†é…å†…å­˜.
+	 * pos  è¾“å…¥æŸ¥è¯¢çš„åºå·, ä»0å¼€å§‹; è¾“å‡ºä¸ºè§†é¢‘åœ¨btä¸‹è½½ä¸­çš„èµ·å§‹ä½ç½®åç§».
+	 * size è¾“å…¥nameç¼“å†²åŒºé•¿åº¦, è¾“å‡ºè§†é¢‘å¤§å°.
+	 * è¿”å›torrentä¸­çš„è§†é¢‘åª’ä½“ä¸ªæ•°, è¿”å›-1è¡¨ç¤ºå‡ºé”™.
 	 */
 	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
 	int (*read_data)(void *ctx, char* buff, int64_t offset, int buf_size);
 	void (*destory)(void *ctx);
 	void *ctx;
-	int type;			/* Êı¾İÀàĞÍ. */
+	int type;			/* æ•°æ®ç±»å‹. */
 	/*
-	 * ¸½¼ÓÊı¾İ, Èç¹ûÀàĞÍÊÇMEDIA_TYPE_FILE, Ôò´ËÖ¸ÏòÎÄ¼şÃû, 
-	 * Èç¹ûÊÇMEDIA_TYPE_BT, Ôò´ËÖ¸ÏòbtÖÖ×ÓÊı¾İ.
+	 * é™„åŠ æ•°æ®, å¦‚æœç±»å‹æ˜¯MEDIA_TYPE_FILE, åˆ™æ­¤æŒ‡å‘æ–‡ä»¶å, 
+	 * å¦‚æœæ˜¯MEDIA_TYPE_BT, åˆ™æ­¤æŒ‡å‘btç§å­æ•°æ®.
 	 */
 	char *data;
 	int data_len;
-	/* Ã½ÌåÎÄ¼şĞÅÏ¢.	*/
+	/* åª’ä½“æ–‡ä»¶ä¿¡æ¯.	*/
 	media_info *media;
-	/* Ã½ÌåÎÄ¼şĞÅÏ¢¸öÊı.	*/
+	/* åª’ä½“æ–‡ä»¶ä¿¡æ¯ä¸ªæ•°.	*/
 	int media_size;
-	/* µ±Ç°²¥·ÅÊı¾İÆ«ÒÆ, ¾ø¶ÔÎ»ÖÃ.	*/
+	/* å½“å‰æ’­æ”¾æ•°æ®åç§», ç»å¯¹ä½ç½®.	*/
 	int64_t offset;
 } media_source;
 
-/* Êı¾İÔ´½á¹¹·ÖÅäºÍÊÍ·Å. */
+/* æ•°æ®æºç»“æ„åˆ†é…å’Œé‡Šæ”¾. */
 EXPORT_API media_source* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
 EXPORT_API void free_media_source(media_source *src);
 
 
-/* ÒôÆµ²¥·Å½Ó¿Ú. */
+/* éŸ³é¢‘æ’­æ”¾æ¥å£. */
 typedef struct audio_render
 {
 	int (*init_audio)(void **ctx, uint32_t channels, uint32_t bits_per_sample,
@@ -118,11 +118,11 @@ typedef struct audio_render
 	void *ctx;
 } audio_render;
 
-/* ÒôÆµ½á¹¹·ÖÅäºÍÊÍ·Å. */
+/* éŸ³é¢‘ç»“æ„åˆ†é…å’Œé‡Šæ”¾. */
 EXPORT_API audio_render* alloc_audio_render();
 EXPORT_API void free_audio_render(audio_render *render);
 
-/* ÊÓÆµ²¥·Å½Ó¿Ú. */
+/* è§†é¢‘æ’­æ”¾æ¥å£. */
 typedef struct video_render
 {
 	int (*init_video)(void **ctx, void* user_data,int w, int h, int pix_fmt);
@@ -135,35 +135,35 @@ typedef struct video_render
 	void *user_data; /* for window hwnd. */
 } video_render;
 
-/* ÊÓÆµäÖÈ¾½á¹¹·ÖÅäºÍÊÍ·Å. */
+/* è§†é¢‘æ¸²æŸ“ç»“æ„åˆ†é…å’Œé‡Šæ”¾. */
 EXPORT_API video_render* alloc_video_render(void *user_data);
 EXPORT_API void free_video_render(video_render *render);
 
 
 typedef struct avplay
 {
-	/* ÎÄ¼ş´ò¿ªÖ¸Õë. */
+	/* æ–‡ä»¶æ‰“å¼€æŒ‡é’ˆ. */
 	AVFormatContext *m_format_ctx;
 
-	/* ÒôÊÓÆµ¶ÓÁĞ.	*/
+	/* éŸ³è§†é¢‘é˜Ÿåˆ—.	*/
 	av_queue m_audio_q;
 	av_queue m_video_q;
 	av_queue m_audio_dq;
 	av_queue m_video_dq;
 
-	/* ¸÷½âÂëäÖÈ¾Ïß³Ì.	*/
+	/* å„è§£ç æ¸²æŸ“çº¿ç¨‹.	*/
 	pthread_t m_audio_dec_thrd;
 	pthread_t m_video_dec_thrd;
 	pthread_t m_audio_render_thrd;
 	pthread_t m_video_render_thrd;
 	pthread_t m_read_pkt_thrd;
 
-	/* ÖØ²ÉÑùÒôÆµÖ¸Õë.	*/
+	/* é‡é‡‡æ ·éŸ³é¢‘æŒ‡é’ˆ.	*/
 	struct SwsContext *m_swsctx;
 	AVAudioConvert *m_audio_convert_ctx;
 	ReSampleContext *m_resample_ctx;
 
-	/* ÒôÆµºÍÊÓÆµµÄAVStream¡¢AVCodecContextÖ¸ÕëºÍindex.	*/
+	/* éŸ³é¢‘å’Œè§†é¢‘çš„AVStreamã€AVCodecContextæŒ‡é’ˆå’Œindex.	*/
 	AVCodecContext *m_audio_ctx;
 	AVCodecContext *m_video_ctx;
 	AVStream *m_audio_st;
@@ -171,25 +171,25 @@ typedef struct avplay
 	int m_audio_index;
 	int m_video_index;
 
-	/* ¶ÁÈ¡Êı¾İ°üÕ¼ÓÃ»º³å´óĞ¡.	*/
+	/* è¯»å–æ•°æ®åŒ…å ç”¨ç¼“å†²å¤§å°.	*/
 	long volatile m_pkt_buffer_size;
 	pthread_mutex_t m_buf_size_mtx;
 
-	/* Í¬²½ÀàĞÍ. */
+	/* åŒæ­¥ç±»å‹. */
 	int m_av_sync_type;
 
 	/*
-	 * ÓÃÓÚ¼ÆËãÊÓÆµ²¥·ÅÊ±¼ä
-	 * ¼´:  m_video_current_pts_drift = m_video_current_pts - time();
-	 *      m_video_current_ptsÊÇµ±Ç°²¥·ÅÖ¡µÄptsÊ±¼ä, ËùÒÔÔÚptsÏòÇ°ÍÆ½ø
-	 *      µÄÍ¬Ê±, timeÒ²Í¬ÑùÔÚÏòÇ°ÍÆ½ø, ËùÒÔpts_drift»ù±¾±£´æÔÚÒ»¸ö
-	 *      time_base·¶Î§ÄÚ¸¡¶¯.
-	 * ²¥·ÅÊ±¼ä = m_video_current_pts_drift - time()
+	 * ç”¨äºè®¡ç®—è§†é¢‘æ’­æ”¾æ—¶é—´
+	 * å³:  m_video_current_pts_drift = m_video_current_pts - time();
+	 *      m_video_current_ptsæ˜¯å½“å‰æ’­æ”¾å¸§çš„ptsæ—¶é—´, æ‰€ä»¥åœ¨ptså‘å‰æ¨è¿›
+	 *      çš„åŒæ—¶, timeä¹ŸåŒæ ·åœ¨å‘å‰æ¨è¿›, æ‰€ä»¥pts_driftåŸºæœ¬ä¿å­˜åœ¨ä¸€ä¸ª
+	 *      time_baseèŒƒå›´å†…æµ®åŠ¨.
+	 * æ’­æ”¾æ—¶é—´ = m_video_current_pts_drift - time()
 	 */
 	double m_video_current_pts_drift;
 	double m_video_current_pts;
 
-	/* ÒÔÏÂ±äÁ¿ÓÃÓÚ¼ÆËãÒôÊÓÆµÍ¬²½.	*/
+	/* ä»¥ä¸‹å˜é‡ç”¨äºè®¡ç®—éŸ³è§†é¢‘åŒæ­¥.	*/
 	double m_frame_timer;
 	double m_frame_last_pts;
 	double m_frame_last_duration;
@@ -201,46 +201,47 @@ typedef struct avplay
 	int64_t m_video_current_pos;
 	int m_drop_frame_num;
 
-	/* seekÊµÏÖ. */
+	/* seekå®ç°. */
 	int m_read_pause_return;
 	int m_seek_req;
 	int m_seek_flags;
 	int64_t m_seek_pos;
 	int64_t m_seek_rel;
 	int m_seek_by_bytes;
+	int m_seeking;
 
-	/* ×îºóÒ»¸ö½âÂëÖ¡µÄpts, ½âÂëÖ¡»º³å´óĞ¡Îª2, Ò²¾ÍÊÇµ±Ç°²¥·ÅÖ¡µÄÏÂÒ»Ö¡.	*/
+	/* æœ€åä¸€ä¸ªè§£ç å¸§çš„pts, è§£ç å¸§ç¼“å†²å¤§å°ä¸º2, ä¹Ÿå°±æ˜¯å½“å‰æ’­æ”¾å¸§çš„ä¸‹ä¸€å¸§.	*/
 	double m_audio_clock;
 	double m_video_clock;
 	double m_external_clock;
 	double m_external_clock_time;
 
-	/* µ±Ç°Êı¾İÔ´¶ÁÈ¡Æ÷. */
+	/* å½“å‰æ•°æ®æºè¯»å–å™¨. */
 	media_source *m_media_source;
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
 	pthread_mutex_t m_source_mtx;
-	/* µ±Ç°ÒôÆµäÖÈ¾Æ÷.	*/
+	/* å½“å‰éŸ³é¢‘æ¸²æŸ“å™¨.	*/
 	audio_render *m_audio_render;
-	/* µ±Ç°ÊÓÆµäÖÈ¾Æ÷. */
+	/* å½“å‰è§†é¢‘æ¸²æŸ“å™¨. */
 	video_render *m_video_render;
-	/* µ±Ç°äÖÈ¾Æ÷µÄÀàĞÍ. */
+	/* å½“å‰æ¸²æŸ“å™¨çš„ç±»å‹. */
 	int m_video_render_type;
 
-	/* µ±Ç°ÒôÆµ²¥·Åbuffer´óĞ¡.	*/
+	/* å½“å‰éŸ³é¢‘æ’­æ”¾bufferå¤§å°.	*/
 	uint32_t m_audio_buf_size;
 
-	/* µ±Ç°ÒôÆµÒÑ¾­²¥·ÅbufferµÄÎ»ÖÃ.	*/
+	/* å½“å‰éŸ³é¢‘å·²ç»æ’­æ”¾bufferçš„ä½ç½®.	*/
 	uint32_t m_audio_buf_index;
 	int32_t m_audio_write_buf_size;
 	double m_audio_current_pts_drift;
 
-	/* ²¥·Å×´Ì¬. */
+	/* æ’­æ”¾çŠ¶æ€. */
 	play_status m_play_status;
-	/* ÕıÔÚ²¥·ÅµÄË÷Òı, Ö»ÓÃÓÚBTÎÄ¼ş²¥·Å. */
+	/* æ­£åœ¨æ’­æ”¾çš„ç´¢å¼•, åªç”¨äºBTæ–‡ä»¶æ’­æ”¾. */
 	int m_current_play_index;
 
-	/* Í£Ö¹±êÖ¾.	*/
+	/* åœæ­¢æ ‡å¿—.	*/
 	int m_abort;
 
 } avplay;
