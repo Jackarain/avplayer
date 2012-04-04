@@ -113,7 +113,7 @@ typedef struct control_vol_s {
    float right;
 } control_vol_t;
 
-// ²¥·Å¿ØÖÆ¶¨Òå
+// æ’­æ”¾æ§åˆ¶å®šä¹‰
 #define CONTROL_GET_VOLUME 1
 #define CONTROL_SET_VOLUME 2
 
@@ -124,16 +124,16 @@ public:
    virtual ~audio_render() {}
 
 public:
-   // ³õÊ¼»¯ÒôÆµÊä³ö.
+   // åˆå§‹åŒ–éŸ³é¢‘è¾“å‡º.
    virtual bool init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format) = 0;
 
-   // ²¥·ÅÒôÆµÊı¾İ.
+   // æ’­æ”¾éŸ³é¢‘æ•°æ®.
    virtual int play_audio(uint8_t* data, uint32_t size) = 0;
 
-   // ÒôÆµ²¥·Å¿ØÖÆ, cmdÎªCONTROL_¿ªÊ¼µÄºê¶¨Òå.
+   // éŸ³é¢‘æ’­æ”¾æ§åˆ¶, cmdä¸ºCONTROL_å¼€å§‹çš„å®å®šä¹‰.
    virtual void audio_control(int cmd, void* arg) = 0;
 
-   // Ïú»ÙÒôÆµÊä³ö×é¼ş.
+   // é”€æ¯éŸ³é¢‘è¾“å‡ºç»„ä»¶.
    virtual void destory_audio() = 0;
 };
 

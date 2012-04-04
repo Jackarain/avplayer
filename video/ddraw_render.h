@@ -33,22 +33,22 @@ public:
 	virtual ~ddraw_render();
 
 public:
-	// ³õÊ¼render.
+	// åˆå§‹render.
 	virtual bool init_render(void* ctx, int w, int h, int pix_fmt);
 
-	// äÖÈ¾Ò»Ö¡.
+	// æ¸²æŸ“ä¸€å¸§.
 	virtual bool render_one_frame(AVFrame* data, int pix_fmt);
 
-	// µ÷Õû´óĞ¡.
+	// è°ƒæ•´å¤§å°.
 	virtual void re_size(int width, int height);
 
-	// ÉèÖÃ¿í¸ß±È.
+	// è®¾ç½®å®½é«˜æ¯”.
 	virtual void aspect_ratio(int srcw, int srch, bool enable_aspect);
 
-	// ÊÇ·ñÊ¹ÓÃoverlayÄ£Ê½äÖÈ¾.
+	// æ˜¯å¦ä½¿ç”¨overlayæ¨¡å¼æ¸²æŸ“.
 	virtual bool use_overlay() { return m_support_double_buffer; }
 
-	// ³·Ïúrender.
+	// æ’¤é”€render.
 	virtual void destory_render();
 
 private:
@@ -59,28 +59,28 @@ private:
 	bool draw_slice(uint8_t* dst, uint8_t* src[], int stride[], int dstStride, int w, int h, int x, int y);
 
 private:
-	// ddrawÖ¸Õë.
+	// ddrawæŒ‡é’ˆ.
 	LPDIRECTDRAW7 m_ddraw;
 
-	// Ö÷±í²ã.
+	// ä¸»è¡¨å±‚.
 	LPDIRECTDRAWSURFACE7 m_main_face;
 
-	// ÀëÆÁ±í²ã.
+	// ç¦»å±è¡¨å±‚.
 	LPDIRECTDRAWSURFACE7 m_back_face;
 
-	// overlay±í²ã.
+	// overlayè¡¨å±‚.
 	LPDIRECTDRAWSURFACE7 m_overlay_face;
 
-	// ²Ã¼ôÆ÷.
+	// è£å‰ªå™¨.
 	LPDIRECTDRAWCLIPPER m_clipper;
 
-	// DDRAWÊÇ·ñÖ§³Öoverlay.
+	// DDRAWæ˜¯å¦æ”¯æŒoverlay.
 	bool m_support_overlay;
 
-	// DDRAWÊÇ·ñÖ§³Ödoublebuffer.
+	// DDRAWæ˜¯å¦æ”¯æŒdoublebuffer.
 	bool m_support_double_buffer;
 
-	// DDRAWÊÇ·ñÖ§³Öfourcc.
+	// DDRAWæ˜¯å¦æ”¯æŒfourcc.
 	bool m_can_blit_fourcc;
 
 	// colorkey for our surface.
@@ -89,37 +89,37 @@ private:
 	// windowcolor == colorkey
 	DWORD m_windowcolor;
 
-	// ×ª»»ÑÕÉ«ÉÏÏÂÎÄÖ¸Õë.
+	// è½¬æ¢é¢œè‰²ä¸Šä¸‹æ–‡æŒ‡é’ˆ.
 	SwsContext* m_swsctx;
 
-	// ×ª»»ÑÕÉ«buffer.
+	// è½¬æ¢é¢œè‰²buffer.
 	uint8_t* m_swsbuffer;
 
-	// µ±Ç°±í²ãÏñËØ¸ñÊ½.
+	// å½“å‰è¡¨å±‚åƒç´ æ ¼å¼.
 	DWORD m_pix_fmt;
 
-	// ÊÓÆµÊı¾İÏñËØ¸ñÊ½.
+	// è§†é¢‘æ•°æ®åƒç´ æ ¼å¼.
 	int m_video_fmt;
 
-	// µ±Ç°ÏÔÊ¾Æ÷µÄÇøÓò.
+	// å½“å‰æ˜¾ç¤ºå™¨çš„åŒºåŸŸ.
 	RECT m_monitor_rect;
 
-	// µ±Ç°ÇøÓò.
+	// å½“å‰åŒºåŸŸ.
 	RECT m_last_rect;
 
-	// ±£³Ö¿í¸ß.
+	// ä¿æŒå®½é«˜.
 	bool m_keep_aspect;
 
-	// ¿í¸ß±È.
+	// å®½é«˜æ¯”.
 	float m_window_aspect;
 
-	// ¿í.
+	// å®½.
 	int m_image_width;
 
-	// ¸ß.
+	// é«˜.
 	int m_image_height;
 
-	// ´°¿Ú¾ä±ú.
+	// çª—å£å¥æŸ„.
 	HWND m_hWnd;
 };
 

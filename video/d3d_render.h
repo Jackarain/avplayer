@@ -37,19 +37,19 @@ public:
 	virtual ~d3d_render();
 
 public:
-	/* ³õÊ¼render.	*/
+	/* åˆå§‹render.	*/
 	virtual bool init_render(void* ctx, int w, int h, int pix_fmt);
 
-	/* äÖÈ¾Ò»Ö¡.	*/
+	/* æ¸²æŸ“ä¸€å¸§.	*/
 	virtual bool render_one_frame(AVFrame* data, int pix_fmt);
 
-	/* µ÷Õû´óĞ¡.	*/
+	/* è°ƒæ•´å¤§å°.	*/
 	virtual void re_size(int width, int height);
 
-	/* ÉèÖÃ¿í¸ß±È.	*/
+	/* è®¾ç½®å®½é«˜æ¯”.	*/
 	virtual void aspect_ratio(int srcw, int srch, bool enable_aspect);
 
-	/* ³·Ïúrender.		*/
+	/* æ’¤é”€render.		*/
 	virtual void destory_render();
 
 private:
@@ -94,10 +94,10 @@ private:
 	int m_image_width;
 	int m_image_height;
 
-	/* ±£³Ö¿í¸ß.	*/
+	/* ä¿æŒå®½é«˜.	*/
 	bool m_keep_aspect;
 
-	/* ¿í¸ß±È.		*/
+	/* å®½é«˜æ¯”.		*/
 	float m_window_aspect;
 };
 

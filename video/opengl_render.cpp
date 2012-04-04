@@ -137,7 +137,7 @@ bool opengl_render::render_one_frame(AVFrame* data, int pix_fmt)
 			height = tmpheight;
 		}
 
-		// æ”÷–∂‘∆Î.
+		// Â±Ö‰∏≠ÂØπÈΩê.
 		rect_client.left += ((win_width - width) / 2);
 		rect_client.top += ((win_height - height) / 2);
 		rect_client.bottom -= ((win_height - height) / 2);

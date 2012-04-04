@@ -24,16 +24,16 @@ public:
    virtual ~wave_render();
 
 public:
-   // ³õÊ¼»¯ÒôÆµÊä³ö.
+   // åˆå§‹åŒ–éŸ³é¢‘è¾“å‡º.
    virtual bool init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format);
 
-   // ²¥·ÅÒôÆµÊı¾İ.
+   // æ’­æ”¾éŸ³é¢‘æ•°æ®.
    virtual int play_audio(uint8_t* data, uint32_t size);
 
-   // ÒôÆµ²¥·Å¿ØÖÆ, cmdÎªCONTROL_¿ªÊ¼µÄºê¶¨Òå.
+   // éŸ³é¢‘æ’­æ”¾æ§åˆ¶, cmdä¸ºCONTROL_å¼€å§‹çš„å®å®šä¹‰.
    virtual void audio_control(int cmd, void* arg);
 
-   // Ïú»ÙÒôÆµÊä³ö×é¼ş.
+   // é”€æ¯éŸ³é¢‘è¾“å‡ºç»„ä»¶.
    virtual void destory_audio();
 
 private:
@@ -41,19 +41,19 @@ private:
       DWORD dwParam1,DWORD dwParam2);
 
 private:
-   // waveOut¾ä±ú.
+   // waveOutå¥æŸ„.
    HWAVEOUT m_hwaveout;
 
-   // »º³å´óĞ¡.
+   // ç¼“å†²å¤§å°.
    int m_buffersize;
 
    // pointer to our ringbuffer memory.
    WAVEHDR* m_wave_blocks;
 
-   // Ğ´ÈëÎ»ÖÃ.
+   // å†™å…¥ä½ç½®.
    unsigned int m_buf_write;
 
-   // ²¥·ÅÎ»ÖÃ.
+   // æ’­æ”¾ä½ç½®.
    volatile int m_buf_read;
 };
 

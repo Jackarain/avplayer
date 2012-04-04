@@ -43,22 +43,22 @@ public:
    virtual ~video_render() {}
 
 public:
-   // ³õÊ¼render.
+   // åˆå§‹render.
    virtual bool init_render(void* ctx, int w, int h, int pix_fmt) = 0;
 
-   // äÖÈ¾Ò»Ö¡.
+   // æ¸²æŸ“ä¸€å¸§.
    virtual bool render_one_frame(AVFrame* data, int pix_fmt) = 0;
 
-   // µ÷Õû´óĞ¡.
+   // è°ƒæ•´å¤§å°.
    virtual void re_size(int width, int height) = 0;
 
-   // ÉèÖÃ¿í¸ß±È.
+   // è®¾ç½®å®½é«˜æ¯”.
    virtual void aspect_ratio(int srcw, int srch, bool enable_aspect) = 0;
 
-   // ÊÇ·ñÊ¹ÓÃoverlayÄ£Ê½äÖÈ¾.
+   // æ˜¯å¦ä½¿ç”¨overlayæ¨¡å¼æ¸²æŸ“.
    virtual bool use_overlay() { return false; }
 
-   // ³·Ïúrender.
+   // æ’¤é”€render.
    virtual void destory_render() = 0;
 };
 

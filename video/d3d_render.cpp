@@ -62,7 +62,7 @@ bool d3d_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
 	m_movie_src_fmt = (D3DFORMAT)MAKEFOURCC('Y', 'V', '1', '2');
 
-	/* ³õÊ¼»¯d3d»·¾³.	*/
+	/* åˆå§‹åŒ–d3dçŽ¯å¢ƒ.	*/
 	m_d3d_handle = Direct3DCreate9(D3D_SDK_VERSION);
 	if (!m_d3d_handle) {
 		printf("Initializing Direct3D failed.\n");
@@ -147,7 +147,7 @@ bool d3d_render::render_one_frame(AVFrame* data, int pix_fmt)
 		return false;
 	}
 
-	/*	¼ÆËãÊÓÆµÇøÓò.	*/
+	/*	è®¡ç®—è§†é¢‘åŒºåŸŸ.	*/
 	RECT rect_client = { 0 };
 	RECT rect_win = { 0 };
 	int width, height;
@@ -172,7 +172,7 @@ bool d3d_render::render_one_frame(AVFrame* data, int pix_fmt)
 			height = tmpheight;
 		}
 
-		/* ¾ÓÖÐ¶ÔÆë.	*/
+		/* å±…ä¸­å¯¹é½.	*/
 		rect_client.left += ((win_width - width) / 2);
 		rect_client.top += ((win_height - height) / 2);
 		rect_client.bottom -= ((win_height - height) / 2);
@@ -270,7 +270,7 @@ bool d3d_render::render_one_frame(AVFrame* data, int pix_fmt)
 
 	m_locked_rect.pBits = NULL;
 
-	/* äÖÈ¾³¡¾°.	*/
+	/* æ¸²æŸ“åœºæ™¯.	*/
 	hr = m_d3d_device->BeginScene();
 	if (FAILED(hr))
 	{
@@ -380,7 +380,7 @@ void d3d_render::fill_d3d_presentparams(D3DPRESENT_PARAMETERS *present_params)
 	present_params->SwapEffect             = D3DSWAPEFFECT_COPY;
 	present_params->Flags                  = D3DPRESENTFLAG_VIDEO;
 	present_params->hDeviceWindow          = m_hwnd; /* w32_common var */
-	//    present_params->BackBufferWidth        = 0; /* ·ÀÖ¹ÉÁË¸, ¸³ÖµÎª0, Ô­Òò²»Ïê. */
+	//    present_params->BackBufferWidth        = 0; /* é˜²æ­¢é—ªçƒ, èµ‹å€¼ä¸º0, åŽŸå› ä¸è¯¦. */
 	//    present_params->BackBufferHeight       = 0;
 	present_params->MultiSampleType        = D3DMULTISAMPLE_NONE;
 	present_params->PresentationInterval   = D3DPRESENT_INTERVAL_ONE;

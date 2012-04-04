@@ -68,7 +68,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
 	if (m_ddraw == NULL)
 	{
-		// ´´½¨ddraw¾ä±ú.
+		// åˆ›å»ºddrawå¥æŸ„.
 		if (DirectDrawCreateEx(NULL, (VOID**)&m_ddraw, IID_IDirectDraw7, NULL) != DD_OK)
 		{
 			printf("Create ddraw failed.\n");
@@ -76,7 +76,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 			return false;
 		}
 
-		// ÉèÖÃĞ­×÷¼¶±ğ.
+		// è®¾ç½®åä½œçº§åˆ«.
 		if (m_ddraw->SetCooperativeLevel(m_hWnd, DDSCL_NORMAL) != DD_OK)
 		{
 			printf("Set cooperative level failed.\n");
@@ -84,7 +84,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 			return false;
 		}
 
-		// ¼ì²éddrawÊÇ·ñÖ§³Öoverlay.
+		// æ£€æŸ¥ddrawæ˜¯å¦æ”¯æŒoverlay.
 		check_overlay();
 	}
 
@@ -94,7 +94,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 		m_main_face = NULL;
 	}
 
-	// ´´½¨Ö÷±í²ã.
+	// åˆ›å»ºä¸»è¡¨å±‚.
 	DDSURFACEDESC2 ddsd;
 	ZeroMemory(&ddsd, sizeof(ddsd));
 	ddsd.dwSize = sizeof(DDSURFACEDESC2);
@@ -114,7 +114,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 		m_clipper = NULL;
 	}
 
-	// ´´½¨ÔÔ¼ôÆ÷.
+	// åˆ›å»ºæ ½å‰ªå™¨.
 	LPDIRECTDRAWCLIPPER cliper;
 	if(m_ddraw->CreateClipper(0, &cliper, NULL) != DD_OK)
 	{
@@ -142,7 +142,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
 	m_clipper = cliper;
 
-	// ²éÕÒÑÕÉ«key.
+	// æŸ¥æ‰¾é¢œè‰²key.
 	COLORREF rgbT;
 	HDC hdc;
 	m_destcolorkey = CLR_INVALID;
@@ -170,7 +170,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 		m_main_face->ReleaseDC(hdc);
 	}
 
-	// ´´½¨±í²ã.
+	// åˆ›å»ºè¡¨å±‚.
 	m_pix_fmt = -1;
 	for (uint32_t i = 0; i < DDPF_NUM_FORMATS; i++)
 	{
@@ -183,7 +183,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 	if (m_pix_fmt == -1)
 	{
 		printf("Create overlay surface failed.\n");
-		// Ê¹ÓÃÆÕÍ¨surfaceÀ´äÖÈ¾.
+		// ä½¿ç”¨æ™®é€šsurfaceæ¥æ¸²æŸ“.
 		m_support_overlay = false;
 		m_support_double_buffer = false;
 
@@ -203,7 +203,7 @@ bool ddraw_render::init_render(void* ctx, int w, int h, int pix_fmt)
 		}
 	}
 
-	// Ë¢ĞÂÏÂ´°¿Ú, ·ñÔò¿ÉÄÜ»áÕ´×¡´°¿ÚÏÂÃæµÄÔªËØÍ¼Ïñ.
+	// åˆ·æ–°ä¸‹çª—å£, å¦åˆ™å¯èƒ½ä¼šæ²¾ä½çª—å£ä¸‹é¢çš„å…ƒç´ å›¾åƒ.
 	InvalidateRect(m_hWnd, NULL, TRUE);
 
 	m_window_aspect = (float)w / (float)h;
@@ -288,7 +288,7 @@ bool ddraw_render::render_one_frame(AVFrame* data, int pix_fmt)
 		ddsd.lPitch >> 1, 
 		ddsd.lPitch >> 1 };
 
-	// ddraw ÏñËØ¸ñÊ½.
+	// ddraw åƒç´ æ ¼å¼.
 	PixelFormat ddraw_fmt;
 	if (dx_fourcc[m_pix_fmt].img_format == FOURCC_PIX_FMT_YUV420P ||
 		dx_fourcc[m_pix_fmt].img_format == FOURCC_PIX_FMT_IYUV)
@@ -389,7 +389,7 @@ bool ddraw_render::render_one_frame(AVFrame* data, int pix_fmt)
 		if(hr != DD_OK)
 			printf("can't flip page.\n");
 	}
-	else // ·Çoverlay Ä£Ê½äÖÈ¾.
+	else // éoverlay æ¨¡å¼æ¸²æŸ“.
 	{
 		DDBLTFX  ddbltfx;
 		// ask for the "NOTEARING" option.
@@ -426,7 +426,7 @@ bool ddraw_render::render_one_frame(AVFrame* data, int pix_fmt)
 				height = tmpheight;
 			}
 
-			// ¾ÓÖĞ¶ÔÆë.
+			// å±…ä¸­å¯¹é½.
 			rect_window.left += ((win_width - width) / 2);
 			rect_window.top += ((win_height - height) / 2);
 			rect_window.bottom -= ((win_height - height) / 2);
@@ -488,7 +488,7 @@ void ddraw_render::re_size(int width, int height)
 				height = tmpheight;
 			}
 
-			// ¾ÓÖĞ¶ÔÆë.
+			// å±…ä¸­å¯¹é½.
 			rect_client.left += ((win_width - width) / 2);
 			rect_client.top += ((win_height - height) / 2);
 			rect_client.bottom -= ((win_height - height) / 2);
@@ -613,7 +613,7 @@ bool ddraw_render::create_overlay_face(uint32_t fmt, bool must_overlay)
 	DDSURFACEDESC2 ddsdOverlay;
 	uint32_t i = 0;
 
-	// ²éÕÒÖ§³ÖµÄ¸ñÊ½.
+	// æŸ¥æ‰¾æ”¯æŒçš„æ ¼å¼.
 	while (i < DDPF_NUM_FORMATS && fmt != dx_fourcc[i].img_format)
 		i++;
 
@@ -756,7 +756,7 @@ bool ddraw_render::manage_display()
 				height = tmpheight;
 			}
 
-			// ¾ÓÖĞ¶ÔÆë.
+			// å±…ä¸­å¯¹é½.
 			rd.left += ((win_width - width) / 2);
 			rd.top += ((win_height - height) / 2);
 		}

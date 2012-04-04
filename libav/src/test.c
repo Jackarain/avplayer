@@ -11,7 +11,7 @@
 #include <crtdbg.h>
 #include <cassert>
 
-// 并在main入口函数调用
+// 骞跺湪main鍏ュ彛鍑芥暟璋冪敤
 void heap_debug()
 {
 	int tmpFlag = _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG );

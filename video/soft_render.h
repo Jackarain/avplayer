@@ -22,47 +22,47 @@ public:
    virtual ~soft_render();
 
 public:
-   // ³õÊ¼render.
+   // åˆå§‹render.
    virtual bool init_render(void* ctx, int w, int h, int pix_fmt);
 
-   // äÖÈ¾Ò»Ö¡.
+   // æ¸²æŸ“ä¸€å¸§.
    virtual bool render_one_frame(AVFrame* data, int pix_fmt);
 
-   // µ÷Õû´óĞ¡.
+   // è°ƒæ•´å¤§å°.
    virtual void re_size(int width, int height);
 
-   // ÉèÖÃ¿í¸ß±È.
+   // è®¾ç½®å®½é«˜æ¯”.
    virtual void aspect_ratio(int srcw, int srch, bool enable_aspect);
 
-   // ³·Ïúrender.
+   // æ’¤é”€render.
    virtual void destory_render();
 
 private:
-   // ´°¿Ú¾ä±ú.
+   // çª—å£å¥æŸ„.
    HWND m_hwnd;
 
-   // »­Ãædc.
+   // ç”»é¢dc.
    HDC m_hdc;
 
-   // GDI+µÄÖ¸Õë.
+   // GDI+çš„æŒ‡é’ˆ.
    ULONG_PTR m_gdiplusToken;
 
-   // Ö¡»º³å.
+   // å¸§ç¼“å†².
    uint8_t* m_framebuffer;
 
-   // ÓÃÓÚ×ª»»Ö¡Êı¾İ¸ñÊ½.
+   // ç”¨äºè½¬æ¢å¸§æ•°æ®æ ¼å¼.
    SwsContext* m_swsctx;
 
-   // ÊÓÆµ¿í.
+   // è§†é¢‘å®½.
    int m_image_width;
 
-   // ÊÓÆµ¸ß.
+   // è§†é¢‘é«˜.
    int m_image_height;
 
-   // ÊÇ·ñÆôÓÃ¿í¸ß±È.
+   // æ˜¯å¦å¯ç”¨å®½é«˜æ¯”.
    bool m_keep_aspect;
 
-   // ¿í¸ß±È.
+   // å®½é«˜æ¯”.
    float m_window_aspect;
 };
 

@@ -16,11 +16,11 @@
 
 struct open_file_data 
 {
-   // ÊÇ·ñÊÇ¶àÏß³Ì·ÃÎÊ, Èç¹ûµ¥Ïß³Ì·ÃÎÊ
-   // , ÔòÄÚ²¿×Ô¶¯Ê¹ÓÃÎŞËøÉè¼Æ.
+   // æ˜¯å¦æ˜¯å¤šçº¿ç¨‹è®¿é—®, å¦‚æœå•çº¿ç¨‹è®¿é—®
+   // , åˆ™å†…éƒ¨è‡ªåŠ¨ä½¿ç”¨æ— é”è®¾è®¡.
    bool is_multithread;
 
-   // ´ò¿ªÎÄ¼şÃû.
+   // æ‰“å¼€æ–‡ä»¶å.
    std::string filename;
 };
 
@@ -32,17 +32,17 @@ public:
    virtual ~file_source();
 
 public:
-   // ´ò¿ª.
+   // æ‰“å¼€.
    virtual bool open(void* ctx);
 
-   // ¶ÁÈ¡Êı¾İ.
+   // è¯»å–æ•°æ®.
    virtual bool read_data(char* data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size);
 
-   // ¹Ø±Õ.
+   // å…³é—­.
    virtual void close();
 
 private:
-   // Ñ­»·»º³å²Ù×÷º¯Êı.
+   // å¾ªç¯ç¼“å†²æ“ä½œå‡½æ•°.
    unsigned int put_data(char* buffer, unsigned int len);
    unsigned int get_data(char* buffer, unsigned int len);
    inline unsigned int available_size() { return m_write_p - m_read_p; }
@@ -50,31 +50,31 @@ private:
    inline unsigned int _min(unsigned int a, unsigned int b);
 
 private:
-   // ÎÄ¼ş´ò¿ª½á¹¹.
+   // æ–‡ä»¶æ‰“å¼€ç»“æ„.
    boost::shared_ptr<open_file_data> m_open_data;
 
-   // ÎÄ¼şÖ¸Õë.
+   // æ–‡ä»¶æŒ‡é’ˆ.
    FILE* m_file;
 
-   // ÎÄ¼ş´óĞ¡.
+   // æ–‡ä»¶å¤§å°.
    boost::uint64_t m_file_size;
 
-   // Ñ­»·»º³åÎ»ÖÃ.
+   // å¾ªç¯ç¼“å†²ä½ç½®.
    unsigned int m_offset;
 
-   // Ñ­»·»º³åÇø.
+   // å¾ªç¯ç¼“å†²åŒº.
    char* m_circle_buffer;
 
-   // »º³å´óĞ¡.
+   // ç¼“å†²å¤§å°.
    unsigned int m_buffer_size;
 
-   // Ğ´Ö¸ÕëÏÂ±ê.
+   // å†™æŒ‡é’ˆä¸‹æ ‡.
    unsigned int m_write_p;
 
-   // ¶ÁÖ¸ÕëÏÂ±ê.
+   // è¯»æŒ‡é’ˆä¸‹æ ‡.
    unsigned int m_read_p;
 
-   // Ïß³Ì°²È«Ëø.
+   // çº¿ç¨‹å®‰å…¨é”.
    mutable boost::mutex m_mutex;
 };
 

@@ -22,19 +22,19 @@ public:
 	virtual ~opengl_render();
 
 public:
-	// ³õÊ¼render.
+	// åˆå§‹render.
 	virtual bool init_render(void* ctx, int w, int h, int pix_fmt);
 
-	// äÖÈ¾Ò»Ö¡.
+	// æ¸²æŸ“ä¸€å¸§.
 	virtual bool render_one_frame(AVFrame* data, int pix_fmt);
 
-	// µ÷Õû´óĞ¡.
+	// è°ƒæ•´å¤§å°.
 	virtual void re_size(int width, int height);
 
-	// ÉèÖÃ¿í¸ß±È.
+	// è®¾ç½®å®½é«˜æ¯”.
 	virtual void aspect_ratio(int srcw, int srch, bool enable_aspect);
 
-	// ³·Ïúrender.
+	// æ’¤é”€render.
 	virtual void destory_render();
 
 private:
@@ -42,43 +42,43 @@ private:
 	GLvoid KillGLWindow(GLvoid);
 
 private:
-	// ´°¿Ú×ÅÉ«ÃèÊö±í¾ä±ú.
+	// çª—å£ç€è‰²æè¿°è¡¨å¥æŸ„.
 	HGLRC m_hglrc;
 
-	// ±£´æ´°¿Ú¾ä±ú.
+	// ä¿å­˜çª—å£å¥æŸ„.
 	HWND m_hwnd;
 
-	// OpenGLäÖÈ¾ÃèÊö±í¾ä±ú.
+	// OpenGLæ¸²æŸ“æè¿°è¡¨å¥æŸ„.
 	HDC m_hdc;
 
-	// ×ª»»ÑÕÉ«YUVµ½RGBµÄÉÏÏÂÎÄÖ¸Õë.
+	// è½¬æ¢é¢œè‰²YUVåˆ°RGBçš„ä¸Šä¸‹æ–‡æŒ‡é’ˆ.
 	SwsContext* m_swsctx;
 
-	// µ±Ç°Ö¡µÄRGB»º³å.
+	// å½“å‰å¸§çš„RGBç¼“å†².
 	uint8_t* m_framebuffer;
 
-	// µ±Ç°äÖÈ¾ÎÆÀí.
+	// å½“å‰æ¸²æŸ“çº¹ç†.
 	GLuint m_texture;
 
-	// ÊÓÆµ¿í.
+	// è§†é¢‘å®½.
 	int m_image_width;
 
-	// ÊÓÆµ¸ß.
+	// è§†é¢‘é«˜.
 	int m_image_height;
 
-	// ÊÇ·ñÆôÓÃ¿í¸ß±È.
+	// æ˜¯å¦å¯ç”¨å®½é«˜æ¯”.
 	bool m_keep_aspect;
 
-	// ¿í¸ß±È.
+	// å®½é«˜æ¯”.
 	float m_window_aspect;
 
-	// ×îºóÎ»ÖÃ²ÎÊı.
+	// æœ€åä½ç½®å‚æ•°.
 	RECT m_last_rect_client;
 
-	// µ±Ç°¿í.
+	// å½“å‰å®½.
 	int m_current_width;
 
-	// µ±Ç°¸ß.
+	// å½“å‰é«˜.
 	int m_current_height;
 };
 

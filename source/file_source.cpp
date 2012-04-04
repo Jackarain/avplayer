@@ -23,25 +23,25 @@ file_source::~file_source()
 
 bool file_source::open(void* ctx)
 {
-   // ±£´æctx.
+   // ä¿å­˜ctx.
    m_open_data.reset((open_file_data*)ctx);
 
-   // ´ò¿ªÎÄ¼ş.
+   // æ‰“å¼€æ–‡ä»¶.
    if (!boost::filesystem2::exists(m_open_data->filename))
       return false;
 
-   // ´´½¨»º³å.
+   // åˆ›å»ºç¼“å†².
    m_circle_buffer = new char[m_buffer_size];
    if (!m_circle_buffer)
       return false;
 
-   // ÖØÖÃÖ¸Õë.
+   // é‡ç½®æŒ‡é’ˆ.
    m_write_p = m_read_p = m_offset = 0;
 
-   // »ñµÃÎÄ¼ş´óĞ¡.
+   // è·å¾—æ–‡ä»¶å¤§å°.
    m_file_size = boost::filesystem2::file_size(m_open_data->filename);
 
-   // ´ò¿ªÎÄ¼ş.
+   // æ‰“å¼€æ–‡ä»¶.
    m_file = fopen(m_open_data->filename.c_str(), "rb");
    if (!m_file)
       return false;
@@ -52,51 +52,51 @@ bool file_source::open(void* ctx)
 bool file_source::read_data(char* data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size)
 {
    static char read_buffer[AVG_READ_SIZE];
-   // ¸ù¾İ²ÎÊı×Ô¶¯¼ÓËø.
+   // æ ¹æ®å‚æ•°è‡ªåŠ¨åŠ é”.
    boost::shared_ptr<boost::mutex::scoped_lock> lock;
    if (m_open_data->is_multithread)
       lock.reset(new boost::mutex::scoped_lock(m_mutex));
 
    read_size = 0;
 
-   // ¶ÁÈ¡Êı¾İÔ½½ç.
+   // è¯»å–æ•°æ®è¶Šç•Œ.
    if (offset >= m_file_size)
       return false;
 
 	if (!m_file)
 		return true;
 
-   // Èç¹ûÊı¾İ¶ÁÈ¡Î»ÖÃÔÚ»º³å·¶Î§ÖĞ, ÔòÖ±½Ó´Ó»º³åÖĞÀ­È¡Êı¾İ.
+   // å¦‚æœæ•°æ®è¯»å–ä½ç½®åœ¨ç¼“å†²èŒƒå›´ä¸­, åˆ™ç›´æ¥ä»ç¼“å†²ä¸­æ‹‰å–æ•°æ®.
    if (m_offset <= offset && offset < m_offset + (m_write_p - m_read_p))
    {
-      // ¼ÆËã³öÎ»ÖÃ.
+      // è®¡ç®—å‡ºä½ç½®.
       unsigned int p = offset - m_offset;
       m_read_p += p;
-      // ´Ó»º³åÖĞ¶ÁÈ¡Êı¾İ.
+      // ä»ç¼“å†²ä¸­è¯»å–æ•°æ®.
       read_size = get_data(data, size);
-      // ¸üĞÂÆ«ÒÆÎ»ÖÃ.
+      // æ›´æ–°åç§»ä½ç½®.
       m_offset = offset + read_size;
    }
    else
    {
-      // ´ÓÎÄ¼şÖĞ¶ÁÈ¡Êı¾İ.
+      // ä»æ–‡ä»¶ä¸­è¯»å–æ•°æ®.
       m_offset = offset;
       m_write_p = m_read_p = 0;
 
-      // ÒÆµ½Æ«ÒÆÎ»ÖÃ.
+      // ç§»åˆ°åç§»ä½ç½®.
       fseek(m_file, offset, SEEK_SET);
-      // ¿ªÊ¼¶ÁÈ¡Êı¾İ.
+      // å¼€å§‹è¯»å–æ•°æ®.
       int r = fread(m_circle_buffer, 1, AVG_READ_SIZE, m_file);
       m_write_p += r;
-      // ¸´ÖÆÊı¾İµ½¶ÁÈ¡buf.
+      // å¤åˆ¶æ•°æ®åˆ°è¯»å–buf.
       size = _min(AVG_READ_SIZE, size);
       memcpy(data, m_circle_buffer, size);
-      // ¸üĞÂ·µ»ØÊı¾İ´óĞ¡.
+      // æ›´æ–°è¿”å›æ•°æ®å¤§å°.
       read_size = size;
    }
 
-   // Èç¹ûĞ¡ÓÚ»º³å³¤¶ÈµÄÒ»°ë, Ôò´ÓÎÄ¼ş¶ÁÈ¡Ò»°ë»º³å³¤¶ÈµÄÊı¾İ
-   // µ½»º³å.
+   // å¦‚æœå°äºç¼“å†²é•¿åº¦çš„ä¸€åŠ, åˆ™ä»æ–‡ä»¶è¯»å–ä¸€åŠç¼“å†²é•¿åº¦çš„æ•°æ®
+   // åˆ°ç¼“å†².
    offset = m_offset + (m_write_p - m_read_p);
    if (available_size() < AVG_READ_SIZE &&
       offset < m_file_size)

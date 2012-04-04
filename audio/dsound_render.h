@@ -24,16 +24,16 @@ public:
    virtual ~dsound_render();
 
 public:
-   // ³õÊ¼»¯ÒôÆµÊä³ö.
+   // åˆå§‹åŒ–éŸ³é¢‘è¾“å‡º.
    virtual bool init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format);
 
-   // ²¥·ÅÒôÆµÊı¾İ.
+   // æ’­æ”¾éŸ³é¢‘æ•°æ®.
    virtual int play_audio(uint8_t* data, uint32_t size);
 
-   // ÒôÆµ²¥·Å¿ØÖÆ, cmdÎªCONTROL_¿ªÊ¼µÄºê¶¨Òå.
+   // éŸ³é¢‘æ’­æ”¾æ§åˆ¶, cmdä¸ºCONTROL_å¼€å§‹çš„å®å®šä¹‰.
    virtual void audio_control(int cmd, void* arg);
 
-   // Ïú»ÙÒôÆµÊä³ö×é¼ş.
+   // é”€æ¯éŸ³é¢‘è¾“å‡ºç»„ä»¶.
    virtual void destory_audio();
 
 private:
@@ -62,13 +62,13 @@ private:
    // if the free space is below this value get_space() will return 0
    int m_min_free_space;
 
-   // ÉùµÀÊı.
+   // å£°é“æ•°.
    int m_channels;
 
-   // ±ÈÌØÂÊ.
+   // æ¯”ç‰¹ç‡.
    int m_bitrate;
 
-   // ÒôÆµ¸ñÊ½.
+   // éŸ³é¢‘æ ¼å¼.
    int m_format;
 };
 

@@ -70,7 +70,7 @@ bool dsound_render::init_audio(void* ctx, DWORD channels, DWORD bits_per_sample,
 
    HRESULT hr;
    
-   // ´´½¨direct sound.
+   // åˆ›å»ºdirect sound.
    hr = DirectSoundCreate8(NULL, &m_dsound, NULL);
    if (FAILED(hr))
    {
@@ -78,7 +78,7 @@ bool dsound_render::init_audio(void* ctx, DWORD channels, DWORD bits_per_sample,
       return false;
    }
 
-   // ÉèÖÃdsoundÐ­×÷¼¶±ð.
+   // è®¾ç½®dsoundåä½œçº§åˆ«.
    hr = m_dsound->SetCooperativeLevel(GetDesktopWindow(), DSSCL_EXCLUSIVE);
    if (FAILED(hr))
    {
@@ -89,7 +89,7 @@ bool dsound_render::init_audio(void* ctx, DWORD channels, DWORD bits_per_sample,
 
    printf("DirectSound initialized.\n");
 
-   // µÃµ½ÃèÊöÐÅÏ¢.
+   // å¾—åˆ°æè¿°ä¿¡æ¯.
    DSCAPS dscaps = { 0 };
    dscaps.dwSize = sizeof(DSCAPS);
    hr = m_dsound->GetCaps(&dscaps);
@@ -204,13 +204,13 @@ int dsound_render::play_audio(uint8_t* data, uint32_t size)
    space = m_buffer_size - (m_write_offset - play_offset);
    if(space > m_buffer_size)
       space -= m_buffer_size; // write_offset < play_offset
-   // ±£Ö¤×îÐ¡¿ÕÓà¿Õ¼ä.
+   // ä¿è¯æœ€å°ç©ºä½™ç©ºé—´.
    if (space <= m_min_free_space)
       return 0;
    if(space <= size) 
       size = space - m_min_free_space;
 
-   // Ëø¶¨direct sound µÄÑ­»· buffer.
+   // é”å®šdirect sound çš„å¾ªçŽ¯ buffer.
    hr = m_dsbuffer_second->Lock(m_write_offset, size, 
       (LPVOID*)&dst_data1, (LPDWORD)&dst_bytes1, (LPVOID*)&dst_data2, (LPDWORD)&dst_bytes2, 0);
    if (DSERR_BUFFERLOST == hr)

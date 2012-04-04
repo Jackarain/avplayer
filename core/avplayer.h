@@ -16,12 +16,12 @@
 
 #pragma once
 
-// ��ý������.
+// 打开媒体类型.
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1
 
 class avplayer_impl;
-// avplayer��װ��.
+// avplayer封装类.
 class EXPORT_API avplayer
 {
 public:
@@ -29,72 +29,72 @@ public:
 	~avplayer(void);
 
 public:
-	// ��������, Ҳ����ʹ��subclasswindow���ӵ�һ��ָ���Ĵ���.
+	// 创建窗口, 也可以使用subclasswindow附加到一个指定的窗口.
 	HWND create_window(LPCTSTR player_name);
 
-	// ���ٴ���, ֻ�ܳ�������create_window�����Ĵ���.
+	// 销毁窗口, 只能撤销是由create_window创建的窗口.
 	BOOL destory_window();
 
-	// ���໯һ�����ڵĴ���, in_process������ʾ�����Ƿ���ͬһ������.
+	// 子类化一个存在的窗口, in_process参数表示窗口是否在同一进程中.
 	BOOL subclasswindow(HWND hwnd, BOOL in_process = TRUE);
 
 public:
-	// ��һ��ý���ļ�, movie���ļ���, media_type������MEDIA_TYPE_FILE,
-	// Ҳ������MEDIA_TYPE_BT, ע��, �������ֻ���ļ�, ����������.
-	// ���´��ļ�ǰ, ����ر�֮ǰ��ý���ļ�, ������ܲ����ڴ�й©!
-	// ����, �ڲ���ǰ, avplayer����ӵ��һ������.
+	// 打开一个媒体文件, movie是文件名, media_type可以是MEDIA_TYPE_FILE,
+	// 也可以是MEDIA_TYPE_BT, 注意, 这个函数只打开文件, 但并不播放.
+	// 重新打开文件前, 必须关闭之前的媒体文件, 否则可能产生内存泄漏!
+	// 另外, 在播放前, avplayer必须拥有一个窗口.
 	BOOL open(LPCTSTR movie, int media_type, int video_out_type = 0);
 
-	// ��������Ϊindex���ļ�, index��ʾ�ڲ����б��е�
-	// λ�ü���, ��0��ʼ����, index��Ҫ���ڲ��Ŷ��ļ���bt
-	// �ļ�, �����ļ����ſ���ʹ��ֱ��Ĭ��Ϊ0������Ҫ��д
-	// ����.
+	// 播放索引为index的文件, index表示在播放列表中的
+	// 位置计数, 从0开始计算, index主要用于播放多文件的bt
+	// 文件, 单个文件播放可以使用直接默认为0而不需要填写
+	// 参数.
 	BOOL play(int index = 0);
 
-	// ��ͣ����.
+	// 暂停播放.
 	BOOL pause();
 
-	// ��������.
+	// 继续播放.
 	BOOL resume();
 
-	// ֹͣ����.
+	// 停止播放.
 	BOOL stop();
 
-	// �ر�ý��, ����򿪵���һ��bt�ļ�, ��ô
-	// �����bt�ļ��е�������Ƶ�ļ������ر�.
+	// 关闭媒体, 如果打开的是一个bt文件, 那么
+	// 在这个bt文件中的所有视频文件将被关闭.
 	BOOL close();
 
-	// seek��ĳ��ʱ�䲥��, ��λ��.
+	// seek到某个时间播放, 单位秒.
 	void seek_to(double sec);
 
-	// ��������������С.
+	// 设置声音音量大小.
 	void volume(double vol);
 
-	// ȫ���л�.
+	// 全屏切换.
 	BOOL full_screen(BOOL fullscreen);
 
-	// ���ص�ǰ����ʱ��.
+	// 返回当前播放时间.
 	double curr_play_time();
 
-	// ��ǰ������Ƶ��ʱ��, ��λ��.
+	// 当前播放视频的时长, 单位秒.
 	double duration();
 
-	// ��ǰ������Ƶ�ĸ�, ��λ����.
+	// 当前播放视频的高, 单位像素.
 	int video_width();
 
-	// ��ǰ������Ƶ�Ŀ�, ��λ����.
+	// 当前播放视频的宽, 单位像素.
 	int video_height();
 
-	// ���ص�ǰ�����б��е�ý���ļ���.
+	// 返回当前播放列表中的媒体文件数.
 	int media_count();
 
-	// ���ز����б�indexλ�õ�ý���ļ���.
-	// ����nameӦ�����ⲿ�����ڴ�, ͨ��size������������
-	// �ڴ��С. �ɹ�����0, ����-1��ʾʧ��, ���ش���0��ʾ
-	// name������ڴ治��, ����ֵΪindex��Ӧ���ļ�������.
+	// 返回播放列表index位置的媒体文件名.
+	// 参数name应该在外部分配内存, 通过size参数传入分配的
+	// 内存大小. 成功返回0, 返回-1表示失败, 返回大于0表示
+	// name分配的内存不够, 返回值为index对应的文件名长度.
 	int query_media_name(int index, char *name, int size);
 
-	// ���ص�ǰ���ھ��.
+	// 返回当前窗口句柄.
 	HWND get_wnd();
 
 private:

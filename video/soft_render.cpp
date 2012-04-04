@@ -1,6 +1,6 @@
 #include "ins.h"
 
-// 使用gdi+渲染.
+// 浣跨敤gdi+娓叉煋.
 #include <gdiplus.h>
 
 #pragma comment(lib, "gdiplus.lib")
@@ -36,7 +36,7 @@ bool soft_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
    m_window_aspect = (float)w / (float)h;
 
-   // 获得内存dc.
+   // 鑾峰緱鍐呭瓨dc.
    m_hdc = GetDC(m_hwnd);
    if (!m_hdc)
    {
@@ -93,7 +93,7 @@ bool soft_render::render_one_frame(AVFrame* data, int pix_fmt)
          height = tmpheight;
       }
 
-      // 居中对齐.
+      // 灞呬腑瀵归綈.
       rect_client.left += ((win_width - width) / 2);
       rect_client.top += ((win_height - height) / 2);
       rect_client.bottom -= ((win_height - height) / 2);

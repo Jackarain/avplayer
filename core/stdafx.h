@@ -10,8 +10,8 @@
 
 #pragma once
 
-#ifndef _WIN32_WINNT		// ÔÊÐíÊ¹ÓÃÌØ¶¨ÓÚ Windows XP »ò¸ü¸ß°æ±¾µÄ¹¦ÄÜ¡£
-#define _WIN32_WINNT 0x0501	// ½«´ËÖµ¸ü¸ÄÎªÏàÓ¦µÄÖµ£¬ÒÔÊÊÓÃÓÚ Windows µÄÆäËû°æ±¾¡£
+#ifndef _WIN32_WINNT		// å…è®¸ä½¿ç”¨ç‰¹å®šäºŽ Windows XP æˆ–æ›´é«˜ç‰ˆæœ¬çš„åŠŸèƒ½ã€‚
+#define _WIN32_WINNT 0x0501	// å°†æ­¤å€¼æ›´æ”¹ä¸ºç›¸åº”çš„å€¼ï¼Œä»¥é€‚ç”¨äºŽ Windows çš„å…¶ä»–ç‰ˆæœ¬ã€‚
 #endif						
 
 #include <stdio.h>

@@ -19,13 +19,13 @@ public:
    virtual ~av_source() {}
 
 public:
-   // 打开.
+   // 鎵撳紑.
    virtual bool open(void *ctx) = 0;
 
-   // 读取数据.
+   // 璇诲彇鏁版嵁.
    virtual bool read_data(char *data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size) = 0;
 
-   // 关闭.
+   // 鍏抽棴.
    virtual void close() = 0;
 };
 
