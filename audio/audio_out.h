@@ -21,13 +21,13 @@ extern "C" {
 EXPORT_API int wave_init_audio(void** ctx, uint32_t channels, 
 	uint32_t bits_per_sample, uint32_t sample_rate, int format);
 EXPORT_API int wave_play_audio(void* ctx, uint8_t* data, uint32_t size);
-EXPORT_API void wave_audio_control(void* ctx, int cmd, void* arg);
+EXPORT_API void wave_audio_control(void* ctx, double vol);
 EXPORT_API void wave_destory_audio(void* ctx);
 
 EXPORT_API int dsound_init_audio(void** ctx, void* user_data, uint32_t channels, 
 	uint32_t bits_per_sample, uint32_t sample_rate, int format);
 EXPORT_API int dsound_play_audio(void* ctx, uint8_t* data, uint32_t size);
-EXPORT_API void dsound_audio_control(void* ctx, int cmd, void* arg);
+EXPORT_API void dsound_audio_control(void* ctx, double vol);
 EXPORT_API void dsound_destory_audio(void* ctx);
 
 #ifdef  __cplusplus

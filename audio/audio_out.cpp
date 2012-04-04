@@ -22,10 +22,11 @@ EXPORT_API int wave_play_audio(void* ctx, uint8_t* data, uint32_t size)
    return wave->play_audio(data, size);
 }
 
-EXPORT_API void wave_audio_control(void* ctx, int cmd, void* arg)
+EXPORT_API void wave_audio_control(void* ctx, double vol)
 {
    wave_render* wave = (wave_render*)ctx;
-   wave->audio_control(cmd, arg);
+	control_vol_t ctrl_vol = { vol, vol };
+   wave->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
 }
 
 EXPORT_API void wave_destory_audio(void* ctx)
@@ -53,10 +54,11 @@ EXPORT_API int dsound_play_audio(void* ctx, uint8_t* data, uint32_t size)
    return dsound->play_audio(data, size);
 }
 
-EXPORT_API void dsound_audio_control(void* ctx, int cmd, void* arg)
+EXPORT_API void dsound_audio_control(void* ctx, double vol)
 {
    dsound_render* dsound = (dsound_render*)ctx;
-   dsound->audio_control(cmd, arg);
+	control_vol_t ctrl_vol = { vol, vol };
+	dsound->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
 }
 
 EXPORT_API void dsound_destory_audio(void* ctx)
