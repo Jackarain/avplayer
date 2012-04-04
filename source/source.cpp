@@ -35,6 +35,12 @@ EXPORT_API int file_read_data(void *ctx, char* buff, int64_t offset, int buf_siz
 	return ret ? read_size : -1;
 }
 
+EXPORT_API void file_close(void *ctx)
+{
+	file_source *fs = (file_source *)ctx;
+	fs->close();
+}
+
 EXPORT_API void file_destory(void *ctx)
 {
 	file_source *fs = (file_source *)ctx;
@@ -57,6 +63,9 @@ EXPORT_API int bt_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
 	return -1;
 }
 
+EXPORT_API void bt_close(void *ctx)
+{
+}
 EXPORT_API void bt_destory(void *ctx)
 {
 }

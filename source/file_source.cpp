@@ -63,6 +63,9 @@ bool file_source::read_data(char* data, boost::uint64_t offset, boost::uint64_t 
    if (offset >= m_file_size)
       return false;
 
+	if (!m_file)
+		return true;
+
    // 如果数据读取位置在缓冲范围中, 则直接从缓冲中拉取数据.
    if (m_offset <= offset && offset < m_offset + (m_write_p - m_read_p))
    {
