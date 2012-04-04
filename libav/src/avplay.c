@@ -493,9 +493,6 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	av_register_all();
 	avcodec_register_all();
 
-	/* 初始化用于数据源访问的mutex */
-	pthread_mutex_init(&play->m_source_mtx, NULL);
-
 	/* 分配一个format context. */
 	play->m_format_ctx = avformat_alloc_context();
 	play->m_format_ctx->flags = AVFMT_FLAG_GENPTS;
@@ -644,7 +641,6 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 
 FAILED_FLG:
 	avformat_close_input(&play->m_format_ctx);
-	free(play);
 	av_free(play->m_avio_ctx);
 	av_free(play->m_io_buffer);
 
@@ -848,6 +844,12 @@ void seek(avplay *play, double sec)
 	}
 }
 
+void volume(avplay *play, double vol)
+{
+	play->m_audio_render->audio_control(
+		play->m_audio_render->ctx, vol);
+}
+
 double curr_play_time(avplay *play)
 {
 	return play->m_frame_timer;
@@ -862,15 +864,13 @@ void destory(avplay *play)
 {
 	/* 如果正在播放, 则关闭播放. */
 	if (play->m_play_status != stoped && play->m_play_status != inited)
-		stop(play);
-
-	/* 关闭数据源. */
-	if (play->m_media_source)
 	{
-		free_media_source(play->m_media_source);
-		play->m_media_source = NULL;
+		/* 关闭数据源. */
+		if (play->m_media_source)
+			play->m_media_source->close(play->m_media_source->ctx);
+		stop(play);
 	}
-	
+
 	free(play);
 }
 
@@ -1158,6 +1158,11 @@ void* read_pkt_thrd(void *param)
 		if (packet.stream_index == play->m_audio_index)
 			put_queue(&play->m_audio_q, &packet);
 	}
+
+	/* 销毁media_source. */
+	play->m_media_source->destory(play->m_media_source->ctx);
+	free_media_source(play->m_media_source);
+	play->m_media_source = NULL;
 
 	/* 设置为退出状态.	*/
 	play->m_abort = TRUE;

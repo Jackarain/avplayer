@@ -1,28 +1,26 @@
-// Èç¹û±ØĞë½«Î»ÓÚÏÂÃæÖ¸¶¨Æ½Ì¨Ö®Ç°µÄÆ½Ì¨×÷ÎªÄ¿±ê£¬ÇëĞŞ¸ÄÏÂÁĞ¶¨Òå¡£
-// ÓĞ¹Ø²»Í¬Æ½Ì¨¶ÔÓ¦ÖµµÄ×îĞÂĞÅÏ¢£¬Çë²Î¿¼ MSDN¡£
-#ifndef WINVER				// ÔÊĞíÊ¹ÓÃÌØ¶¨ÓÚ Windows XP »ò¸ü¸ß°æ±¾µÄ¹¦ÄÜ¡£
-#define WINVER 0x0501		// ½«´ËÖµ¸ü¸ÄÎªÏàÓ¦µÄÖµ£¬ÒÔÊÊÓÃÓÚ Windows µÄÆäËû°æ±¾¡£
+#ifndef WINVER
+#define WINVER 0x0501
 #endif
 
-#ifndef _WIN32_WINNT		// ÔÊĞíÊ¹ÓÃÌØ¶¨ÓÚ Windows XP »ò¸ü¸ß°æ±¾µÄ¹¦ÄÜ¡£
-#define _WIN32_WINNT 0x0501	// ½«´ËÖµ¸ü¸ÄÎªÏàÓ¦µÄÖµ£¬ÒÔÊÊÓÃÓÚ Windows µÄÆäËû°æ±¾¡£
-#endif						
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif	
 
-#ifndef _WIN32_WINDOWS		// ÔÊĞíÊ¹ÓÃÌØ¶¨ÓÚ Windows 98 »ò¸ü¸ß°æ±¾µÄ¹¦ÄÜ¡£
-#define _WIN32_WINDOWS 0x0410 // ½«´ËÖµ¸ü¸ÄÎªÊÊµ±µÄÖµ£¬ÒÔÖ¸¶¨½« Windows Me »ò¸ü¸ß°æ±¾×÷ÎªÄ¿±ê¡£
+#ifndef _WIN32_WINDOWS
+#define _WIN32_WINDOWS 0x0410
 #endif
 
-#ifndef _WIN32_IE			// ÔÊĞíÊ¹ÓÃÌØ¶¨ÓÚ IE 6.0 »ò¸ü¸ß°æ±¾µÄ¹¦ÄÜ¡£
-#define _WIN32_IE 0x0600	// ½«´ËÖµ¸ü¸ÄÎªÏàÓ¦µÄÖµ£¬ÒÔÊÊÓÃÓÚ IE µÄÆäËû°æ±¾¡£
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0600
 #endif
 
-#define WIN32_LEAN_AND_MEAN		// ´Ó Windows Í·ÖĞÅÅ³ı¼«ÉÙÊ¹ÓÃµÄ×ÊÁÏ
+#define WIN32_LEAN_AND_MEAN
 
-// Windows Í·ÎÄ¼ş:
+// Windows å¤´æ–‡ä»¶:
 #include <windows.h>
 #include <ShellAPI.h>
 
-// C ÔËĞĞÊ±Í·ÎÄ¼ş
+// C è¿è¡Œæ—¶å¤´æ–‡ä»¶
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -49,22 +47,22 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	_tcscpy(filename, lpCmdLine);
 
-	// ²¥·ÅÆ÷¶ÔÏó.
+	// æ’­æ”¾å™¨å¯¹è±¡.
 	avplayer win;
 
-	// ´´½¨²¥·ÅÆ÷´°¿Ú.
+	// åˆ›å»ºæ’­æ”¾å™¨çª—å£.
 	if (win.create_window(_T("main")) == NULL)
 		return -1;
 
 #if 0
-	// ²âÊÔ½ø³ÌÍâ²¥·Å´°¿Ú²¥·Å, Ò²¿ÉÒÔÊ¹ÓÃÍâ²¿´´½¨µÄ´°¿Ú.
+	// æµ‹è¯•è¿›ç¨‹å¤–æ’­æ”¾çª—å£æ’­æ”¾, ä¹Ÿå¯ä»¥ä½¿ç”¨å¤–éƒ¨åˆ›å»ºçš„çª—å£.
 	HWND hWnd = (HWND)0x0002133C;
 	if (!win.subclasswindow(hWnd, FALSE))
 		return -1;
 #endif
 
-	// ¸ù¾İÎÄ¼şÀ©Õ¹ÃûÅĞ¶ÏÊÇ·ñÎªbtÖÖ×ÓÎÄ¼ş, Èç¹ûÊÇbtÖÖ×ÓÎÄ¼ş
-	// Ôòµ÷ÓÃbt·½Ê½ÏÂÔØ²¢²¥·Å.
+	// æ ¹æ®æ–‡ä»¶æ‰©å±•ååˆ¤æ–­æ˜¯å¦ä¸ºbtç§å­æ–‡ä»¶, å¦‚æœæ˜¯btç§å­æ–‡ä»¶
+	// åˆ™è°ƒç”¨btæ–¹å¼ä¸‹è½½å¹¶æ’­æ”¾.
 	std::string ext = boost::filesystem3::extension(filename);
 	if (ext == ".torrent")
 	{
@@ -77,10 +75,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			return -1;
 	}
 
-	// ´ò¿ª³É¹¦, ¿ªÊ¼²¥·Å.
+	// æ‰“å¼€æˆåŠŸ, å¼€å§‹æ’­æ”¾.
 	win.play();
 
-	// ÏûÏ¢Ñ­»·.
+	// æ¶ˆæ¯å¾ªç¯.
 	while (true)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -99,7 +97,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	// ¹Ø±Õ²¥·ÅÆ÷.
+	// å…³é—­æ’­æ”¾å™¨.
 	win.close();
 
 	return 0;

@@ -85,6 +85,7 @@ typedef struct media_source
 	 */
 	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
 	int (*read_data)(void *ctx, char* buff, int64_t offset, int buf_size);
+	void (*close)(void *ctx);
 	void (*destory)(void *ctx);
 	void *ctx;
 	int type;			/* 数据类型. */
@@ -113,7 +114,7 @@ typedef struct audio_render
 	int (*init_audio)(void **ctx, uint32_t channels, uint32_t bits_per_sample,
 		uint32_t sample_rate, int format);
 	int (*play_audio)(void *ctx, uint8_t *data, uint32_t size);
-	void (*audio_control)(void *ctx, int cmd, void* arg);
+	void (*audio_control)(void *ctx, double vol);
 	void (*destory_audio)(void *ctx);
 	void *ctx;
 } audio_render;
@@ -220,7 +221,6 @@ typedef struct avplay
 	media_source *m_media_source;
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
-	pthread_mutex_t m_source_mtx;
 	/* 当前音频渲染器.	*/
 	audio_render *m_audio_render;
 	/* 当前视频渲染器. */
@@ -328,6 +328,13 @@ EXPORT_API void resume(avplay *play);
  * @This function does not return a value.
  */
 EXPORT_API void seek(avplay *play, double sec);
+
+/* Set audio volume.
+ * @param play pointer to the player.
+ * @param vol is volume.
+ * @This function does not return a value.
+ */
+EXPORT_API void volume(avplay *play, double vol);
 
 /*
  * The current playback time position
