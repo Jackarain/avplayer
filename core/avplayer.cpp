@@ -63,6 +63,11 @@ void avplayer::seek_to(double sec)
 	m_impl->seek_to(sec);
 }
 
+void avplayer::volume(double vol)
+{
+	m_impl->volume(vol);
+}
+
 BOOL avplayer::full_screen(BOOL fullscreen)
 {
 	return m_impl->full_screen(fullscreen);

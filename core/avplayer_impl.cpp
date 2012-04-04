@@ -3,10 +3,10 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// class win_data ×÷Îª¾Ö²¿Ïß³Ì´æ´¢, ÓÃÓÚ±£´æHWND¶ÔÓ¦
-// µÄavplayerÖ¸Õë. ÔÚÏûÏ¢»Øµ÷Ê±, ²éÕÒËù¶ÔÓ¦µÄ´°¿Ú, ÕıÈ·
-// »Øµ÷ÖÁwindowµÄwin_wnd_procÏûÏ¢´¦Àíº¯Êı.
-// ¸Ã´úÂë²Î¿¼MFCµÄÊµÏÖ.
+// class win_data ä½œä¸ºå±€éƒ¨çº¿ç¨‹å­˜å‚¨, ç”¨äºä¿å­˜HWNDå¯¹åº”
+// çš„avplayeræŒ‡é’ˆ. åœ¨æ¶ˆæ¯å›è°ƒæ—¶, æŸ¥æ‰¾æ‰€å¯¹åº”çš„çª—å£, æ­£ç¡®
+// å›è°ƒè‡³windowçš„win_wnd_procæ¶ˆæ¯å¤„ç†å‡½æ•°.
+// è¯¥ä»£ç å‚è€ƒMFCçš„å®ç°.
 class avplayer_impl;
 class win_data
 {
@@ -33,7 +33,7 @@ private:
 };
 
 
-// ±¾µØÏß³Ì´æ´¢, ÓÃÓÚ´æ´¢win_data, ²¢ÇÒÔÚ¸÷Ïß³Ì¶ÀÁ¢.
+// æœ¬åœ°çº¿ç¨‹å­˜å‚¨, ç”¨äºå­˜å‚¨win_data, å¹¶ä¸”åœ¨å„çº¿ç¨‹ç‹¬ç«‹.
 boost::thread_specific_ptr<win_data> win_data_ptr;
 win_data::win_data()
 {
@@ -125,9 +125,9 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// ÒÔÏÂ´úÂëÎª²¥·ÅÆ÷Ïà¹ØµÄÊµÏÖ.
+// ä»¥ä¸‹ä»£ç ä¸ºæ’­æ”¾å™¨ç›¸å…³çš„å®ç°.
 
-// ÓÃÓÚµÚÒ»´ÎµÃµ½ÕıÈ·¿í¸ßĞÅÏ¢µÄ¶¨Ê±Æ÷.
+// ç”¨äºç¬¬ä¸€æ¬¡å¾—åˆ°æ­£ç¡®å®½é«˜ä¿¡æ¯çš„å®šæ—¶å™¨.
 #define ID_PLAYER_TIMER		1021
 
 avplayer_impl::avplayer_impl(void)
@@ -145,7 +145,7 @@ avplayer_impl::avplayer_impl(void)
 	, m_wnd_style(0)
 	, m_full_screen(FALSE)
 {
-	// ³õÊ¼»¯Ïß³Ì¾Ö²¿´æ´¢¶ÔÏó.
+	// åˆå§‹åŒ–çº¿ç¨‹å±€éƒ¨å­˜å‚¨å¯¹è±¡.
 	if (win_data_ptr.get() == 0)
 		win_data_ptr.reset(new win_data());
 }
@@ -163,9 +163,9 @@ HWND avplayer_impl::create_window(LPCTSTR player_name)
 {
 	WNDCLASSEX wcex;
 
-	// µÃµ½½ø³ÌÊµÀı¾ä±ú.
+	// å¾—åˆ°è¿›ç¨‹å®ä¾‹å¥æŸ„.
 	m_hinstance = (HINSTANCE)GetModuleHandle(NULL);
-	// ´´½¨·Ç´¿ºÚÉ«µÄ»­Ë¢, ÓÃÓÚddraw²¥·ÅÊ±Ë¢±³¾°É«.
+	// åˆ›å»ºéçº¯é»‘è‰²çš„ç”»åˆ·, ç”¨äºddrawæ’­æ”¾æ—¶åˆ·èƒŒæ™¯è‰².
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
 	wcex.cbSize = sizeof(WNDCLASSEX);
 
@@ -184,13 +184,13 @@ HWND avplayer_impl::create_window(LPCTSTR player_name)
 	if (!RegisterClassEx(&wcex))
 		return NULL;
 
-	// ´´½¨hook, ÒÔ±ãÔÚ´°¿Ú´´½¨Ö®Ç°µÃµ½HWND¾ä±ú, Ê¹HWNDÓëthis°ó¶¨.
+	// åˆ›å»ºhook, ä»¥ä¾¿åœ¨çª—å£åˆ›å»ºä¹‹å‰å¾—åˆ°HWNDå¥æŸ„, ä½¿HWNDä¸thisç»‘å®š.
 	HHOOK hook = SetWindowsHookEx(WH_CBT, 
 		win_cbt_filter_hook, NULL, GetCurrentThreadId());
 	win_data_ptr->set_hook_handle(hook);
 	win_data_ptr->set_current_window(this);
 
-	// ´´½¨´°¿Ú.
+	// åˆ›å»ºçª—å£.
 	m_hwnd = CreateWindowEx(/*WS_EX_APPWINDOW*/0,
 		player_name, player_name, WS_OVERLAPPEDWINDOW/* | WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/,
 		0, 0, 800, 600, NULL, NULL, m_hinstance, NULL);
@@ -199,7 +199,7 @@ HWND avplayer_impl::create_window(LPCTSTR player_name)
 // 		WS_OVERLAPPEDWINDOW, 100, 100, 300, 300,
 // 		0, NULL, m_hinstance, NULL);
 
-	// ³·Ïúhook.
+	// æ’¤é”€hook.
 	UnhookWindowsHookEx(hook);
 	win_data_ptr->set_hook_handle(NULL);
 
@@ -231,7 +231,7 @@ BOOL avplayer_impl::subclasswindow(HWND hwnd, BOOL in_process)
 		return FALSE;
 	if (IsWindow(m_hwnd))
 		return FALSE;
-	// ´´½¨·Ç´¿ºÚÉ«µÄ»­Ë¢, ÓÃÓÚddraw²¥·ÅÊ±Ë¢±³¾°É«.
+	// åˆ›å»ºéçº¯é»‘è‰²çš„ç”»åˆ·, ç”¨äºddrawæ’­æ”¾æ—¶åˆ·èƒŒæ™¯è‰².
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
 	win_data_ptr->add_window(hwnd, this);
 	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd, 
@@ -251,7 +251,7 @@ LRESULT CALLBACK avplayer_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM 
 	avplayer_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
 	if (!this_ptr)
 	{
-		assert(0); // ²»¿ÉÄÜÖ´ĞĞµ½´Ë!!!
+		assert(0); // ä¸å¯èƒ½æ‰§è¡Œåˆ°æ­¤!!!
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
 
@@ -274,7 +274,7 @@ LRESULT avplayer_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 		{
 			if (wparam != ID_PLAYER_TIMER)
 				break;
-			// ¼ÆËãÏÔÊ¾¿Í»§Çø.
+			// è®¡ç®—æ˜¾ç¤ºå®¢æˆ·åŒº.
 			int more_y = GetSystemMetrics(SM_CYCAPTION)
 				+ (GetSystemMetrics(SM_CYBORDER) * 2)
 				+ (GetSystemMetrics(SM_CYDLGFRAME) * 2);
@@ -298,7 +298,7 @@ LRESULT avplayer_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 				KillTimer(hwnd, ID_PLAYER_TIMER);
 			}
 
-			// µÃµ½ÕıÈ·µÄ¿í¸ßĞÅÏ¢.
+			// å¾—åˆ°æ­£ç¡®çš„å®½é«˜ä¿¡æ¯.
 			m_video_width = m_avplay->m_video_ctx->width;
 			m_video_height = m_avplay->m_video_ctx->height;
 		}
@@ -382,7 +382,7 @@ void avplayer_impl::win_paint(HWND hwnd, HDC hdc)
 	}
 	else
 	{
-#if 0	// Ä¬ÈÏ²»¿ªÆô±ÈÀı.
+#if 0	// é»˜è®¤ä¸å¼€å¯æ¯”ä¾‹.
 		RECT client_rect;
 		int win_width, win_height;
 		float window_aspect = (float)m_video_width / (float)m_video_height;
@@ -402,7 +402,7 @@ void avplayer_impl::win_paint(HWND hwnd, HDC hdc)
 				nHeight = tmpheight;
 			}
 
-			// ¾ÓÖĞ¶ÔÆë.
+			// å±…ä¸­å¯¹é½.
 			client_rect.left += ((win_width - nWidth) / 2);
 			client_rect.top += ((win_height - nHeight) / 2);
 			client_rect.bottom -= ((win_height - nHeight) / 2);
@@ -464,6 +464,7 @@ void avplayer_impl::init_file_source(media_source *ms)
 {
 	ms->init_source = file_init_source;
 	ms->read_data = file_read_data;
+	ms->close = file_close;
 	ms->destory = file_destory;
 	ms->offset = 0;
 }
@@ -473,6 +474,7 @@ void avplayer_impl::init_torrent_source(media_source *ms)
 	ms->init_source = bt_init_source;
 	ms->read_data = bt_read_data;
 	ms->bt_media_info = bt_media_info;
+	ms->close = bt_close;
 	ms->destory = bt_destory;
 	ms->offset = 0;
 }
@@ -544,18 +546,18 @@ void avplayer_impl::init_video(video_render *vo)
 			break;
 		}
 
-		// ±íÊ¾ÊÓÆµäÖÈ¾Æ÷³õÊ¼»¯Ê§°Ü!!!
+		// è¡¨ç¤ºè§†é¢‘æ¸²æŸ“å™¨åˆå§‹åŒ–å¤±è´¥!!!
 		assert(0);
 	} while (0);
 }
 
 BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/)
 {
-	// Èç¹ûÎ´¹Ø±ÕÔ­À´µÄÃ½Ìå, Ôò·µ»ØÊ§°Ü.
+	// å¦‚æœæœªå…³é—­åŸæ¥çš„åª’ä½“, åˆ™è¿”å›å¤±è´¥.
 	if (m_avplay || m_source)
 		return FALSE;
 
-	// Î´´´½¨´°¿Ú, ÎŞ·¨²¥·Å, ·µ»ØÊ§°Ü.
+	// æœªåˆ›å»ºçª—å£, æ— æ³•æ’­æ”¾, è¿”å›å¤±è´¥.
 	if (!IsWindow(m_hwnd))
 		return FALSE;
 
@@ -578,12 +580,12 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 
 	do 
 	{
-		// ´´½¨avplay.
+		// åˆ›å»ºavplay.
 		m_avplay = alloc_avplay_context();
 		if (!m_avplay)
 			break;
 
-		// ¸ù¾İ´ò¿ªµÄÎÄ¼şÀàĞÍ, ´´½¨²»Í¬Ã½ÌåÔ´.
+		// æ ¹æ®æ‰“å¼€çš„æ–‡ä»¶ç±»å‹, åˆ›å»ºä¸åŒåª’ä½“æº.
 		if (media_type == MEDIA_TYPE_FILE)
 		{
 			len = strlen(filename);
@@ -591,17 +593,17 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 			if (!m_source)
 				break;
 
-			// ²åÈëµ½Ã½ÌåÁĞ±í.
+			// æ’å…¥åˆ°åª’ä½“åˆ—è¡¨.
 			m_media_list.insert(std::make_pair(filename, filename));
 
-			// ³õÊ¼»¯ÎÄ¼şÃ½ÌåÔ´.
+			// åˆå§‹åŒ–æ–‡ä»¶åª’ä½“æº.
 			init_file_source(m_source);
 			m_source->data_len = len + 1;
 		}
 
 		if (media_type == MEDIA_TYPE_BT)
 		{
-			// ÏÈ¶ÁÈ¡btÖÖ×ÓÊı¾İ, È»ºó×÷Îª¸½¼ÓÊı¾İ±£´æµ½Ã½ÌåÔ´.
+			// å…ˆè¯»å–btç§å­æ•°æ®, ç„¶åä½œä¸ºé™„åŠ æ•°æ®ä¿å­˜åˆ°åª’ä½“æº.
 			FILE *fp = fopen(filename, "r+b");
 			char *torrent_data = (char*)malloc(file_size);
 			int readbytes = fread(torrent_data, 1, file_size, fp);
@@ -613,16 +615,16 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 			m_source = alloc_media_source(MEDIA_TYPE_BT, torrent_data, file_size, 0);
 			free(torrent_data);
 
-			// ³õÊ¼»¯torrentÃ½ÌåÔ´.
+			// åˆå§‹åŒ–torrentåª’ä½“æº.
 			m_source->data_len = file_size;
 			init_torrent_source(m_source);
 		}
 
-		// ³õÊ¼»¯avplay.
+		// åˆå§‹åŒ–avplay.
 		if (initialize(m_avplay, m_source, video_out_type) != 0)
 			break;
 
-		// Èç¹ûÊÇbtÀàĞÍ, ÔòÔÚ´ËµÃµ½ÊÓÆµÎÄ¼şÁĞ±í, ²¢Ìí¼Óµ½m_media_list.
+		// å¦‚æœæ˜¯btç±»å‹, åˆ™åœ¨æ­¤å¾—åˆ°è§†é¢‘æ–‡ä»¶åˆ—è¡¨, å¹¶æ·»åŠ åˆ°m_media_list.
 		if (media_type == MEDIA_TYPE_BT)
 		{
 			int i = 0;
@@ -635,7 +637,7 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 			}
 		}
 
-		// ·ÖÅäÒôÆµºÍÊÓÆµµÄäÖÈ¾Æ÷.
+		// åˆ†é…éŸ³é¢‘å’Œè§†é¢‘çš„æ¸²æŸ“å™¨.
 		m_audio = alloc_audio_render();
 		if (!m_audio)
 			break;
@@ -643,15 +645,15 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 		if (!m_video)
 			break;
 
-		// ³õÊ¼»¯ÒôÆµºÍÊÓÆµäÖÈ¾Æ÷.
+		// åˆå§‹åŒ–éŸ³é¢‘å’Œè§†é¢‘æ¸²æŸ“å™¨.
 		init_audio(m_audio);
 		init_video(m_video);
 
-		// ÅäÖÃÒôÆµÊÓÆµäÖÈ¾Æ÷.
+		// é…ç½®éŸ³é¢‘è§†é¢‘æ¸²æŸ“å™¨.
 		configure(m_avplay, m_video, VIDEO_RENDER);
 		configure(m_avplay, m_audio, AUDIO_RENDER);
 
-		// µÃµ½ÊÓÆµ¿í¸ß.
+		// å¾—åˆ°è§†é¢‘å®½é«˜.
 		m_video_width = m_avplay->m_video_ctx->width;
 		m_video_height = m_avplay->m_video_ctx->height;
 
@@ -674,11 +676,11 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 
 BOOL avplayer_impl::play(int index /*= 0*/)
 {
-	// ÖØ¸´²¥·Å, ·µ»Ø´íÎó.
+	// é‡å¤æ’­æ”¾, è¿”å›é”™è¯¯.
 	if (m_cur_index == index)
 		return FALSE;
 
-	// Èç¹ûÊÇÎÄ¼şÊı¾İ, ÔòÖ±½Ó²¥·Å.
+	// å¦‚æœæ˜¯æ–‡ä»¶æ•°æ®, åˆ™ç›´æ¥æ’­æ”¾.
 	if (start(m_avplay, index) != 0)
 		return FALSE;
 	m_cur_index = index;
@@ -736,6 +738,14 @@ void avplayer_impl::seek_to(double sec)
 	if (m_avplay)
 	{
 		::seek(m_avplay, sec);
+	}
+}
+
+void avplayer_impl::volume(double vol)
+{
+	if (m_avplay)
+	{
+		::volume(m_avplay, vol);
 	}
 }
 

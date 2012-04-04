@@ -67,6 +67,9 @@ public:
 	// seek到某个时间播放, 单位秒.
 	void seek_to(double sec);
 
+	// 设置声音音量大小.
+	void volume(double vol);
+
 	// 全屏切换.
 	BOOL full_screen(BOOL fullscreen);
 

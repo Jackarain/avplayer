@@ -22,109 +22,112 @@ public:
 	~avplayer_impl(void);
 
 public:
-	// ´´½¨´°¿Ú, Ò²¿ÉÒÔÊ¹ÓÃsubclasswindow¸½¼Óµ½Ò»¸öÖ¸¶¨µÄ´°¿Ú.
+	// åˆ›å»ºçª—å£, ä¹Ÿå¯ä»¥ä½¿ç”¨subclasswindowé™„åŠ åˆ°ä¸€ä¸ªæŒ‡å®šçš„çª—å£.
 	HWND create_window(LPCTSTR player_name);
 
-	// Ïú»Ù´°¿Ú, Ö»ÄÜ³·ÏúÊÇÓÉcreate_window´´½¨µÄ´°¿Ú.
+	// é”€æ¯çª—å£, åªèƒ½æ’¤é”€æ˜¯ç”±create_windowåˆ›å»ºçš„çª—å£.
 	BOOL destory_window();
 
-	// ×ÓÀà»¯Ò»¸ö´æÔÚµÄ´°¿Ú, in_process²ÎÊı±íÊ¾´°¿ÚÊÇ·ñÔÚÍ¬Ò»½ø³ÌÖĞ.
+	// å­ç±»åŒ–ä¸€ä¸ªå­˜åœ¨çš„çª—å£, in_processå‚æ•°è¡¨ç¤ºçª—å£æ˜¯å¦åœ¨åŒä¸€è¿›ç¨‹ä¸­.
 	BOOL subclasswindow(HWND hwnd, BOOL in_process);
 
 public:
-	// ´ò¿ªÒ»¸öÃ½ÌåÎÄ¼ş, movieÊÇÎÄ¼şÃû, media_type¿ÉÒÔÊÇMEDIA_TYPE_FILE,
-	// Ò²¿ÉÒÔÊÇMEDIA_TYPE_BT, ×¢Òâ, Õâ¸öº¯ÊıÖ»´ò¿ªÎÄ¼ş, µ«²¢²»²¥·Å.
-	// ÖØĞÂ´ò¿ªÎÄ¼şÇ°, ±ØĞë¹Ø±ÕÖ®Ç°µÄÃ½ÌåÎÄ¼ş, ·ñÔò¿ÉÄÜ²úÉúÄÚ´æĞ¹Â©!
-	// ÁíÍâ, ÔÚ²¥·ÅÇ°, avplayer±ØĞëÓµÓĞÒ»¸ö´°¿Ú.
+	// æ‰“å¼€ä¸€ä¸ªåª’ä½“æ–‡ä»¶, movieæ˜¯æ–‡ä»¶å, media_typeå¯ä»¥æ˜¯MEDIA_TYPE_FILE,
+	// ä¹Ÿå¯ä»¥æ˜¯MEDIA_TYPE_BT, æ³¨æ„, è¿™ä¸ªå‡½æ•°åªæ‰“å¼€æ–‡ä»¶, ä½†å¹¶ä¸æ’­æ”¾.
+	// é‡æ–°æ‰“å¼€æ–‡ä»¶å‰, å¿…é¡»å…³é—­ä¹‹å‰çš„åª’ä½“æ–‡ä»¶, å¦åˆ™å¯èƒ½äº§ç”Ÿå†…å­˜æ³„æ¼!
+	// å¦å¤–, åœ¨æ’­æ”¾å‰, avplayerå¿…é¡»æ‹¥æœ‰ä¸€ä¸ªçª—å£.
 	BOOL open(LPCTSTR movie, int media_type, int video_out_type = 0);
 
-	// ²¥·ÅË÷ÒıÎªindexµÄÎÄ¼ş, index±íÊ¾ÔÚ²¥·ÅÁĞ±íÖĞµÄ
-	// Î»ÖÃ¼ÆÊı, ´Ó0¿ªÊ¼¼ÆËã, indexÖ÷ÒªÓÃÓÚ²¥·Å¶àÎÄ¼şµÄbt
-	// ÎÄ¼ş, µ¥¸öÎÄ¼ş²¥·Å¿ÉÒÔÊ¹ÓÃÖ±½ÓÄ¬ÈÏÎª0¶ø²»ĞèÒªÌîĞ´
-	// ²ÎÊı.
+	// æ’­æ”¾ç´¢å¼•ä¸ºindexçš„æ–‡ä»¶, indexè¡¨ç¤ºåœ¨æ’­æ”¾åˆ—è¡¨ä¸­çš„
+	// ä½ç½®è®¡æ•°, ä»0å¼€å§‹è®¡ç®—, indexä¸»è¦ç”¨äºæ’­æ”¾å¤šæ–‡ä»¶çš„bt
+	// æ–‡ä»¶, å•ä¸ªæ–‡ä»¶æ’­æ”¾å¯ä»¥ä½¿ç”¨ç›´æ¥é»˜è®¤ä¸º0è€Œä¸éœ€è¦å¡«å†™
+	// å‚æ•°.
 	BOOL play(int index = 0);
 
-	// ÔİÍ£²¥·Å.
+	// æš‚åœæ’­æ”¾.
 	BOOL pause();
 
-	// ¼ÌĞø²¥·Å.
+	// ç»§ç»­æ’­æ”¾.
 	BOOL resume();
 
-	// Í£Ö¹²¥·Å.
+	// åœæ­¢æ’­æ”¾.
 	BOOL stop();
 
-	// ¹Ø±ÕÃ½Ìå, Èç¹û´ò¿ªµÄÊÇÒ»¸öbtÎÄ¼ş, ÄÇÃ´
-	// ÔÚÕâ¸öbtÎÄ¼şÖĞµÄËùÓĞÊÓÆµÎÄ¼ş½«±»¹Ø±Õ.
+	// å…³é—­åª’ä½“, å¦‚æœæ‰“å¼€çš„æ˜¯ä¸€ä¸ªbtæ–‡ä»¶, é‚£ä¹ˆ
+	// åœ¨è¿™ä¸ªbtæ–‡ä»¶ä¸­çš„æ‰€æœ‰è§†é¢‘æ–‡ä»¶å°†è¢«å…³é—­.
 	BOOL close();
 
-	// seekµ½Ä³¸öÊ±¼ä²¥·Å, µ¥Î»Ãë.
+	// seekåˆ°æŸä¸ªæ—¶é—´æ’­æ”¾, å•ä½ç§’.
 	void seek_to(double sec);
 
-	// È«ÆÁÇĞ»».
+	// è®¾ç½®å£°éŸ³éŸ³é‡å¤§å°.
+	void volume(double vol);
+
+	// å…¨å±åˆ‡æ¢.
 	BOOL full_screen(BOOL fullscreen);
 
-	// ·µ»Øµ±Ç°²¥·ÅÊ±¼ä.
+	// è¿”å›å½“å‰æ’­æ”¾æ—¶é—´.
 	double curr_play_time();
 
-	// µ±Ç°²¥·ÅÊÓÆµµÄÊ±³¤, µ¥Î»Ãë.
+	// å½“å‰æ’­æ”¾è§†é¢‘çš„æ—¶é•¿, å•ä½ç§’.
 	double duration();
 
-	// µ±Ç°²¥·ÅÊÓÆµµÄ¸ß, µ¥Î»ÏñËØ.
+	// å½“å‰æ’­æ”¾è§†é¢‘çš„é«˜, å•ä½åƒç´ .
 	int video_width();
 
-	// µ±Ç°²¥·ÅÊÓÆµµÄ¿í, µ¥Î»ÏñËØ.
+	// å½“å‰æ’­æ”¾è§†é¢‘çš„å®½, å•ä½åƒç´ .
 	int video_height();
 
-	// ·µ»Øµ±Ç°²¥·ÅÁĞ±í, key¶ÔÓ¦µÄÊÇ´ò¿ªµÄÃ½ÌåÎÄ¼şÃû.
-	// valueÊÇ´ò¿ªµÄÃ½ÌåÎÄ¼şÏÂµÄÊÓÆµÎÄ¼ş.
-	// ±ÈÈçËµ´ò¿ªÒ»¸öbtÖÖ×ÓÎÄ¼şÃûÎªavtest.torrent, ÔÚÕâ
-	// ¸öavtest.torrentÖÖ×ÓÀï°üÀ¨ÁË2¸öÊÓÆµÎÄ¼ş, ¼ÙÈçÎª:
-	// av1.mp4, av2.mp4, ÄÇÃ´Õâ¸öÁĞ±íÓ¦¸ÃÎª:
+	// è¿”å›å½“å‰æ’­æ”¾åˆ—è¡¨, keyå¯¹åº”çš„æ˜¯æ‰“å¼€çš„åª’ä½“æ–‡ä»¶å.
+	// valueæ˜¯æ‰“å¼€çš„åª’ä½“æ–‡ä»¶ä¸‹çš„è§†é¢‘æ–‡ä»¶.
+	// æ¯”å¦‚è¯´æ‰“å¼€ä¸€ä¸ªbtç§å­æ–‡ä»¶åä¸ºavtest.torrent, åœ¨è¿™
+	// ä¸ªavtest.torrentç§å­é‡ŒåŒ…æ‹¬äº†2ä¸ªè§†é¢‘æ–‡ä»¶, å‡å¦‚ä¸º:
+	// av1.mp4, av2.mp4, é‚£ä¹ˆè¿™ä¸ªåˆ—è¡¨åº”è¯¥ä¸º:
 	// avtest.torrent->av1.mp4
 	// avtest.torrent->av2.mp4
 	std::map<std::string, std::string>& play_list();
 
-	// ·µ»Øµ±Ç°´°¿Ú¾ä±ú.
+	// è¿”å›å½“å‰çª—å£å¥æŸ„.
 	HWND GetWnd();
 
 private:
-	// ´°¿Ú»æÖÆÏà¹Ø.
+	// çª—å£ç»˜åˆ¶ç›¸å…³.
 	void fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_rect);
 	void win_paint(HWND hwnd, HDC hdc);
 
 private:
-	// ´°¿Ú¹ı³Ì.
+	// çª—å£è¿‡ç¨‹.
 	static LRESULT CALLBACK static_win_wnd_proc(HWND, UINT, WPARAM, LPARAM);
 	LRESULT win_wnd_proc(HWND, UINT, WPARAM, LPARAM);
 
-	// ²¥·ÅÆ÷Ïà¹ØµÄº¯Êı.
+	// æ’­æ”¾å™¨ç›¸å…³çš„å‡½æ•°.
 	void init_file_source(media_source *ms);
 	void init_torrent_source(media_source *ms);
 	void init_audio(audio_render *ao);
 	void init_video(video_render *vo);
 
 private:
-	// windowÏà¹Ø.
+	// windowç›¸å…³.
 	HWND m_hwnd;
 	HINSTANCE m_hinstance;
 	HBRUSH m_brbackground;
 	WNDPROC m_old_win_proc;
 
-	// ²¥·ÅÆ÷Ïà¹Ø.
+	// æ’­æ”¾å™¨ç›¸å…³.
 	avplay *m_avplay;
 	audio_render *m_audio;
 	video_render *m_video;
 	media_source *m_source;
 
-	// Ã½ÌåÎÄ¼şĞÅÏ¢.
+	// åª’ä½“æ–‡ä»¶ä¿¡æ¯.
 	std::map<std::string, std::string> m_media_list;
 	int m_cur_index;
 
-	// ÊÓÆµ¿í¸ß.
+	// è§†é¢‘å®½é«˜.
 	int m_video_width;
 	int m_video_height;
 
-	// È«ÆÁÑ¡Ïî.
+	// å…¨å±é€‰é¡¹.
 	BOOL m_full_screen;
 	DWORD m_wnd_style;
 };
