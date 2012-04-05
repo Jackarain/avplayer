@@ -27,6 +27,7 @@
 #include <memory.h>
 #include <tchar.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>	// for boost::filesystem3::extension
 
 #include "avplayer.h"
@@ -47,22 +48,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	_tcscpy(filename, lpCmdLine);
 
-	// 播放器对象.
 	avplayer win;
 
-	// 创建播放器窗口.
 	if (win.create_window(_T("main")) == NULL)
 		return -1;
 
-#if 0
-	// 测试进程外播放窗口播放, 也可以使用外部创建的窗口.
-	HWND hWnd = (HWND)0x0002133C;
-	if (!win.subclasswindow(hWnd, FALSE))
-		return -1;
-#endif
-
-	// 根据文件扩展名判断是否为bt种子文件, 如果是bt种子文件
-	// 则调用bt方式下载并播放.
 	std::string ext = boost::filesystem3::extension(filename);
 	if (ext == ".torrent")
 	{
@@ -71,14 +61,29 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	}
 	else
 	{
-		if (!win.open(filename, MEDIA_TYPE_FILE))
+		std::string str = boost::filesystem3::path(filename).string();
+		boost::to_lower(str);
+		boost::trim(str);
+		std::string is_url = str.substr(0, 7);
+		if (is_url == "http://")
+		{
+			if (!win.open(filename, MEDIA_TYPE_HTTP))
+				return -1;
+		}
+		else if (is_url == "rtsp://")
+		{
+			if (!win.open(filename, MEDIA_TYPE_RTSP))
+				return -1;
+		}
+		else
+		{
+			if (!win.open(filename, MEDIA_TYPE_FILE))
 			return -1;
+		}
 	}
 
-	// 打开成功, 开始播放.
 	win.play();
 
-	// 消息循环.
 	while (true)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -97,7 +102,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	// 关闭播放器.
 	win.close();
 
 	return 0;

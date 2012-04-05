@@ -19,6 +19,8 @@
 // 打开媒体类型.
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1
+#define MEDIA_TYPE_HTTP 2
+#define MEDIA_TYPE_RTSP 3
 
 class avplayer_impl;
 // avplayer封装类.

@@ -64,6 +64,8 @@ typedef struct av_queue
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1
+#define MEDIA_TYPE_HTTP 2
+#define MEDIA_TYPE_RTSP 3
 
 /* 媒体文件信息. */
 typedef struct media_info 
@@ -88,18 +90,30 @@ typedef struct media_source
 	void (*close)(void *ctx);
 	void (*destory)(void *ctx);
 	void *ctx;
-	int type;			/* 数据类型. */
 	/*
-	 * 附加数据, 如果类型是MEDIA_TYPE_FILE, 则此指向文件名, 
-	 * 如果是MEDIA_TYPE_BT, 则此指向bt种子数据.
+	 * 数据类型, 可以是以下值
+	 * MEDIA_TYPE_FILE、MEDIA_TYPE_BT、MEDIA_TYPE_HTTP、MEDIA_TYPE_RTSP 
+	 * 说明: 由于http和rtsp直接使用了ffmpeg的demux, 所以就无需初始
+	 * 化上面的各函数指针.
+	 */
+	int type;
+	/*
+	 * 附加数据.
+	 * 如果类型是MEDIA_TYPE_FILE, 则此指向文件名.
+	 * 如果类型是MEDIA_TYPE_BT, 则此指向bt种子数据.
+	 * 如果类型是MEDIA_TYPE_HTTP, 则指向url.
+	 * 如果类型是MEDIA_TYPE_RTSP, 则指向url.
 	 */
 	char *data;
 	int data_len;
 	/* 媒体文件信息.	*/
 	media_info *media;
-	/* 媒体文件信息个数.	*/
+	/*
+	 * 媒体文件信息个数, 主要为BT文件播放设计, 因为一个torrent中可
+	 * 能存在多个视频文件.
+	 */
 	int media_size;
-	/* 当前播放数据偏移, 绝对位置.	*/
+	/* 当前播放数据偏移, 绝对位置.*/
 	int64_t offset;
 } media_source;
 

@@ -374,6 +374,13 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 }
 
 static
+int decode_interrupt_cb(void *ctx)
+{
+	avplay *play = (avplay*)ctx;
+	return play->m_abort;
+}
+
+static
 int stream_index(enum AVMediaType type, AVFormatContext *ctx)
 {
 	unsigned int i;
@@ -496,13 +503,17 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	/* 分配一个format context. */
 	play->m_format_ctx = avformat_alloc_context();
 	play->m_format_ctx->flags = AVFMT_FLAG_GENPTS;
+	play->m_format_ctx->interrupt_callback.callback = decode_interrupt_cb;
+	play->m_format_ctx->interrupt_callback.opaque = play;
 
 	/* 保存media_source指针并初始化, 由avplay负责管理释放其内存. */
 	play->m_media_source = ms;
 	/* 保存视频输出类型. */
 	play->m_video_render_type = video_out_type;
 
-	if (play->m_media_source->init_source(&ms->ctx, 
+	/* 初始化数据源. */
+	if (play->m_media_source->init_source &&
+		play->m_media_source->init_source(&ms->ctx, 
 		ms->data, ms->data_len, NULL) < 0)
 	{
 		return -1;
@@ -538,39 +549,58 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 		}
 	}
 
-	/* 分配用于io的缓冲. */
-	play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
-	if (!play->m_io_buffer)
+	if (ms->type == MEDIA_TYPE_BT ||
+		ms->type == MEDIA_TYPE_FILE)
 	{
-		printf("Create buffer failed!\n");
-		return -1;
-	}
+		/* 分配用于io的缓冲. */
+		play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
+		if (!play->m_io_buffer)
+		{
+			printf("Create buffer failed!\n");
+			return -1;
+		}
 
-	/* 分配io上下文. */
-	play->m_avio_ctx = avio_alloc_context(play->m_io_buffer, 
-		IO_BUFFER_SIZE, 0, (void*)play, read_packet, NULL, seek_packet);
-	if (!play->m_io_buffer)
-	{
-		printf("Create io context failed!\n");
-		av_free(play->m_io_buffer);
-		return -1;
-	}
-	play->m_avio_ctx->write_flag = 0;
+		/* 分配io上下文. */
+		play->m_avio_ctx = avio_alloc_context(play->m_io_buffer, 
+			IO_BUFFER_SIZE, 0, (void*)play, read_packet, NULL, seek_packet);
+		if (!play->m_io_buffer)
+		{
+			printf("Create io context failed!\n");
+			av_free(play->m_io_buffer);
+			return -1;
+		}
+		play->m_avio_ctx->write_flag = 0;
 
-	ret = av_probe_input_buffer(play->m_avio_ctx, &iformat, "", NULL, 0, NULL);
-	if (ret < 0)
-	{
-		printf("av_probe_input_buffer call failed!\n");
-		goto FAILED_FLG;
-	}
+		ret = av_probe_input_buffer(play->m_avio_ctx, &iformat, "", NULL, 0, NULL);
+		if (ret < 0)
+		{
+			printf("av_probe_input_buffer call failed!\n");
+			goto FAILED_FLG;
+		}
 
-	/* 打开输入媒体流.	*/
-	play->m_format_ctx->pb = play->m_avio_ctx;
-	ret = avformat_open_input(&play->m_format_ctx, "", iformat, NULL);
-	if (ret < 0)
+		/* 打开输入媒体流.	*/
+		play->m_format_ctx->pb = play->m_avio_ctx;
+		ret = avformat_open_input(&play->m_format_ctx, "", iformat, NULL);
+		if (ret < 0)
+		{
+			printf("av_open_input_stream call failed!\n");
+			goto FAILED_FLG;
+		}
+	}
+	else
 	{
-		printf("av_open_input_stream call failed!\n");
-		goto FAILED_FLG;
+		/* 判断url是否为空. */
+		if (!play->m_media_source->data || !play->m_media_source->data_len)
+			goto FAILED_FLG;
+
+		/* HTTP和RTSP直接使用ffmpeg来处理.	*/
+		ret = avformat_open_input(&play->m_format_ctx, 
+			play->m_media_source->data, iformat, NULL);
+		if (ret < 0)
+		{
+			printf("av_open_input_stream call failed!\n");
+			goto FAILED_FLG;
+		}
 	}
 
 	ret = avformat_find_stream_info(play->m_format_ctx, NULL);
@@ -640,9 +670,12 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 	return 0;
 
 FAILED_FLG:
-	avformat_close_input(&play->m_format_ctx);
-	av_free(play->m_avio_ctx);
-	av_free(play->m_io_buffer);
+	if (play->m_format_ctx)
+		avformat_close_input(&play->m_format_ctx);
+	if (play->m_avio_ctx)
+		av_free(play->m_avio_ctx);
+	if (play->m_io_buffer)
+		av_free(play->m_io_buffer);
 
 	return -1;
 }
@@ -790,6 +823,11 @@ void stop(avplay *play)
 		free_video_render(play->m_video_render);
 		play->m_video_render = NULL;
 	}
+	if (play->m_io_buffer)
+	{
+		av_free(play->m_io_buffer);
+		play->m_io_buffer = NULL;
+	}
 }
 
 void pause(avplay *play)
@@ -866,7 +904,7 @@ void destory(avplay *play)
 	if (play->m_play_status != stoped && play->m_play_status != inited)
 	{
 		/* 关闭数据源. */
-		if (play->m_media_source)
+		if (play->m_media_source && play->m_media_source->ctx)
 			play->m_media_source->close(play->m_media_source->ctx);
 		stop(play);
 	}
@@ -1160,9 +1198,13 @@ void* read_pkt_thrd(void *param)
 	}
 
 	/* 销毁media_source. */
-	play->m_media_source->destory(play->m_media_source->ctx);
-	free_media_source(play->m_media_source);
-	play->m_media_source = NULL;
+	if (play->m_media_source)
+	{
+		if (play->m_media_source->destory && play->m_media_source->ctx)
+			play->m_media_source->destory(play->m_media_source->ctx);
+		free_media_source(play->m_media_source);
+		play->m_media_source = NULL;
+	}
 
 	/* 设置为退出状态.	*/
 	play->m_abort = TRUE;
@@ -1357,7 +1399,6 @@ void* video_dec_thrd(void *param)
 			{
 				double pts1 = 0.0f;
 				double frame_delay, pts;
-				int64_t diff_delay;
 
 				/*
 				 * 复制帧, 并输出为PIX_FMT_YUV420P.

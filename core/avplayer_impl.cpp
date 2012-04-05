@@ -570,12 +570,16 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 	strcpy(filename, movie);
 #endif
 
-	boost::system::error_code ec;
-	boost::uintmax_t file_size = boost::filesystem3::file_size(filename, ec);
-	if (ec)
+	boost::uintmax_t file_size = 0;
+	if (media_type == MEDIA_TYPE_FILE || media_type == MEDIA_TYPE_BT)
 	{
-		printf("%s\n", ec.message().c_str());
-		return FALSE;
+		boost::system::error_code ec;
+		file_size = boost::filesystem3::file_size(filename, ec);
+		if (ec)
+		{
+			printf("%s\n", ec.message().c_str());
+			return FALSE;
+		}
 	}
 
 	do 
@@ -618,6 +622,28 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 			// 初始化torrent媒体源.
 			m_source->data_len = file_size;
 			init_torrent_source(m_source);
+		}
+
+		if (media_type == MEDIA_TYPE_HTTP)
+		{
+			len = strlen(filename) + 1;
+			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename, len, 0);
+			if (!m_source)
+				break;
+			// 插入到媒体列表.
+			m_media_list.insert(std::make_pair(filename, filename));
+			m_source->data_len = len;
+		}
+
+		if (media_type == MEDIA_TYPE_RTSP)
+		{
+			len = strlen(filename) + 1;
+			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename, len, 0);
+			if (!m_source)
+				break;
+			// 插入到媒体列表.
+			m_media_list.insert(std::make_pair(filename, filename));
+			m_source->data_len = len;
 		}
 
 		// 初始化avplay.
