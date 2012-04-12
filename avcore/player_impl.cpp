@@ -1,13 +1,13 @@
 #include "stdafx.h"
-#include "avplayer_impl.h"
+#include "player_impl.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // class win_data 作为局部线程存储, 用于保存HWND对应
-// 的avplayer指针. 在消息回调时, 查找所对应的窗口, 正确
+// 的player指针. 在消息回调时, 查找所对应的窗口, 正确
 // 回调至window的win_wnd_proc消息处理函数.
 // 该代码参考MFC的实现.
-class avplayer_impl;
+class player_impl;
 class win_data
 {
 public:
@@ -15,21 +15,21 @@ public:
 	~win_data();
 
 public:
-	BOOL add_window(HWND hwnd, avplayer_impl *win);
+	BOOL add_window(HWND hwnd, player_impl *win);
 	BOOL remove_window(HWND hwnd);
-	avplayer_impl *lookup_window(HWND hwnd);
+	player_impl *lookup_window(HWND hwnd);
 
 	inline HHOOK get_hook_handle();
 	inline void set_hook_handle(HHOOK hook);
 
-	inline avplayer_impl *get_current_window();
-	inline void set_current_window(avplayer_impl *win);
+	inline player_impl *get_current_window();
+	inline void set_current_window(player_impl *win);
 
 private:
 	CRITICAL_SECTION m_cs;
-	std::map<HWND, avplayer_impl*> m_maps;
+	std::map<HWND, player_impl*> m_maps;
 	HHOOK m_hook_cbt_filter;
-	avplayer_impl *m_current_win;
+	player_impl *m_current_win;
 };
 
 
@@ -45,10 +45,10 @@ win_data::~win_data()
 	DeleteCriticalSection(&m_cs);
 }
 
-BOOL win_data::add_window(HWND hwnd, avplayer_impl* win)
+BOOL win_data::add_window(HWND hwnd, player_impl* win)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, avplayer_impl*>::iterator finder = m_maps.find(hwnd);
+	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
 	if (finder != m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
@@ -62,7 +62,7 @@ BOOL win_data::add_window(HWND hwnd, avplayer_impl* win)
 BOOL win_data::remove_window(HWND hwnd)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, avplayer_impl*>::iterator finder = m_maps.find(hwnd);
+	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
 	if (finder != m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
@@ -73,10 +73,10 @@ BOOL win_data::remove_window(HWND hwnd)
 	return TRUE;
 }
 
-avplayer_impl *win_data::lookup_window(HWND hwnd)
+player_impl *win_data::lookup_window(HWND hwnd)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, avplayer_impl*>::iterator finder = m_maps.find(hwnd);
+	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
 	if (finder == m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
@@ -96,12 +96,12 @@ void win_data::set_hook_handle(HHOOK hook)
 	m_hook_cbt_filter = hook;
 }
 
-avplayer_impl *win_data::get_current_window()
+player_impl *win_data::get_current_window()
 {
 	return m_current_win;
 }
 
-void win_data::set_current_window(avplayer_impl *win)
+void win_data::set_current_window(player_impl *win)
 {
 	m_current_win = win;
 }
@@ -116,7 +116,7 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 	else
 	{
 		HWND hwnd = (HWND)wParam;
-		avplayer_impl *win = win_data_ptr->get_current_window();
+		player_impl *win = win_data_ptr->get_current_window();
 		win_data_ptr->add_window(hwnd, win);
 	}
 
@@ -130,7 +130,7 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 // 用于第一次得到正确宽高信息的定时器.
 #define ID_PLAYER_TIMER		1021
 
-avplayer_impl::avplayer_impl(void)
+player_impl::player_impl(void)
 	: m_hwnd(NULL)
 	, m_hinstance(NULL)
 	, m_brbackground(NULL)
@@ -150,7 +150,7 @@ avplayer_impl::avplayer_impl(void)
 		win_data_ptr.reset(new win_data());
 }
 
-avplayer_impl::~avplayer_impl(void)
+player_impl::~player_impl(void)
 {
 	if (m_brbackground)
 	{
@@ -159,7 +159,7 @@ avplayer_impl::~avplayer_impl(void)
 	}
 }
 
-HWND avplayer_impl::create_window(LPCTSTR player_name)
+HWND player_impl::create_window(LPCTSTR player_name)
 {
 	WNDCLASSEX wcex;
 
@@ -170,7 +170,7 @@ HWND avplayer_impl::create_window(LPCTSTR player_name)
 	wcex.cbSize = sizeof(WNDCLASSEX);
 
 	wcex.style			= CS_CLASSDC/*CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS*/;
-	wcex.lpfnWndProc	= avplayer_impl::static_win_wnd_proc;
+	wcex.lpfnWndProc	= player_impl::static_win_wnd_proc;
 	wcex.cbClsExtra	= 0;
 	wcex.cbWndExtra	= 0;
 	wcex.hInstance		= m_hinstance;
@@ -208,7 +208,7 @@ HWND avplayer_impl::create_window(LPCTSTR player_name)
 	return m_hwnd;
 }
 
-BOOL avplayer_impl::destory_window()
+BOOL player_impl::destory_window()
 {
 	if (!IsWindow(m_hwnd))
 		return FALSE;
@@ -225,7 +225,7 @@ BOOL avplayer_impl::destory_window()
 	return ret;
 }
 
-BOOL avplayer_impl::subclasswindow(HWND hwnd, BOOL in_process)
+BOOL player_impl::subclasswindow(HWND hwnd, BOOL in_process)
 {
 	if (!IsWindow(hwnd))
 		return FALSE;
@@ -235,7 +235,7 @@ BOOL avplayer_impl::subclasswindow(HWND hwnd, BOOL in_process)
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
 	win_data_ptr->add_window(hwnd, this);
 	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd, 
-		GWLP_WNDPROC, (LONG_PTR)&avplayer_impl::static_win_wnd_proc);
+		GWLP_WNDPROC, (LONG_PTR)&player_impl::static_win_wnd_proc);
 	if (!m_old_win_proc)
 	{
 		win_data_ptr->remove_window(hwnd);
@@ -246,9 +246,9 @@ BOOL avplayer_impl::subclasswindow(HWND hwnd, BOOL in_process)
 	return TRUE;
 }
 
-LRESULT CALLBACK avplayer_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK player_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	avplayer_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
+	player_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
 	if (!this_ptr)
 	{
 		assert(0); // 不可能执行到此!!!
@@ -258,7 +258,7 @@ LRESULT CALLBACK avplayer_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM 
 	return this_ptr->win_wnd_proc(hwnd, msg, wparam, lparam);
 }
 
-LRESULT avplayer_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -371,7 +371,7 @@ LRESULT avplayer_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void avplayer_impl::win_paint(HWND hwnd, HDC hdc)
+void player_impl::win_paint(HWND hwnd, HDC hdc)
 {
 	if (m_video && m_video->ctx &&
 		m_video->use_overlay(m_video->ctx) != -1)
@@ -443,7 +443,7 @@ void avplayer_impl::win_paint(HWND hwnd, HDC hdc)
 	}
 }
 
-void avplayer_impl::fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_rect)
+void player_impl::fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_rect)
 {
 	HDC mem_dc = CreateCompatibleDC(hdc);
 	HBITMAP memBM = CreateCompatibleBitmap(hdc, 
@@ -460,7 +460,7 @@ void avplayer_impl::fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client
 	DeleteObject(memBM);
 }
 
-void avplayer_impl::init_file_source(media_source *ms)
+void player_impl::init_file_source(media_source *ms)
 {
 	ms->init_source = file_init_source;
 	ms->read_data = file_read_data;
@@ -469,7 +469,7 @@ void avplayer_impl::init_file_source(media_source *ms)
 	ms->offset = 0;
 }
 
-void avplayer_impl::init_torrent_source(media_source *ms)
+void player_impl::init_torrent_source(media_source *ms)
 {
 	ms->init_source = bt_init_source;
 	ms->read_data = bt_read_data;
@@ -479,7 +479,7 @@ void avplayer_impl::init_torrent_source(media_source *ms)
 	ms->offset = 0;
 }
 
-void avplayer_impl::init_audio(audio_render *ao)
+void player_impl::init_audio(audio_render *ao)
 {
 	ao->init_audio = wave_init_audio;
 	ao->play_audio = wave_play_audio;
@@ -487,7 +487,7 @@ void avplayer_impl::init_audio(audio_render *ao)
 	ao->destory_audio = wave_destory_audio;
 }
 
-void avplayer_impl::init_video(video_render *vo)
+void player_impl::init_video(video_render *vo)
 {
 	void *ctx = NULL;
 	int ret = 0;
@@ -551,7 +551,7 @@ void avplayer_impl::init_video(video_render *vo)
 	} while (0);
 }
 
-BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/)
+BOOL player_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/)
 {
 	// 如果未关闭原来的媒体, 则返回失败.
 	if (m_avplay || m_source)
@@ -700,7 +700,7 @@ BOOL avplayer_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0
 	return FALSE;
 }
 
-BOOL avplayer_impl::play(int index /*= 0*/)
+BOOL player_impl::play(int index /*= 0*/)
 {
 	// 重复播放, 返回错误.
 	if (m_cur_index == index)
@@ -714,7 +714,7 @@ BOOL avplayer_impl::play(int index /*= 0*/)
 	return TRUE;
 }
 
-BOOL avplayer_impl::pause()
+BOOL player_impl::pause()
 {
 	if (m_avplay && m_avplay->m_play_status == playing)
 	{
@@ -725,7 +725,7 @@ BOOL avplayer_impl::pause()
 	return FALSE;
 }
 
-BOOL avplayer_impl::resume()
+BOOL player_impl::resume()
 {
 	if (m_avplay && m_avplay->m_play_status == paused)
 	{
@@ -736,7 +736,7 @@ BOOL avplayer_impl::resume()
 	return FALSE;
 }
 
-BOOL avplayer_impl::stop()
+BOOL player_impl::stop()
 {
 	if (m_avplay)
 	{
@@ -748,7 +748,7 @@ BOOL avplayer_impl::stop()
 	return FALSE;
 }
 
-BOOL avplayer_impl::close()
+BOOL player_impl::close()
 {
 	if (m_avplay)
 	{
@@ -759,7 +759,7 @@ BOOL avplayer_impl::close()
 	return FALSE;
 }
 
-void avplayer_impl::seek_to(double sec)
+void player_impl::seek_to(double sec)
 {
 	if (m_avplay)
 	{
@@ -767,7 +767,7 @@ void avplayer_impl::seek_to(double sec)
 	}
 }
 
-void avplayer_impl::volume(double vol)
+void player_impl::volume(double vol)
 {
 	if (m_avplay)
 	{
@@ -775,7 +775,7 @@ void avplayer_impl::volume(double vol)
 	}
 }
 
-BOOL avplayer_impl::full_screen(BOOL fullscreen)
+BOOL player_impl::full_screen(BOOL fullscreen)
 {
 	HWND hparent = GetParent(m_hwnd);
 
@@ -862,42 +862,38 @@ BOOL avplayer_impl::full_screen(BOOL fullscreen)
    return FALSE;
 }
 
-double avplayer_impl::curr_play_time()
+double player_impl::curr_play_time()
 {
 	return ::curr_play_time(m_avplay);
 }
 
-double avplayer_impl::duration()
+double player_impl::duration()
 {
 	if (!m_avplay || !m_avplay->m_format_ctx)
 		return -1.0f;
 	return (double)m_avplay->m_format_ctx->duration / AV_TIME_BASE;
 }
 
-int avplayer_impl::video_width()
+int player_impl::video_width()
 {
 	if (!m_avplay || !m_avplay->m_format_ctx)
 		return 0;
 	return m_avplay->m_video_ctx->width;
 }
 
-int avplayer_impl::video_height()
+int player_impl::video_height()
 {
 	if (!m_avplay || !m_avplay->m_format_ctx)
 		return 0;
 	return m_avplay->m_video_ctx->height;
 }
 
-std::map<std::string, std::string>& avplayer_impl::play_list()
+std::map<std::string, std::string>& player_impl::play_list()
 {
 	return m_media_list;
 }
 
-HWND avplayer_impl::GetWnd()
+HWND player_impl::GetWnd()
 {
 	return m_hwnd;
 }
-
-
-
-

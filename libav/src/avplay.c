@@ -1,20 +1,6 @@
 #include "avplay.h"
 #include <stdlib.h>
 
-#ifdef WIN32
-typedef struct
-{
-	long long quot; /* Quotient. */
-	long long rem;  /* Remainder. */
-} lldiv_t;
-
-lldiv_t lldiv (long long num, long long denom)
-{
-	lldiv_t d = { num / denom, num % denom };
-	return d;
-}
-#endif /* WIN32 */
-
 /* 定义bool值 */
 #ifndef _MSC_VER
 enum bool_type

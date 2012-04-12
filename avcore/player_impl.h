@@ -4,9 +4,8 @@
 //
 // Copyright (c) 2011 Jack (jack.wgm@gmail.com)
 //
-
-#ifndef __AVPLAYER_IMPL_H__
-#define __AVPLAYER_IMPL_H__
+#ifndef __PLAYER_IMPL_H__
+#define __PLAYER_IMPL_H__
 
 #include "avplay.h"
 #include "audio_out.h"
@@ -15,11 +14,11 @@
 
 #pragma once
 
-class avplayer_impl
+class player_impl
 {
 public:
-	avplayer_impl(void);
-	~avplayer_impl(void);
+	player_impl(void);
+	~player_impl(void);
 
 public:
 	// 创建窗口, 也可以使用subclasswindow附加到一个指定的窗口.
@@ -132,4 +131,4 @@ private:
 	DWORD m_wnd_style;
 };
 
-#endif // __AVPLAYER_IMPL_H__
+#endif // __PLAYER_IMPL_H__

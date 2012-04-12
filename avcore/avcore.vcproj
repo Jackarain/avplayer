@@ -185,7 +185,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\avplayer_impl.cpp"
+				RelativePath=".\player_impl.cpp"
 				>
 			</File>
 			<File
@@ -219,7 +219,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\avplayer_impl.h"
+				RelativePath=".\player_impl.h"
 				>
 			</File>
 			<File

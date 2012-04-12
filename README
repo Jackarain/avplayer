@@ -3,12 +3,28 @@
 目前, 在这个代码中, 主要链接到FFmpeg来进行解码, 并将其改造成一个通用的播放器框架. 在这个框架中能够接受各种数据的读入, 可以很方便的封装自己的数据读取模块, 也可以很方便的定制自己的视频渲染模块和音频播放模块, 你只需要参考其中的实现即可.
 另外在当前的实现中, 因为个人精力实在有限, 所以借鉴了一些开源项目的代码(如Mplayer), 并且该代码主要基于windows平台, 有移植到linux等其它平台的打算. 所以, 我希望有朋友能参与到这个项目中一起研究和学习, 并完成这个目标.
 
-avcore是一个封装模块, 如果要创建一个播放器, 只需要avplayer.h, 然后使用创建一个avplayer对象, 就可以创建一个播放器, 关于如何使用avcore的具体细节可以参考avplayer/main.cpp
+在https://github.com/Jackarain/avplayer/downloads中有已经编译好的exe可供测试, 测试命令如下:
+avplayer.exe test.mp4
+或者
+avplayer.exe gq.flv.torrent
+gq.flv.torrent 是从优酷找的一个超清视频文件做的种子.
 
-附: 在release目录下已经生成了可以测试的执行文件, 其中bt_source.dll是一个基于libtorrent实现的数据读入模块(source), 可以方便的播放bt中的视频, 如果有兴趣可以将bt_source.dll更名为source.dll进行测试, 里面有一个从优酷找的一个超清视频文件gq.flv.torrent种子文件用于测试.
+整个项目分为几个模块:
+1. avcore 这只是一个包装类, 实现windows上的窗口创建以及消息响应, 比如: 右击暂停/开始, 单击按屏幕宽百分比seek, F2全屏切换.
+	在这个模块中, avplayer类是外部接口类, 具体实现在player_impl类中. 在player_impl类中, 初始化各模块结构指针由下面几个函数实现,
+	void init_file_source(media_source *ms);
+	void init_audio(audio_render *ao);
+	void init_video(video_render *vo);
+	你可以根据自己的需求来修改这些函数实现.
+	media_source是一个提供数据访问的结构, 包含一些函数指针, 如果你需要重新从其它地方读取数据进来提供给播放器, 那么你可以参照这个结构体, 实现这些函数并指向它, 就可以获得从你指定的地方读取数据来进行播放, 这里实现了一个从文件读取数据播放的dll.
+	audio_render是用于播放音频的结构, 同样包含了一些函数指针, 只要实现这些函数指针, 就可以改变音频输出, 比如把音频数据写到文件, 这里实现了2种方式输出音频, 一种是使用dsound来输出音频, 另一种是使用waveout来输出音频.
+	video_render是用于渲染视频的结构, 原理同上, 需要注意的是render_one_frame的data是YUV420格式.
+2. libav 这是一个基于ffmpeg的播放框架, 该框架不包含视频渲染和音频播放以及数据读取, 若需要可以实现上述结构体各函数即可, 这个框架中主要完成了使用ffmpeg解码, 以及音视频同步, seek操作处理, 并提供一些基本的控制播放器的函数(在avplay.h中定义).
+3. audio 是一个音频播放输出模块实现, 主要实现了audio_render中那几个函数指针. 在这个模块中实现了2套音频输出dsound和waveout.
+4. video 是一个视频渲染模块的实现, 实现了video_render中的那几个函数指针. 在这个模块中, 实现了3套视频渲染输出d3d, ddraw, opengl这些方式(还有gdi方式渲染没有添加到video_out.h中).
+5. avplayer 是一个使用avcore实现一个简单播放器的示范, 如果要创建一个播放器, 只需要avplayer.h, 然后使用创建一个avplayer对象, 就可以创建一个播放器, 关于如何使用avcore的具体细节可以参考avplayer/main.cpp.
 
 最后, 任何方式(包括商业或非商业)修改或引用该项目的全部或部分源码(或dll), 请在你的软件中或产品文档中必须清楚的声明引用了该项目, 并注明url(https://github.com/Jackarain/avplayer), 你可以偷偷的不这样做, 但这样做是令人欣赏的做法.
 最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
-
 
 mail: jack.wgm@gmail.com

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "avplayer.h"
-#include "avplayer_impl.h"
+#include "player_impl.h"
 
 avplayer::avplayer(void)
-	: m_impl(new avplayer_impl())
+	: m_impl(new player_impl())
 {
 }
 

@@ -22,7 +22,7 @@
 #define MEDIA_TYPE_HTTP 2
 #define MEDIA_TYPE_RTSP 3
 
-class avplayer_impl;
+class player_impl;
 // avplayer封装类.
 class EXPORT_API avplayer
 {
@@ -100,7 +100,7 @@ public:
 	HWND get_wnd();
 
 private:
-	avplayer_impl *m_impl;
+	player_impl *m_impl;
 };
 
 #endif // __AVPLAYER_H__
