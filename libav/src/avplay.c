@@ -806,7 +806,7 @@ void stop(avplay *play)
 	if (play->m_video_ctx)
 		avcodec_close(play->m_video_ctx);
 	if (play->m_format_ctx)
-		av_close_input_file(play->m_format_ctx);
+		avformat_close_input(&play->m_format_ctx);
 	if (play->m_audio_convert_ctx)
 		av_audio_convert_free(play->m_audio_convert_ctx);
 	if (play->m_resample_ctx)
@@ -823,10 +823,10 @@ void stop(avplay *play)
 		free_video_render(play->m_video_render);
 		play->m_video_render = NULL;
 	}
-	if (play->m_io_buffer)
+	if (play->m_avio_ctx)
 	{
-		av_free(play->m_io_buffer);
-		play->m_io_buffer = NULL;
+		av_free(play->m_avio_ctx);
+		play->m_avio_ctx = NULL;
 	}
 }
 
@@ -1776,5 +1776,4 @@ void* video_render_thrd(void *param)
 	}
 	return NULL;
 }
-
 
