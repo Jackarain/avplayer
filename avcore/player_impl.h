@@ -1,6 +1,6 @@
 //
-// avplayer_impl.h
-// ~~~~~~~~~~~~~~~
+// player_impl.h
+// ~~~~~~~~~~~~~
 //
 // Copyright (c) 2011 Jack (jack.wgm@gmail.com)
 //
