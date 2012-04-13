@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib glaux.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
+				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\libav\ffmpeg\lib"
 				GenerateDebugInformation="true"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib glaux.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
+				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\libav\ffmpeg\lib"
 				GenerateDebugInformation="true"
@@ -176,7 +176,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="源文件"
+			Name="源锟侥硷拷"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
@@ -216,7 +216,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="头文件"
+			Name="头锟侥硷拷"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
@@ -264,7 +264,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="资源文件"
+			Name="锟斤拷源锟侥硷拷"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
