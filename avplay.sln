@@ -6,11 +6,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "audio", "audio\audio.vcproj", "{BC5E9C1A-C689-4298-A8EA-2856457DAC28}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5CAEFD20-D477-492A-83D4-C50E18B14ECF} = {5CAEFD20-D477-492A-83D4-C50E18B14ECF}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtorrent", "libtorrent\include\libtorrent.vcproj", "{5CAEFD20-D477-492A-83D4-C50E18B14ECF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avplayer", "avplayer\avplayer.vcproj", "{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -45,10 +40,6 @@ Global
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.Build.0 = Debug|Win32
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.ActiveCfg = Release|Win32
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.Build.0 = Release|Win32
-		{5CAEFD20-D477-492A-83D4-C50E18B14ECF}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5CAEFD20-D477-492A-83D4-C50E18B14ECF}.Debug|Win32.Build.0 = Debug|Win32
-		{5CAEFD20-D477-492A-83D4-C50E18B14ECF}.Release|Win32.ActiveCfg = Release|Win32
-		{5CAEFD20-D477-492A-83D4-C50E18B14ECF}.Release|Win32.Build.0 = Release|Win32
 		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Debug|Win32.Build.0 = Debug|Win32
 		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Release|Win32.ActiveCfg = Release|Win32
