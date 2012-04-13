@@ -12,8 +12,6 @@
 # pragma once
 #endif
 
-namespace libavplayer {
-
 #define LIL_ENDIAN	1234
 #define BIG_ENDIAN	4321
 
@@ -1565,7 +1563,5 @@ private:
    void (audio_convert::*m_filters[10])(uint16_t format);
    int m_filter_index;		   /**< Current audio conversion function */
 };
-
-} // namespace libavplayer
 
 #endif // __AUDIOCVT_H__

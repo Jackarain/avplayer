@@ -2,9 +2,6 @@
 #include "dsound_render.h"
 #include <math.h>
 
-
-// namespace libavplayer {
-
 int channel_mask[] = {
    SPEAKER_FRONT_LEFT   | SPEAKER_FRONT_RIGHT  | SPEAKER_LOW_FREQUENCY,
    SPEAKER_FRONT_LEFT   | SPEAKER_FRONT_RIGHT  | SPEAKER_BACK_LEFT    | SPEAKER_BACK_RIGHT,
@@ -321,6 +318,3 @@ void dsound_render::destory_audio()
       m_dsound = NULL;
    }
 }
-
-// } // namespace libavplayer
-

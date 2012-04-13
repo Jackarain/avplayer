@@ -14,8 +14,6 @@
 
 #include "audio_render.h"
 
-// namespace libavplayer {
-
 class dsound_render
    : public audio_render
 {
@@ -72,8 +70,4 @@ private:
    int m_format;
 };
 
-// } // namespace libavplayer
-
-
 #endif // __DSOUND_RENDER_H__
-

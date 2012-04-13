@@ -1,9 +1,6 @@
 #include "ins.h"
 #include "wave_render.h"
 
-
-// namespace libavplayer {
-
 #define SAMPLESIZE   1024
 #define BUFFER_SIZE  4096
 #define BUFFER_COUNT 8
@@ -174,6 +171,3 @@ void wave_render::destory_audio()
       m_wave_blocks = NULL;
    }
 }
-
-// } // namespace libavplayer
-

@@ -13,8 +13,6 @@
 #endif
 
 
-// namespace libavplayer {
-
 #if !defined(WAVE_FORMAT_PCM)
 #define WAVE_FORMAT_PCM     1
 #endif
@@ -136,7 +134,5 @@ public:
    // 销毁音频输出组件.
    virtual void destory_audio() = 0;
 };
-
-// } // namespace libavplayer
 
 #endif // __AUDIO_RENDER_H__

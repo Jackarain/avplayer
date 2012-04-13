@@ -14,8 +14,6 @@
 
 #include "audio_render.h"
 
-// namespace libavplayer {
-
 class wave_render
    : public audio_render
 {
@@ -56,8 +54,5 @@ private:
    // 播放位置.
    volatile int m_buf_read;
 };
-
-// } // namespace libavplayer
-
 
 #endif // __WAVE_RENDER_H__
