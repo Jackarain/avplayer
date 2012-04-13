@@ -60,7 +60,7 @@ extern "C"
 #include <windows.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include <gl\glaux.h>
+// #include <gl\glaux.h>
 
 #include <ddraw.h>
 #include <d3d9.h>
