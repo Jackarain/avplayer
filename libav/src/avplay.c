@@ -1206,15 +1206,11 @@ void* audio_dec_thrd(void *param)
 	avplay *play = (avplay*) param;
 	int64_t v_start_time = 0;
 	int64_t a_start_time = 0;
-	int64_t diff_delay = 0;
 
 	if (play->m_video_st && play->m_audio_st)
 	{
 		v_start_time = play->m_video_st->start_time;
 		a_start_time = play->m_audio_st->start_time;
-
-		diff_delay = ((v_start_time != AV_NOPTS_VALUE) && (a_start_time != AV_NOPTS_VALUE)) ? 
-			v_start_time - a_start_time : 0;
 	}
 
 	for (; !play->m_abort;)
@@ -1314,7 +1310,6 @@ void* video_dec_thrd(void *param)
 	int got_picture = 0;
 	int ret = 0;
 	avplay *play = (avplay*) param;
-	int64_t diff_delay = 0;
 	int64_t v_start_time = 0;
 	int64_t a_start_time = 0;
 
@@ -1324,9 +1319,6 @@ void* video_dec_thrd(void *param)
 	{
 		v_start_time = play->m_video_st->start_time;
 		a_start_time = play->m_audio_st->start_time;
-
-		diff_delay = ((v_start_time != AV_NOPTS_VALUE) && (a_start_time != AV_NOPTS_VALUE)) ? 
-			v_start_time - a_start_time : 0;
 	}
 
 	for (; !play->m_abort;)
