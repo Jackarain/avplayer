@@ -680,8 +680,11 @@ BOOL player_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/
 		configure(m_avplay, m_audio, AUDIO_RENDER);
 
 		// 得到视频宽高.
-		m_video_width = m_avplay->m_video_ctx->width;
-		m_video_height = m_avplay->m_video_ctx->height;
+		if (m_avplay->m_video_ctx)
+		{
+			m_video_width = m_avplay->m_video_ctx->width;
+			m_video_height = m_avplay->m_video_ctx->height;			
+		}
 
 		return TRUE;
 

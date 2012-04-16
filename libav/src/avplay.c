@@ -460,7 +460,8 @@ audio_render* alloc_audio_render()
 
 void free_audio_render(audio_render *render)
 {
-	render->destory_audio(render->ctx);
+	if (render->ctx)
+		render->destory_audio(render->ctx);
 	free(render);
 }
 
@@ -474,7 +475,8 @@ video_render* alloc_video_render(void *user_data)
 
 void free_video_render(video_render *render)
 {
-	render->destory_video(render->ctx);
+	if (render->ctx)
+		render->destory_video(render->ctx);
 	free(render);
 }
 
