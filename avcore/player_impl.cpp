@@ -533,25 +533,12 @@ void player_impl::init_video(video_render *vo)
 			break;
 		}
 
-		ret = ogl_init_video(&ctx, (void*)m_hwnd, 10, 10, PIX_FMT_YUV420P);
-		ogl_destory_render(ctx);
-		if (ret == 0)
-		{
-			vo->init_video = ogl_init_video;
-			vo->render_one_frame = ogl_render_one_frame;
-			vo->re_size = ogl_re_size;
-			vo->aspect_ratio = ogl_aspect_ratio;
-			vo->use_overlay = ogl_use_overlay;
-			vo->destory_video = ogl_destory_render;
-			break;
-		}
-
 		// 表示视频渲染器初始化失败!!!
 		assert(0);
 	} while (0);
 }
 
-BOOL player_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/)
+BOOL player_impl::open(LPCTSTR movie, int media_type)
 {
 	// 如果未关闭原来的媒体, 则返回失败.
 	if (m_avplay || m_source)
@@ -647,7 +634,7 @@ BOOL player_impl::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/
 		}
 
 		// 初始化avplay.
-		if (initialize(m_avplay, m_source, video_out_type) != 0)
+		if (initialize(m_avplay, m_source) != 0)
 			break;
 
 		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.

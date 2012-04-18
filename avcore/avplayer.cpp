@@ -28,9 +28,9 @@ BOOL avplayer::subclasswindow(HWND hwnd, BOOL in_process/* = TRUE*/)
 	return m_impl->subclasswindow(hwnd, in_process);
 }
 
-BOOL avplayer::open(LPCTSTR movie, int media_type, int video_out_type/* = 0*/)
+BOOL avplayer::open(LPCTSTR movie, int media_type)
 {
-	return m_impl->open(movie, media_type, video_out_type);
+	return m_impl->open(movie, media_type);
 }
 
 BOOL avplayer::play(int index /*= 0*/)

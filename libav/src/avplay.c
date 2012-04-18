@@ -480,7 +480,7 @@ void free_video_render(video_render *render)
 	free(render);
 }
 
-int initialize(avplay *play, media_source *ms, int video_out_type)
+int initialize(avplay *play, media_source *ms)
 {
 	int ret = 0, i = 0;
 	AVInputFormat *iformat = NULL;
@@ -496,8 +496,6 @@ int initialize(avplay *play, media_source *ms, int video_out_type)
 
 	/* 保存media_source指针并初始化, 由avplay负责管理释放其内存. */
 	play->m_media_source = ms;
-	/* 保存视频输出类型. */
-	play->m_video_render_type = video_out_type;
 
 	/* 初始化数据源. */
 	if (play->m_media_source->init_source &&
@@ -734,19 +732,33 @@ int start(avplay *play, int index)
 	return 0;
 }
 
-void configure(avplay *play, void* render, int type)
+void configure(avplay *play, void* param, int type)
 {
 	if (type == AUDIO_RENDER)
 	{
-		if (play->m_audio_render)
+		if (play->m_audio_render && play->m_audio_render->ctx)
 			play->m_audio_render->destory_audio(play->m_audio_render->ctx);
-		play->m_audio_render = render;
+		play->m_audio_render = param;
 	}
 	if (type == VIDEO_RENDER)
 	{
-		if (play->m_video_render)
+		if (play->m_video_render && play->m_video_render->ctx)
 			play->m_video_render->destory_video(play->m_video_render->ctx);
-		play->m_video_render = render;
+		play->m_video_render = param;
+	}
+	if (type == MEDIA_SOURCE)
+	{
+		/* 注意如果正在播放, 则不可以配置应该源. */
+		if (play->m_play_status == playing ||
+			 play->m_play_status == paused)
+			return ;
+		if (play->m_media_source)
+		{
+			if (play->m_media_source && play->m_media_source->ctx)
+				play->m_media_source->close(play->m_media_source->ctx);
+			free_media_source(play->m_media_source);
+			play->m_media_source = param;
+		}
 	}
 }
 

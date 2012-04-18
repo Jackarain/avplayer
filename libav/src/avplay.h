@@ -239,8 +239,6 @@ typedef struct avplay
 	audio_render *m_audio_render;
 	/* 当前视频渲染器. */
 	video_render *m_video_render;
-	/* 当前渲染器的类型. */
-	int m_video_render_type;
 
 	/* 当前音频播放buffer大小.	*/
 	uint32_t m_audio_buf_size;
@@ -278,7 +276,6 @@ EXPORT_API void free_avplay_context(avplay *ctx);
  * Initialize the player.
  * @param play pointer to user-supplied avplayer (allocated by alloc_avplay_context).
  * @param filename filename Name of the stream to open.
- * @param video_out_type expression BT or FILE.
  * @return 0 on success, a negative AVERROR on failure.
  * example:
  * avplayer* play = alloc_avplay_context();
@@ -288,16 +285,16 @@ EXPORT_API void free_avplay_context(avplay *ctx);
  * if (ret != 0)
  *    return ret; // ERROR!
  */
-EXPORT_API int initialize(avplay *play, media_source *ms, int video_out_type);
+EXPORT_API int initialize(avplay *play, media_source *ms);
 
 /*
  * The Configure render or source to palyer.
  * @param play pointer to the player. 
- * @param render video render or audio render.
+ * @param param video render or audio render or media_source.
  * @param type Specifies render type, MEDIA_SOURCE	or AUDIO_RENDER VIDEO_RENDER.
  * @This function does not return a value.
  */
-EXPORT_API void configure(avplay *play, void *render, int type);
+EXPORT_API void configure(avplay *play, void *param, int type);
 
 /*
  * The start action player to play. 
