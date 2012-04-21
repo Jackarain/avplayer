@@ -30,7 +30,7 @@ EXPORT_API int file_init_source(void **ctx, char *data, int len, char *save_path
 EXPORT_API int file_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
 {
 	file_source *fs = (file_source *)ctx;
-	boost::uint64_t read_size = 0;
+	uint64_t read_size = 0;
 	bool ret = fs->read_data(buff, offset, buf_size, read_size);
 	return ret ? read_size : -1;
 }

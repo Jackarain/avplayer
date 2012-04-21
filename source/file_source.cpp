@@ -4,6 +4,28 @@
 static const int BUFFER_SIZE = (1 << 21);
 static const int AVG_READ_SIZE = (BUFFER_SIZE >> 1);
 
+#ifdef WIN32
+static
+uint64_t file_size(const char *filename)
+{
+	WIN32_FILE_ATTRIBUTE_DATA fad = { 0 };
+
+	if (!::GetFileAttributesExA(filename, ::GetFileExInfoStandard, &fad))
+		return -1;
+	return (static_cast<uint64_t>(fad.nFileSizeHigh)
+		<< (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
+}
+#else
+static
+uint64_t file_size(const char *sFileName)
+{
+	struct stat buf;
+	if(stat(sFileName, &buf) != 0)
+		return(-1);
+	return (buf.st_size);
+}
+#endif // WIN32
+
 file_source::file_source()
    : m_file(NULL)
    , m_circle_buffer(NULL)
@@ -13,22 +35,25 @@ file_source::file_source()
    , m_write_p(0)
    , m_read_p(0)
 {
-
+	pthread_mutex_init(&m_mutex, NULL);
 }
 
 file_source::~file_source()
 {
    close();
+	pthread_mutex_destroy(&m_mutex);
+	if (m_open_data)
+		delete m_open_data;
 }
 
 bool file_source::open(void* ctx)
 {
    // 保存ctx.
-   m_open_data.reset((open_file_data*)ctx);
+   m_open_data =(open_file_data*)ctx;
 
    // 打开文件.
-   if (!boost::filesystem2::exists(m_open_data->filename))
-      return false;
+	if (access(m_open_data->filename.c_str(), 0) == -1)
+		return false;
 
    // 创建缓冲.
    m_circle_buffer = new char[m_buffer_size];
@@ -39,7 +64,7 @@ bool file_source::open(void* ctx)
    m_write_p = m_read_p = m_offset = 0;
 
    // 获得文件大小.
-   m_file_size = boost::filesystem2::file_size(m_open_data->filename);
+   m_file_size = file_size(m_open_data->filename.c_str());
 
    // 打开文件.
    m_file = fopen(m_open_data->filename.c_str(), "rb");
@@ -49,22 +74,30 @@ bool file_source::open(void* ctx)
    return true;
 }
 
-bool file_source::read_data(char* data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size)
+bool file_source::read_data(char* data, uint64_t offset, uint64_t size, uint64_t& read_size)
 {
    static char read_buffer[AVG_READ_SIZE];
-   // 根据参数自动加锁.
-   boost::shared_ptr<boost::mutex::scoped_lock> lock;
+
+   // 根据参数加锁.
    if (m_open_data->is_multithread)
-      lock.reset(new boost::mutex::scoped_lock(m_mutex));
+		pthread_mutex_lock(&m_mutex);
 
    read_size = 0;
 
    // 读取数据越界.
    if (offset >= m_file_size)
-      return false;
+	{
+		if (m_open_data->is_multithread)
+			pthread_mutex_unlock(&m_mutex);
+		return false;
+	}
 
 	if (!m_file)
+	{
+		if (m_open_data->is_multithread)
+			pthread_mutex_unlock(&m_mutex);
 		return true;
+	}
 
    // 如果数据读取位置在缓冲范围中, 则直接从缓冲中拉取数据.
    if (m_offset <= offset && offset < m_offset + (m_write_p - m_read_p))
@@ -106,6 +139,9 @@ bool file_source::read_data(char* data, boost::uint64_t offset, boost::uint64_t 
       if (r > 0)
          put_data(read_buffer, r);
    }
+
+	if (m_open_data->is_multithread)
+		pthread_mutex_unlock(&m_mutex);
 
    return true;
 }
@@ -155,11 +191,11 @@ unsigned int file_source::get_data(char* buffer, unsigned int len)
 
 inline unsigned int file_source::_max(unsigned int a, unsigned int b)
 {
-   return max(a, b);
+	return std::max<unsigned int>(a, b);
 }
 
 inline unsigned int file_source::_min(unsigned int a, unsigned int b)
 {
-   return min(a, b);
+	return std::min<unsigned int>(a, b);
 }
 

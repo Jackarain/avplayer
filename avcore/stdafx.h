@@ -15,12 +15,11 @@
 #endif
 
 #include <stdio.h>
-#include <windows.h>
+#include <math.h>
 #include <tchar.h>
+#include <windows.h>
 
+#include <string>
 #include <map>
-
-#include <boost/thread.hpp>
-#include <boost/filesystem.hpp>
 
 #endif

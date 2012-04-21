@@ -30,39 +30,27 @@
 # pragma once
 #endif
 
-
+#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <stdint.h>
+
+#ifndef WIN32
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif // WIN32
+
+
+#include <windows.h>
 
 #include <set>
 #include <map>
 #include <list>
 #include <algorithm>
 
-#include <boost/any.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/pool/singleton_pool.hpp>
-
-#define BOOST_FILESYSTEM_VERSION 2
-#include <boost/filesystem.hpp>
-
-using namespace boost; // for int64_t
-
-#include <windows.h>
-#include <gl\gl.h>
-#include <gl\glu.h>
-// #include <gl\glaux.h>
-
-#include <ddraw.h>
-#include <d3d9.h>
-
-#include <MMSystem.h>
-#include <dsound.h>
-
-// #include "logger.h"
-// extern libavplayer::logger logs;
+#include "pthread.h"
 
 #endif // __INS_H__

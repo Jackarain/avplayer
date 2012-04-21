@@ -27,10 +27,25 @@
 #include <memory.h>
 #include <tchar.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>	// for boost::filesystem3::extension
-
+#include <string>
 #include "avplayer.h"
+
+template <typename T>
+static T extension(const T &filename)
+{
+	if (filename == _T(".") || filename == _T(".."))
+		return T(_T(""));
+	T::size_type pos(filename.rfind(_T(".")));
+	return pos == T::npos
+		? T(_T(""))
+		: T(filename.c_str() + pos);
+}
+
+#ifdef UNICODE
+typedef std::wstring auto_string;
+#else
+typedef std::string auto_string;
+#endif // UNICODE
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
 							  HINSTANCE hPrevInstance,
@@ -39,45 +54,44 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 {
 	setlocale(LC_ALL, "chs");
 
+	auto_string filename;
 	MSG msg;
 	int ret = NULL;
-	WCHAR filename[MAX_PATH];
 
 	if (_tcslen(lpCmdLine) == 0)
 		return -1;
 
-	_tcscpy(filename, lpCmdLine);
+	filename.resize(_tcslen(lpCmdLine));
+	_tcscpy((TCHAR*)filename.data(), lpCmdLine);
 
 	avplayer win;
 
 	if (win.create_window(_T("main")) == NULL)
 		return -1;
 
-	std::string ext = boost::filesystem3::extension(filename);
-	if (ext == ".torrent")
+	auto_string ext = extension(filename);
+	if (ext == _T(".torrent"))
 	{
-		if (!win.open(filename, MEDIA_TYPE_BT))
+		if (!win.open(filename.c_str(), MEDIA_TYPE_BT))
 			return -1;
 	}
 	else
 	{
-		std::string str = boost::filesystem3::path(filename).string();
-		boost::to_lower(str);
-		boost::trim(str);
-		std::string is_url = str.substr(0, 7);
-		if (is_url == "http://")
+		auto_string str = filename;
+		auto_string is_url = str.substr(0, 7);
+		if (is_url == _T("http://"))
 		{
-			if (!win.open(filename, MEDIA_TYPE_HTTP))
+			if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP))
 				return -1;
 		}
-		else if (is_url == "rtsp://")
+		else if (is_url == _T("rtsp://"))
 		{
-			if (!win.open(filename, MEDIA_TYPE_RTSP))
+			if (!win.open(filename.c_str(), MEDIA_TYPE_RTSP))
 				return -1;
 		}
 		else
 		{
-			if (!win.open(filename, MEDIA_TYPE_FILE))
+			if (!win.open(filename.c_str(), MEDIA_TYPE_FILE))
 			return -1;
 		}
 	}

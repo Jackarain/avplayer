@@ -32,9 +32,48 @@ private:
 	player_impl *m_current_win;
 };
 
+// 线程本地存储.
+template <typename T>
+class thread_tls_ptr 
+{
+public:
+	thread_tls_ptr()
+		: m_tls_index(0)
+	{
+		m_tls_index = TlsAlloc();
+	}
+	~thread_tls_ptr()
+	{
+		TlsFree(m_tls_index);
+	}
+
+	T* operator->() const
+	{
+		return get();
+	}
+
+	T& operator*() const
+	{
+		return *get();
+	}
+
+	void set(T* data)
+	{
+		TlsSetValue(m_tls_index, (void*)data);
+	}
+
+	T* get() const
+	{
+		return (T*)TlsGetValue(m_tls_index);
+	}
+
+private:
+	DWORD m_tls_index;
+};
 
 // 本地线程存储, 用于存储win_data, 并且在各线程独立.
-boost::thread_specific_ptr<win_data> win_data_ptr;
+thread_tls_ptr<win_data> win_data_ptr;
+
 win_data::win_data()
 {
 	InitializeCriticalSection(&m_cs);
@@ -106,6 +145,16 @@ void win_data::set_current_window(player_impl *win)
 	m_current_win = win;
 }
 
+static uint64_t file_size(LPCTSTR filename)
+{
+	WIN32_FILE_ATTRIBUTE_DATA fad = { 0 };
+
+	if (!::GetFileAttributesEx(filename, ::GetFileExInfoStandard, &fad))
+		return -1;
+	return (static_cast<uint64_t>(fad.nFileSizeHigh)
+		<< (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
+}
+
 LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 {
 	if (code != HCBT_CREATEWND)
@@ -131,23 +180,22 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 #define ID_PLAYER_TIMER		1021
 
 player_impl::player_impl(void)
-	: m_hwnd(NULL)
-	, m_hinstance(NULL)
-	, m_brbackground(NULL)
-	, m_old_win_proc(NULL)
-	, m_avplay(NULL)
-	, m_video(NULL)
-	, m_audio(NULL)
-	, m_source(NULL)
-	, m_cur_index(-1)
-	, m_video_width(0)
-	, m_video_height(0)
-	, m_wnd_style(0)
-	, m_full_screen(FALSE)
+: m_hwnd(NULL)
+, m_hinstance(NULL)
+, m_brbackground(NULL)
+, m_old_win_proc(NULL)
+, m_avplay(NULL)
+, m_video(NULL)
+, m_audio(NULL)
+, m_source(NULL)
+, m_cur_index(-1)
+, m_video_width(0)
+, m_video_height(0)
+, m_wnd_style(0)
+, m_full_screen(FALSE)
 {
 	// 初始化线程局部存储对象.
-	if (win_data_ptr.get() == 0)
-		win_data_ptr.reset(new win_data());
+	win_data_ptr.set(new win_data());
 }
 
 player_impl::~player_impl(void)
@@ -195,9 +243,9 @@ HWND player_impl::create_window(LPCTSTR player_name)
 		player_name, player_name, WS_OVERLAPPEDWINDOW/* | WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/,
 		0, 0, 800, 600, NULL, NULL, m_hinstance, NULL);
 
-// 	m_hwnd = CreateWindow(player_name, player_name,
-// 		WS_OVERLAPPEDWINDOW, 100, 100, 300, 300,
-// 		0, NULL, m_hinstance, NULL);
+	// 	m_hwnd = CreateWindow(player_name, player_name,
+	// 		WS_OVERLAPPEDWINDOW, 100, 100, 300, 300,
+	// 		0, NULL, m_hinstance, NULL);
 
 	// 撤销hook.
 	UnhookWindowsHookEx(hook);
@@ -557,14 +605,13 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 	strcpy(filename, movie);
 #endif
 
-	boost::uintmax_t file_size = 0;
+	uint64_t file_lentgh = 0;
 	if (media_type == MEDIA_TYPE_FILE || media_type == MEDIA_TYPE_BT)
 	{
-		boost::system::error_code ec;
-		file_size = boost::filesystem3::file_size(filename, ec);
-		if (ec)
+		file_lentgh = file_size(movie);
+		if (file_lentgh < 0)
 		{
-			printf("%s\n", ec.message().c_str());
+			printf("get file size failed!\n");
 			return FALSE;
 		}
 	}
@@ -580,7 +627,7 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		if (media_type == MEDIA_TYPE_FILE)
 		{
 			len = strlen(filename);
-			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename, len + 1, file_size);
+			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename, len + 1, file_lentgh);
 			if (!m_source)
 				break;
 
@@ -596,18 +643,18 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		{
 			// 先读取bt种子数据, 然后作为附加数据保存到媒体源.
 			FILE *fp = fopen(filename, "r+b");
-			char *torrent_data = (char*)malloc(file_size);
-			int readbytes = fread(torrent_data, 1, file_size, fp);
-			if (readbytes != file_size)
+			char *torrent_data = (char*)malloc(file_lentgh);
+			int readbytes = fread(torrent_data, 1, file_lentgh, fp);
+			if (readbytes != file_lentgh)
 			{
 				assert(0);
 				break;
 			}
-			m_source = alloc_media_source(MEDIA_TYPE_BT, torrent_data, file_size, 0);
+			m_source = alloc_media_source(MEDIA_TYPE_BT, torrent_data, file_lentgh, 0);
 			free(torrent_data);
 
 			// 初始化torrent媒体源.
-			m_source->data_len = file_size;
+			m_source->data_len = file_lentgh;
 			init_torrent_source(m_source);
 		}
 
@@ -769,87 +816,87 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 {
 	HWND hparent = GetParent(m_hwnd);
 
-   /* Save the current windows placement/placement to restore
-      when fullscreen is over */
-   WINDOWPLACEMENT window_placement;
-   window_placement.length = sizeof(WINDOWPLACEMENT);
-   GetWindowPlacement(m_hwnd, &window_placement);
+	/* Save the current windows placement/placement to restore
+	when fullscreen is over */
+	WINDOWPLACEMENT window_placement;
+	window_placement.length = sizeof(WINDOWPLACEMENT);
+	GetWindowPlacement(m_hwnd, &window_placement);
 
-   if (fullscreen && !m_full_screen)
-   {
-      m_full_screen = true;
+	if (fullscreen && !m_full_screen)
+	{
+		m_full_screen = true;
 		m_wnd_style = GetWindowLong(m_hwnd, GWL_STYLE);
-      printf("entering fullscreen mode.\n");
-      SetWindowLong(m_hwnd, GWL_STYLE, WS_CLIPCHILDREN | WS_VISIBLE);
+		printf("entering fullscreen mode.\n");
+		SetWindowLong(m_hwnd, GWL_STYLE, WS_CLIPCHILDREN | WS_VISIBLE);
 
-      if (IsWindow(hparent))
-      {
-         /* Retrieve current window position so fullscreen will happen
-          * on the right screen */
-         HMONITOR hmon = MonitorFromWindow(hparent, MONITOR_DEFAULTTONEAREST);
-         MONITORINFO mi;
-         mi.cbSize = sizeof(MONITORINFO);
-         if (::GetMonitorInfo(hmon, &mi))
-            ::SetWindowPos(m_hwnd, 0,
-            mi.rcMonitor.left,
-            mi.rcMonitor.top,
-            mi.rcMonitor.right - mi.rcMonitor.left,
-            mi.rcMonitor.bottom - mi.rcMonitor.top,
-            SWP_NOZORDER | SWP_FRAMECHANGED);
-      }
-      else
-      {
-         /* Maximize non embedded window */
-         ShowWindow(m_hwnd, SW_SHOWMAXIMIZED);
-      }
+		if (IsWindow(hparent))
+		{
+			/* Retrieve current window position so fullscreen will happen
+			* on the right screen */
+			HMONITOR hmon = MonitorFromWindow(hparent, MONITOR_DEFAULTTONEAREST);
+			MONITORINFO mi;
+			mi.cbSize = sizeof(MONITORINFO);
+			if (::GetMonitorInfo(hmon, &mi))
+				::SetWindowPos(m_hwnd, 0,
+				mi.rcMonitor.left,
+				mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_NOZORDER | SWP_FRAMECHANGED);
+		}
+		else
+		{
+			/* Maximize non embedded window */
+			ShowWindow(m_hwnd, SW_SHOWMAXIMIZED);
+		}
 
-      if (IsWindow(hparent))
-      {
-         /* Hide the previous window */
-         RECT rect;
-         GetClientRect(m_hwnd, &rect);
-         // SetParent(hwnd, hwnd);
-         SetWindowPos(m_hwnd, 0, 0, 0,
-            rect.right, rect.bottom,
-            SWP_NOZORDER|SWP_FRAMECHANGED);
-         HWND topLevelParent = GetAncestor(hparent, GA_ROOT);
-         ShowWindow(topLevelParent, SW_HIDE);
-      }
-      SetForegroundWindow(m_hwnd);
-      return TRUE;
-   }
+		if (IsWindow(hparent))
+		{
+			/* Hide the previous window */
+			RECT rect;
+			GetClientRect(m_hwnd, &rect);
+			// SetParent(hwnd, hwnd);
+			SetWindowPos(m_hwnd, 0, 0, 0,
+				rect.right, rect.bottom,
+				SWP_NOZORDER|SWP_FRAMECHANGED);
+			HWND topLevelParent = GetAncestor(hparent, GA_ROOT);
+			ShowWindow(topLevelParent, SW_HIDE);
+		}
+		SetForegroundWindow(m_hwnd);
+		return TRUE;
+	}
 
-   if (!fullscreen && m_full_screen)
-   {
-      m_full_screen = FALSE;
-      printf("leaving fullscreen mode.\n");
-      /* Change window style, no borders and no title bar */
-      SetWindowLong(m_hwnd, GWL_STYLE, m_wnd_style);
+	if (!fullscreen && m_full_screen)
+	{
+		m_full_screen = FALSE;
+		printf("leaving fullscreen mode.\n");
+		/* Change window style, no borders and no title bar */
+		SetWindowLong(m_hwnd, GWL_STYLE, m_wnd_style);
 
-      if (hparent)
-      {
-         RECT rect;
-         GetClientRect(hparent, &rect);
-         // SetParent(hwnd, hparent);
-         SetWindowPos(m_hwnd, 0, 0, 0,
-            rect.right, rect.bottom,
-            SWP_NOZORDER | SWP_FRAMECHANGED);
+		if (hparent)
+		{
+			RECT rect;
+			GetClientRect(hparent, &rect);
+			// SetParent(hwnd, hparent);
+			SetWindowPos(m_hwnd, 0, 0, 0,
+				rect.right, rect.bottom,
+				SWP_NOZORDER | SWP_FRAMECHANGED);
 
-         HWND topLevelParent = GetAncestor(hparent, GA_ROOT);
-         ShowWindow(topLevelParent, SW_SHOW);
-         SetForegroundWindow(hparent);
-         ShowWindow(m_hwnd, SW_HIDE);
-      }
-      else
-      {
-         /* return to normal window for non embedded vout */
-         SetWindowPlacement(m_hwnd, &window_placement);
-         ShowWindow(m_hwnd, SW_SHOWNORMAL);
-      }
-      return TRUE;
-   }
+			HWND topLevelParent = GetAncestor(hparent, GA_ROOT);
+			ShowWindow(topLevelParent, SW_SHOW);
+			SetForegroundWindow(hparent);
+			ShowWindow(m_hwnd, SW_HIDE);
+		}
+		else
+		{
+			/* return to normal window for non embedded vout */
+			SetWindowPlacement(m_hwnd, &window_placement);
+			ShowWindow(m_hwnd, SW_SHOWNORMAL);
+		}
+		return TRUE;
+	}
 
-   return FALSE;
+	return FALSE;
 }
 
 double player_impl::curr_play_time()

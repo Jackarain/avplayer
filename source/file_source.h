@@ -36,7 +36,7 @@ public:
    virtual bool open(void* ctx);
 
    // 读取数据.
-   virtual bool read_data(char* data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size);
+   virtual bool read_data(char* data, uint64_t offset, uint64_t size, uint64_t& read_size);
 
    // 关闭.
    virtual void close();
@@ -51,13 +51,13 @@ private:
 
 private:
    // 文件打开结构.
-   boost::shared_ptr<open_file_data> m_open_data;
+   open_file_data *m_open_data;
 
    // 文件指针.
    FILE* m_file;
 
    // 文件大小.
-   boost::uint64_t m_file_size;
+   uint64_t m_file_size;
 
    // 循环缓冲位置.
    unsigned int m_offset;
@@ -75,7 +75,7 @@ private:
    unsigned int m_read_p;
 
    // 线程安全锁.
-   mutable boost::mutex m_mutex;
+	mutable pthread_mutex_t m_mutex;
 };
 
 #endif // __FILE_SOURCE_H__

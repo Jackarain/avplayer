@@ -23,7 +23,7 @@ public:
    virtual bool open(void *ctx) = 0;
 
    // 读取数据.
-   virtual bool read_data(char *data, boost::uint64_t offset, boost::uint64_t size, boost::uint64_t& read_size) = 0;
+   virtual bool read_data(char *data, uint64_t offset, uint64_t size, uint64_t& read_size) = 0;
 
    // 关闭.
    virtual void close() = 0;

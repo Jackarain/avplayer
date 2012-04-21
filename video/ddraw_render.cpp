@@ -325,7 +325,7 @@ bool ddraw_render::render_one_frame(AVFrame* data, int pix_fmt)
 	}
 	else
 	{
-		BOOST_ASSERT(0);
+		assert(0);
 		// #if 0
 		if (!m_swsctx)
 		{
