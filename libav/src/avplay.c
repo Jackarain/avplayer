@@ -915,11 +915,17 @@ void destory(avplay *play)
 static
 void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 {
+	int src_size = 0;
 	*dst = *src;
 	dst->data[0] = (uint8_t*) av_malloc(src->linesize[0]);
 	dst->linesize[0] = src->linesize[0];
 	dst->type = 0;
 	assert(dst->data[0]);
+
+	src_size = av_samples_get_buffer_size(NULL,
+		play->m_audio_ctx->channels,
+		src->nb_samples,
+		play->m_audio_ctx->sample_fmt, 1);
 
 	/*转换音频格式.*/
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
@@ -934,14 +940,14 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 			void *obuf[6] = { dst->data[0] };
 			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
 			int ostride[6] = { 2 };
-			int len = src->linesize[0] / istride[0];
+			int len = src_size / istride[0];
 			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
 					istride, len) < 0)
 			{
 				assert(0);
 			}
-			src->linesize[0] = len * 2;
-			memcpy(src->data[0], dst->data[0], src->linesize[0]);
+			src_size = len * 2;
+			memcpy(src->data[0], dst->data[0], src_size);
 			/* FIXME: existing code assume that data_size equals framesize*channels*2
 			   remove this legacy cruft */
 		}
@@ -961,7 +967,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 
 		if (play->m_resample_ctx)
 		{
-			int samples = src->linesize[0] / (2 * play->m_audio_ctx->channels);
+			int samples = src_size / (2 * play->m_audio_ctx->channels);
 			dst->linesize[0] = audio_resample(play->m_resample_ctx,
 					(short *) dst->data[0], (short *) src->data[0], samples)
 					* 4;
@@ -969,8 +975,8 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	}
 	else
 	{
-		dst->linesize[0] = src->linesize[0];
-		memcpy(dst->data[0], src->data[0], src->linesize[0]);
+		dst->linesize[0] = src_size;
+		memcpy(dst->data[0], src->data[0], src_size);
 	}
 }
 
