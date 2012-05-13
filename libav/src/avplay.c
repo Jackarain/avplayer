@@ -488,6 +488,9 @@ int initialize(avplay *play, media_source *ms)
 	av_register_all();
 	avcodec_register_all();
 
+	/* 置0. */
+	memset(play, 0, sizeof(avplay));
+
 	/* 分配一个format context. */
 	play->m_format_ctx = avformat_alloc_context();
 	play->m_format_ctx->flags = AVFMT_FLAG_GENPTS;
@@ -728,6 +731,7 @@ int start(avplay *play, int index)
 			return ret;
 		}
 	}
+	play->m_play_status = playing;
 
 	return 0;
 }
@@ -762,7 +766,36 @@ void configure(avplay *play, void* param, int type)
 	}
 }
 
+void enable_calc_frame_rate(avplay *play)
+{
+	play->m_enable_calc_frame_rate = 1;
+}
+
+void enable_calc_bit_rate(avplay *play)
+{
+	play->m_enable_calc_video_bite = 1;
+}
+
+int current_bit_rate(avplay *play)
+{
+	return play->m_real_bit_rate;
+}
+
+int current_frame_rate(avplay *play)
+{
+	return play->m_real_frame_rate;
+}
+
 void wait_for_completion(avplay *play)
+{
+	while (play->m_play_status == playing ||
+		play->m_play_status == paused)
+	{
+		Sleep(100);
+	}
+}
+
+void wait_for_threads(avplay *play)
 {
 	void *status = NULL;
 	pthread_join(play->m_read_pkt_thrd, &status);
@@ -793,7 +826,7 @@ void stop(avplay *play)
 	pthread_cond_signal(&play->m_video_dq.m_cond);
 
 	/* 先等线程退出, 再释放资源. */
-	wait_for_completion(play);
+	wait_for_threads(play);
 
 	queue_end(&play->m_audio_q);
 	queue_end(&play->m_video_q);
@@ -1099,6 +1132,8 @@ void* read_pkt_thrd(void *param)
 	int last_paused = play->m_play_status;
 	AVStream *stream = NULL;
 
+	play->m_real_bit_rate = 0;
+
 	for (; !play->m_abort;)
 	{
 		/* Initialize optional fields of a packet with default values.	*/
@@ -1179,14 +1214,50 @@ void* read_pkt_thrd(void *param)
 		ret = av_read_frame(play->m_format_ctx, &packet);
 		if (ret < 0)
 		{
+			if (play->m_video_q.m_size == 0 && play->m_audio_q.m_size == 0)
+				play->m_play_status = stoped;
 			Sleep(200);
 			continue;
 		}
+
+		if (play->m_play_status == stoped)
+			play->m_play_status = playing;
 
 		/* 更新缓冲字节数.	*/
 		pthread_mutex_lock(&play->m_buf_size_mtx);
 		play->m_pkt_buffer_size += packet.size;
 		pthread_mutex_unlock(&play->m_buf_size_mtx);
+
+		/* 在这里计算码率.	*/
+		if (play->m_enable_calc_video_bite)
+		{
+			int current_time = 0;
+			/* 计算时间是否足够一秒钟. */
+			if (play->m_last_vb_time == 0)
+				play->m_last_vb_time = av_gettime() / 1000000.0f;
+			current_time = av_gettime() / 1000000.0f;
+			if (current_time - play->m_last_vb_time >= 1)
+			{
+				play->m_last_vb_time = current_time;
+				if (++play->m_vb_index == MAX_CALC_SEC)
+					play->m_vb_index = 0;
+
+				/* 计算bit/second. */
+				do
+				{
+					int sum = 0;
+					int i = 0;
+					for (; i < MAX_CALC_SEC; i++)
+						sum += play->m_read_bytes[i];
+					play->m_real_bit_rate = ((double)sum / (double)MAX_CALC_SEC) * 8.0f / 1024.0f;
+				} while (0);
+				/* 清空. */
+				play->m_read_bytes[play->m_vb_index] = 0;
+			}
+
+			/* 更新读取字节数. */
+			play->m_read_bytes[play->m_vb_index] += packet.size;
+		}
 
 		av_dup_packet(&packet);
 
@@ -1746,8 +1817,39 @@ void* video_render_thrd(void *param)
 					diff_sum += fabs(diff);
 					avg_diff = (double)diff_sum / frame_num;
 				}
-				printf("%7.3f A-V: %7.3f PTS: %7.3f A: %7.3f V: %7.3f AVG: %1.4f N: %lld\r",
-					master_clock(play), diff, current_pts, audio_clock(play), video_clock(play), avg_diff/*delay*/, frame_num);
+				printf("%7.3f A-V: %7.3f A: %7.3f V: %7.3f FR: %d/fps, VB: %d/kbps\r",
+					master_clock(play), diff, audio_clock(play), video_clock(play), play->m_real_frame_rate, play->m_real_bit_rate);
+
+				/*	在这里计算帧率.	*/
+				if (play->m_enable_calc_frame_rate)
+				{
+					int current_time = 0;
+					/* 计算时间是否足够一秒钟. */
+					if (play->m_last_fr_time == 0)
+						play->m_last_fr_time = av_gettime() / 1000000.0f;
+					current_time = av_gettime() / 1000000.0f;
+					if (current_time - play->m_last_fr_time >= 1)
+					{
+						play->m_last_fr_time = current_time;
+						if (++play->m_fr_index == MAX_CALC_SEC)
+							play->m_fr_index = 0;
+
+						/* 计算frame_rate. */
+						do
+						{
+							int sum = 0;
+							int i = 0;
+							for (; i < MAX_CALC_SEC; i++)
+								sum += play->m_frame_num[i];
+							play->m_real_frame_rate = (double)sum / (double)MAX_CALC_SEC;
+						} while (0);
+						/* 清空. */
+						play->m_frame_num[play->m_fr_index] = 0;
+					}
+
+					/* 更新读取字节数. */
+					play->m_frame_num[play->m_fr_index]++;
+				}
 
 				/* 已经开始播放, 清空seeking的状态. */
 				if (play->m_seeking == SEEKING_FLAG)

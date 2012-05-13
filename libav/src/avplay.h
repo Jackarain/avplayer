@@ -155,6 +155,9 @@ EXPORT_API video_render* alloc_video_render(void *user_data);
 EXPORT_API void free_video_render(video_render *render);
 
 
+/* 计算视频实时帧率和实时码率的时间单元. */
+#define MAX_CALC_SEC 5
+
 typedef struct avplay
 {
 	/* 文件打开指针. */
@@ -250,6 +253,21 @@ typedef struct avplay
 
 	/* 播放状态. */
 	play_status m_play_status;
+
+	/* 实时视频输入位率. */
+	int m_enable_calc_video_bite;
+	int m_real_bit_rate;
+	int m_read_bytes[MAX_CALC_SEC]; /* 记录5秒内的字节数. */
+	int m_last_vb_time;
+	int m_vb_index;
+
+	/* 帧率. */
+	int m_enable_calc_frame_rate;
+	int m_real_frame_rate;
+	int m_frame_num[MAX_CALC_SEC]; /* 记录5秒内的帧数. */
+	int m_last_fr_time;
+	int m_fr_index;
+
 	/* 正在播放的索引, 只用于BT文件播放. */
 	int m_current_play_index;
 
@@ -367,6 +385,35 @@ EXPORT_API double duration(avplay *play);
  * @This function does not return a value.
  */
 EXPORT_API void destory(avplay *play);
+
+/*
+ * Allows the calculation of the real-time frame rate.
+ * @param play pointer to the player.
+ * @This function does not return a value.
+ */
+EXPORT_API void enable_calc_frame_rate(avplay *play);
+
+/*
+ * Allows the calculation of the real-time bit rate.
+ * @param play pointer to the player.
+ * @This function does not return a value.
+ */
+EXPORT_API void enable_calc_bit_rate(avplay *play);
+
+/*
+ *	Get current real-time bit rate.
+ * @param play pointer to the player.
+ * @This function return bit rate(kpbs).
+ */
+EXPORT_API int current_bit_rate(avplay *play);
+
+/*
+ *	Get current real-time frame rate.
+ * @param play pointer to the player.
+ * @This function return frame rate(fps).
+ */
+EXPORT_API int current_frame_rate(avplay *play);
+
 
 #ifdef  __cplusplus
 }

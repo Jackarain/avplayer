@@ -28,6 +28,11 @@ BOOL avplayer::subclasswindow(HWND hwnd, BOOL in_process/* = TRUE*/)
 	return m_impl->subclasswindow(hwnd, in_process);
 }
 
+BOOL avplayer::unsubclasswindow(HWND hwnd)
+{
+	return m_impl->unsubclasswindow(hwnd);
+}
+
 BOOL avplayer::open(LPCTSTR movie, int media_type)
 {
 	return m_impl->open(movie, media_type);
@@ -46,6 +51,11 @@ BOOL avplayer::pause()
 BOOL avplayer::resume()
 {
 	return m_impl->resume();
+}
+
+BOOL avplayer::wait_for_completion()
+{
+	return m_impl->wait_for_completion();
 }
 
 BOOL avplayer::stop()

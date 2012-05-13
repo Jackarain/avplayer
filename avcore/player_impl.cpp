@@ -294,6 +294,22 @@ BOOL player_impl::subclasswindow(HWND hwnd, BOOL in_process)
 	return TRUE;
 }
 
+BOOL player_impl::unsubclasswindow(HWND hwnd)
+{
+	if (!IsWindow(m_hwnd) || !IsWindow(hwnd)
+		|| m_hwnd != hwnd || !m_old_win_proc)
+	{
+		return FALSE;
+	}
+
+	// 设置为原来的窗口过程.
+	::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)m_old_win_proc);
+	win_data_ptr->remove_window(hwnd);
+	m_hwnd = NULL;
+
+	return TRUE;
+}
+
 LRESULT CALLBACK player_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	player_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
@@ -720,6 +736,10 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 			m_video_height = m_avplay->m_video_ctx->height;			
 		}
 
+		// 打开视频实时码率和帧率计算.
+		enable_calc_frame_rate(m_avplay);
+		enable_calc_bit_rate(m_avplay);
+
 		return TRUE;
 
 	} while (0);
@@ -744,7 +764,7 @@ BOOL player_impl::play(int index /*= 0*/)
 		return FALSE;
 
 	// 如果是文件数据, 则直接播放.
-	if (start(m_avplay, index) != 0)
+	if (::start(m_avplay, index) != 0)
 		return FALSE;
 	m_cur_index = index;
 
@@ -779,6 +799,17 @@ BOOL player_impl::stop()
 	{
 		::stop(m_avplay);
 		m_cur_index = -1;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL player_impl::wait_for_completion()
+{
+	if (m_avplay)
+	{
+		::wait_for_completion(m_avplay);
 		return TRUE;
 	}
 

@@ -30,6 +30,9 @@ public:
 	// 子类化一个存在的窗口, in_process参数表示窗口是否在同一进程中.
 	BOOL subclasswindow(HWND hwnd, BOOL in_process);
 
+	// 撤消子类化.
+	BOOL unsubclasswindow(HWND hwnd);
+
 public:
 	// 打开一个媒体文件, movie是文件名, media_type可以是MEDIA_TYPE_FILE,
 	// 也可以是MEDIA_TYPE_BT, 注意, 这个函数只打开文件, 但并不播放.
@@ -51,6 +54,9 @@ public:
 
 	// 停止播放.
 	BOOL stop();
+
+	// 等待播放直到完成.
+	BOOL wait_for_completion();
 
 	// 关闭媒体, 如果打开的是一个bt文件, 那么
 	// 在这个bt文件中的所有视频文件将被关闭.
