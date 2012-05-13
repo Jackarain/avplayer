@@ -1319,7 +1319,7 @@ void* audio_dec_thrd(void *param)
 				while (play->m_audio_dq.m_size && !play->m_audio_dq.abort_request)
 						Sleep(1);
 				pthread_mutex_lock(&play->m_audio_dq.m_mutex);
-				lst = play->m_audio_dq.m_first_pkt;
+				lst = (AVFrameList*)play->m_audio_dq.m_first_pkt;
 				for (; lst != NULL; lst = lst->next)
 					lst->pkt.type = 1;	/*type为1表示skip.*/
 				pthread_mutex_unlock(&play->m_audio_dq.m_mutex);
@@ -1430,7 +1430,7 @@ void* video_dec_thrd(void *param)
 					Sleep(1);
 
 				pthread_mutex_lock(&play->m_video_dq.m_mutex);
-				lst = play->m_video_dq.m_first_pkt;
+				lst = (AVFrameList*)play->m_video_dq.m_first_pkt;
 				for (; lst != NULL; lst = lst->next)
 					lst->pkt.type = 1; /* type为1表示skip. */
 				play->m_video_current_pos = -1;
