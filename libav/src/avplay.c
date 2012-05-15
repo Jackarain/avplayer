@@ -923,7 +923,7 @@ void volume(avplay *play, double vol)
 
 double curr_play_time(avplay *play)
 {
-	return play->m_frame_timer;
+	return master_clock(play);
 }
 
 double duration(avplay *play)
