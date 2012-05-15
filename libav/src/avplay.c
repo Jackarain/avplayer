@@ -451,32 +451,32 @@ void free_avplay_context(avplay *ctx)
 	free(ctx);
 }
 
-audio_render* alloc_audio_render()
+ao_context* alloc_audio_render()
 {
-	struct audio_render *ptr = malloc(sizeof(audio_render));
-	memset(ptr, 0, sizeof(audio_render));
+	ao_context *ptr = malloc(sizeof(ao_context));
+	memset(ptr, 0, sizeof(ao_context));
 	return ptr;
 }
 
-void free_audio_render(audio_render *render)
+void free_audio_render(ao_context *render)
 {
 	if (render->ctx)
-		render->destory_audio(render->ctx);
+		render->destory_audio(render);
 	free(render);
 }
 
-video_render* alloc_video_render(void *user_data)
+vo_context* alloc_video_render(void *user_data)
 {
-	struct video_render *ptr = malloc(sizeof(video_render));
-	memset(ptr, 0, sizeof(video_render));
+	struct vo_context *ptr = malloc(sizeof(vo_context));
+	memset(ptr, 0, sizeof(vo_context));
 	ptr->user_data = user_data;
 	return ptr;
 }
 
-void free_video_render(video_render *render)
+void free_video_render(vo_context *render)
 {
 	if (render->ctx)
-		render->destory_video(render->ctx);
+		render->destory_video(render);
 	free(render);
 }
 
@@ -740,9 +740,9 @@ void configure(avplay *play, void* param, int type)
 {
 	if (type == AUDIO_RENDER)
 	{
-		if (play->m_audio_render && play->m_audio_render->ctx)
-			play->m_audio_render->destory_audio(play->m_audio_render->ctx);
-		play->m_audio_render = param;
+		if (play->m_ao_ctx && play->m_ao_ctx->audio_dev)
+			free_audio_render(play->m_ao_ctx);
+		play->m_ao_ctx = param;
 	}
 	if (type == VIDEO_RENDER)
 	{
@@ -846,10 +846,10 @@ void stop(avplay *play)
 		audio_resample_close(play->m_resample_ctx);
 	if (play->m_buf_size_mtx)
 		pthread_mutex_destroy(&play->m_buf_size_mtx);
-	if (play->m_audio_render)
+	if (play->m_ao_ctx)
 	{
-		free_audio_render(play->m_audio_render);
-		play->m_audio_render = NULL;
+		free_audio_render(play->m_ao_ctx);
+		play->m_ao_ctx = NULL;
 	}
 	if (play->m_video_render)
 	{
@@ -917,8 +917,7 @@ void seek(avplay *play, double sec)
 
 void volume(avplay *play, double vol)
 {
-	play->m_audio_render->audio_control(
-		play->m_audio_render->ctx, vol);
+	play->m_ao_ctx->audio_control(play->m_ao_ctx, vol);
 }
 
 double curr_play_time(avplay *play)
@@ -1580,11 +1579,11 @@ void* audio_render_thrd(void *param)
 			continue;
 		if (ret != -1)
 		{
-			if (!inited && play->m_audio_render)
+			if (!inited && play->m_ao_ctx)
 			{
 				inited = 1;
 				/* 配置渲染器. */
-				ret = play->m_audio_render->init_audio(&play->m_audio_render->ctx,
+				ret = play->m_ao_ctx->init_audio(play->m_ao_ctx,
 					FFMIN(play->m_audio_ctx->channels, 2), 16,
 					play->m_audio_ctx->sample_rate, 0);
 				if (ret != 0)
@@ -1598,7 +1597,7 @@ void* audio_render_thrd(void *param)
 					* FFMIN(play->m_audio_ctx->channels, 2) 
 					* av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 			}
-			else if (!play->m_audio_render)
+			else if (!play->m_ao_ctx)
 			{
 				av_free(audio_frame.data[0]);
 				break;
@@ -1621,10 +1620,10 @@ void* audio_render_thrd(void *param)
 
 			while (audio_size > 0)
 			{
-				if (inited == 1 && play->m_audio_render)
+				if (inited == 1 && play->m_ao_ctx)
 				{
-					temp = play->m_audio_render->play_audio(
-						play->m_audio_render->ctx,
+					temp = play->m_ao_ctx->play_audio(
+						play->m_ao_ctx,
 						audio_frame.data[0] + play->m_audio_buf_index,
 						play->m_audio_buf_size - play->m_audio_buf_index);
 					play->m_audio_buf_index += temp;

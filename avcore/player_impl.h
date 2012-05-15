@@ -11,8 +11,31 @@
 #include "audio_out.h"
 #include "video_out.h"
 #include "source.h"
+#include "defs.h"
 
 #pragma once
+
+// 字幕插件统一接口类.
+class subtitle_plugin
+{
+public:
+	// 字幕插件初始化.
+	// vsfilter表示vsfilter.dll的文件名.
+	subtitle_plugin() {}
+	virtual ~subtitle_plugin() {}
+
+public:
+	// 初始化字幕插件.
+	virtual bool subtitle_init_vobsub() = 0;
+	// 反初始化字幕插件.
+	virtual void subtitle_uninit_vobsub() = 0;
+	// 打开字幕文件, 并指定视频宽高.
+	virtual bool subtitle_open_vobsub(char* fileName, int w, int h) = 0;
+	// 渲染一帧yuv视频数据. 传入当前时间戳和yuv视频数据及大小(只支持YUV420).
+	virtual void subtitle_vobsub_do(void* yuv_data, int64_t cur_time, long size) = 0;
+	// 判断插件是否加载.
+	virtual bool subtitle_is_load() { return false; }
+};
 
 class player_impl
 {
@@ -46,6 +69,9 @@ public:
 	// 参数.
 	BOOL play(int index = 0);
 
+	// 加载字幕.
+	BOOL load_subtitle(LPCTSTR subtitle);
+
 	// 暂停播放.
 	BOOL pause();
 
@@ -69,6 +95,7 @@ public:
 	void volume(double vol);
 
 	// 全屏切换.
+	// 注意: 该函数不支持非顶层窗口的全屏操作!
 	BOOL full_screen(BOOL fullscreen);
 
 	// 返回当前播放时间.
@@ -108,8 +135,11 @@ private:
 	// 播放器相关的函数.
 	void init_file_source(media_source *ms);
 	void init_torrent_source(media_source *ms);
-	void init_audio(audio_render *ao);
+	void init_audio(ao_context *ao);
 	void init_video(video_render *vo);
+
+	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
+	void draw_frame(void *ctx, AVFrame* data, int pix_fmt);
 
 private:
 	// window相关.
@@ -120,13 +150,19 @@ private:
 
 	// 播放器相关.
 	avplay *m_avplay;
-	audio_render *m_audio;
+	// audio_render *m_audio;
+	ao_context *m_audio;
 	video_render *m_video;
 	media_source *m_source;
+
+	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt);
 
 	// 媒体文件信息.
 	std::map<std::string, std::string> m_media_list;
 	int m_cur_index;
+
+	// 字幕插件.
+	subtitle_plugin *m_plugin;
 
 	// 视频宽高.
 	int m_video_width;

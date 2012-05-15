@@ -173,6 +173,106 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 		code, wParam, lParam);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// 字幕插件.
+typedef BOOL WINAPI subtitle_init_vobsub_func();
+typedef void WINAPI subtitle_uninit_vobsub_func();
+typedef BOOL WINAPI subtitle_open_vobsub_func(char* fileName, int w, int h);
+typedef void WINAPI subtitle_vobsub_do_func(void* data, LONGLONG curTime, LONG size);
+
+class vsfilter_interface 
+	: public subtitle_plugin
+{
+public:
+	vsfilter_interface() {}
+	vsfilter_interface(const std::string vsfilter = "")
+		: m_vsfilter(NULL)
+		, m_subtitle_init_vobsub(NULL)
+		, m_subtitle_uninit_vobsub(NULL)
+		, m_subtitle_open_vobsub(NULL)
+		, m_subtitle_vobsub_do(NULL)
+	{
+		if (!vsfilter.empty())
+			m_vsfilter = LoadLibraryA(vsfilter.c_str());
+		if (m_vsfilter)
+		{
+			m_subtitle_init_vobsub = (subtitle_init_vobsub_func*) 
+				GetProcAddress(m_vsfilter, "InitGenVobSub");
+			m_subtitle_uninit_vobsub = (subtitle_uninit_vobsub_func*) 
+				GetProcAddress(m_vsfilter, "UnInitGenVobSub");
+			m_subtitle_open_vobsub = (subtitle_open_vobsub_func*) 
+				GetProcAddress(m_vsfilter, "OpenVobSub");
+			m_subtitle_vobsub_do = (subtitle_vobsub_do_func*) 
+				GetProcAddress(m_vsfilter, "VobSubTransform");
+
+			// 加载失败则释放.
+			if (!(m_subtitle_init_vobsub &&
+				m_subtitle_uninit_vobsub &&
+				m_subtitle_open_vobsub &&
+				m_subtitle_vobsub_do))
+			{
+				FreeLibrary(m_vsfilter);
+				m_vsfilter = NULL;
+			}
+		}
+	} 
+
+	virtual ~vsfilter_interface()
+	{
+		if (m_vsfilter)
+			FreeLibrary(m_vsfilter);
+		m_vsfilter = NULL;
+	}
+
+public:
+	// 初始化字幕插件.
+	virtual bool subtitle_init_vobsub()
+	{
+		if (!subtitle_is_load())
+			return false;
+		return m_subtitle_init_vobsub();
+	}
+
+	// 反初始化字幕插件.
+	virtual void subtitle_uninit_vobsub()
+	{
+		if (!subtitle_is_load())
+			return ;
+		return m_subtitle_uninit_vobsub();
+	}
+
+	// 打开字幕文件, 并指定视频宽高.
+	virtual bool subtitle_open_vobsub(char* fileName, int w, int h)
+	{
+		if (!subtitle_is_load())
+			return false;
+		return m_subtitle_open_vobsub(fileName, w, h);
+	}
+
+	// 渲染一帧yuv视频数据. 传入当前时间戳和yuv视频数据及大小.
+	virtual void subtitle_vobsub_do(void* yuv_data, int64_t cur_time, long size)
+	{
+		if (!subtitle_is_load())
+			return ;
+		m_subtitle_vobsub_do(yuv_data, cur_time, size);
+	}
+
+	// 判断插件是否加载.
+	virtual bool subtitle_is_load()
+	{
+		return m_vsfilter ? true : false;
+	}
+
+protected:
+	HMODULE m_vsfilter;
+	subtitle_init_vobsub_func* m_subtitle_init_vobsub;
+	subtitle_uninit_vobsub_func* m_subtitle_uninit_vobsub;
+	subtitle_open_vobsub_func* m_subtitle_open_vobsub;
+	subtitle_vobsub_do_func* m_subtitle_vobsub_do;
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 // 以下代码为播放器相关的实现.
 
@@ -180,19 +280,20 @@ LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 #define ID_PLAYER_TIMER		1021
 
 player_impl::player_impl(void)
-: m_hwnd(NULL)
-, m_hinstance(NULL)
-, m_brbackground(NULL)
-, m_old_win_proc(NULL)
-, m_avplay(NULL)
-, m_video(NULL)
-, m_audio(NULL)
-, m_source(NULL)
-, m_cur_index(-1)
-, m_video_width(0)
-, m_video_height(0)
-, m_wnd_style(0)
-, m_full_screen(FALSE)
+	: m_hwnd(NULL)
+	, m_hinstance(NULL)
+	, m_brbackground(NULL)
+	, m_old_win_proc(NULL)
+	, m_avplay(NULL)
+	, m_video(NULL)
+	, m_audio(NULL)
+	, m_source(NULL)
+	, m_cur_index(-1)
+	, m_plugin(NULL)
+	, m_video_width(0)
+	, m_video_height(0)
+	, m_wnd_style(0)
+	, m_full_screen(FALSE)
 {
 	// 初始化线程局部存储对象.
 	win_data_ptr.set(new win_data());
@@ -543,7 +644,7 @@ void player_impl::init_torrent_source(media_source *ms)
 	ms->offset = 0;
 }
 
-void player_impl::init_audio(audio_render *ao)
+void player_impl::init_audio(ao_context *ao)
 {
 	ao->init_audio = wave_init_audio;
 	ao->play_audio = wave_play_audio;
@@ -562,6 +663,7 @@ void player_impl::init_video(video_render *vo)
 		ddraw_destory_render(ctx);
 		if (ret == 0)
 		{
+			m_draw_frame = ddraw_render_one_frame;
 			vo->init_video = ddraw_init_video;
 			vo->render_one_frame = ddraw_render_one_frame;
 			vo->re_size = ddraw_re_size;
@@ -575,6 +677,7 @@ void player_impl::init_video(video_render *vo)
 		d3d_destory_render(ctx);
 		if (ret == 0)
 		{
+			m_draw_frame = d3d_render_one_frame;
 			vo->init_video = d3d_init_video;
 			vo->render_one_frame = d3d_render_one_frame;
 			vo->re_size = d3d_re_size;
@@ -847,8 +950,12 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 {
 	HWND hparent = GetParent(m_hwnd);
 
-	/* Save the current windows placement/placement to restore
-	when fullscreen is over */
+	// 不支持非顶层窗口的全屏操作.
+	if (IsWindow(hparent))
+		return FALSE;
+
+	// Save the current windows placement/placement to
+	// restore when fullscreen is over
 	WINDOWPLACEMENT window_placement;
 	window_placement.length = sizeof(WINDOWPLACEMENT);
 	GetWindowPlacement(m_hwnd, &window_placement);
@@ -862,8 +969,8 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 
 		if (IsWindow(hparent))
 		{
-			/* Retrieve current window position so fullscreen will happen
-			* on the right screen */
+			// Retrieve current window position so fullscreen will happen
+			// on the right screen
 			HMONITOR hmon = MonitorFromWindow(hparent, MONITOR_DEFAULTTONEAREST);
 			MONITORINFO mi;
 			mi.cbSize = sizeof(MONITORINFO);
@@ -877,13 +984,13 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 		}
 		else
 		{
-			/* Maximize non embedded window */
+			// Maximize non embedded window
 			ShowWindow(m_hwnd, SW_SHOWMAXIMIZED);
 		}
 
 		if (IsWindow(hparent))
 		{
-			/* Hide the previous window */
+			// Hide the previous window
 			RECT rect;
 			GetClientRect(m_hwnd, &rect);
 			// SetParent(hwnd, hwnd);
@@ -901,7 +1008,7 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 	{
 		m_full_screen = FALSE;
 		printf("leaving fullscreen mode.\n");
-		/* Change window style, no borders and no title bar */
+		// Change window style, no borders and no title bar
 		SetWindowLong(m_hwnd, GWL_STYLE, m_wnd_style);
 
 		if (hparent)
@@ -920,7 +1027,7 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 		}
 		else
 		{
-			/* return to normal window for non embedded vout */
+			// return to normal window for non embedded vout
 			SetWindowPlacement(m_hwnd, &window_placement);
 			ShowWindow(m_hwnd, SW_SHOWNORMAL);
 		}
@@ -964,4 +1071,18 @@ std::map<std::string, std::string>& player_impl::play_list()
 HWND player_impl::GetWnd()
 {
 	return m_hwnd;
+}
+
+BOOL player_impl::load_subtitle(LPCTSTR subtitle)
+{
+	if (!m_plugin)
+	{
+		m_plugin = new vsfilter_interface("vsfilter.dll");
+	}
+	return TRUE;
+}
+
+void player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
+{
+	m_draw_frame(ctx, data, pix_fmt);
 }

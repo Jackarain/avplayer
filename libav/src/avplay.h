@@ -28,6 +28,7 @@
 #include "libswscale/swscale.h"
 #include "libavcodec/audioconvert.h"
 #include <assert.h>
+#include "defs.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -121,38 +122,27 @@ typedef struct media_source
 EXPORT_API media_source* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
 EXPORT_API void free_media_source(media_source *src);
 
-
-/* 音频播放接口. */
-typedef struct audio_render
-{
-	int (*init_audio)(void **ctx, uint32_t channels, uint32_t bits_per_sample,
-		uint32_t sample_rate, int format);
-	int (*play_audio)(void *ctx, uint8_t *data, uint32_t size);
-	void (*audio_control)(void *ctx, double vol);
-	void (*destory_audio)(void *ctx);
-	void *ctx;
-} audio_render;
-
 /* 音频结构分配和释放. */
-EXPORT_API audio_render* alloc_audio_render();
-EXPORT_API void free_audio_render(audio_render *render);
-
-/* 视频播放接口. */
-typedef struct video_render
-{
-	int (*init_video)(void **ctx, void* user_data,int w, int h, int pix_fmt);
-	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt);
-	void (*re_size)(void *ctx, int width, int height);
-	void (*aspect_ratio)(void *ctx, int srcw, int srch, int enable_aspect);
-	int (*use_overlay)(void *ctx);
-	void (*destory_video)(void *ctx);
-	void *ctx;
-	void *user_data; /* for window hwnd. */
-} video_render;
+EXPORT_API ao_context* alloc_audio_render();
+EXPORT_API void free_audio_render(ao_context *render);
 
 /* 视频渲染结构分配和释放. */
-EXPORT_API video_render* alloc_video_render(void *user_data);
-EXPORT_API void free_video_render(video_render *render);
+EXPORT_API vo_context* alloc_video_render(void *user_data);
+EXPORT_API void free_video_render(vo_context *render);
+
+// /* 视频播放接口. */
+// typedef struct video_render
+// {
+// 	int (*init_video)(void **ctx, void* user_data,int w, int h, int pix_fmt);
+// 	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt);
+// 	void (*re_size)(void *ctx, int width, int height);
+// 	void (*aspect_ratio)(void *ctx, int srcw, int srch, int enable_aspect);
+// 	int (*use_overlay)(void *ctx);
+// 	void (*destory_video)(void *ctx);
+// 	void *ctx;
+// 	void *user_data; /* for window hwnd. */
+// } video_render;
+
 
 
 /* 计算视频实时帧率和实时码率的时间单元. */
@@ -239,9 +229,11 @@ typedef struct avplay
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
 	/* 当前音频渲染器.	*/
-	audio_render *m_audio_render;
+	/*audio_render *m_audio_render;*/
+	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
 	video_render *m_video_render;
+	vo_context *m_vo_ctx;
 
 	/* 当前音频播放buffer大小.	*/
 	uint32_t m_audio_buf_size;
