@@ -847,6 +847,10 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 {
 	HWND hparent = GetParent(m_hwnd);
 
+	// 不支持非顶层窗口全屏操作.
+	if (IsWindow(hparent))
+		return FALSE;
+
 	/* Save the current windows placement/placement to restore
 	when fullscreen is over */
 	WINDOWPLACEMENT window_placement;

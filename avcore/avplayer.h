@@ -79,6 +79,7 @@ public:
 	void volume(double vol);
 
 	// 全屏切换.
+	// 注意: 不支持非顶层窗口全屏操作!
 	BOOL full_screen(BOOL fullscreen);
 
 	// 返回当前播放时间.
