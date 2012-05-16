@@ -389,7 +389,8 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			int xpos = LOWORD(lparam);
 			double fact = (double)xpos / width;
 
-			if (m_avplay && m_avplay->m_play_status == playing
+			if (m_avplay && (m_avplay->m_play_status == playing
+				|| m_avplay->m_play_status == completed)
 				&& (fact >= 0.0f && fact <=1.0f))
 				::seek(m_avplay, fact);
 		}
