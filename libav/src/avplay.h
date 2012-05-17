@@ -62,88 +62,17 @@ typedef struct av_queue
 	pthread_cond_t m_cond;
 } av_queue;
 
-/* 媒体数据源接口. */
-#define MEDIA_TYPE_FILE	0
-#define MEDIA_TYPE_BT	1
-#define MEDIA_TYPE_HTTP 2
-#define MEDIA_TYPE_RTSP 3
-
-/* 媒体文件信息. */
-typedef struct media_info 
-{
-	char *name;			// 文件名.
-	int64_t start_pos;	// 起始位置.
-	int64_t file_size;	// 文件大小.
-} media_info;
-
-/* 媒体数据源接口. */
-typedef struct media_source
-{
-	int (*init_source)(void **ctx, char *data, int len, char *save_path);
-	/*
-	 * name 输出视频名称, 需要调用者分配内存.
-	 * pos  输入查询的序号, 从0开始; 输出为视频在bt下载中的起始位置偏移.
-	 * size 输入name缓冲区长度, 输出视频大小.
-	 * 返回torrent中的视频媒体个数, 返回-1表示出错.
-	 */
-	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
-	int (*read_data)(void *ctx, char* buff, int64_t offset, int buf_size);
-	void (*close)(void *ctx);
-	void (*destory)(void *ctx);
-	void *ctx;
-	/*
-	 * 数据类型, 可以是以下值
-	 * MEDIA_TYPE_FILE、MEDIA_TYPE_BT、MEDIA_TYPE_HTTP、MEDIA_TYPE_RTSP 
-	 * 说明: 由于http和rtsp直接使用了ffmpeg的demux, 所以就无需初始
-	 * 化上面的各函数指针.
-	 */
-	int type;
-	/*
-	 * 附加数据.
-	 * 如果类型是MEDIA_TYPE_FILE, 则此指向文件名.
-	 * 如果类型是MEDIA_TYPE_BT, 则此指向bt种子数据.
-	 * 如果类型是MEDIA_TYPE_HTTP, 则指向url.
-	 * 如果类型是MEDIA_TYPE_RTSP, 则指向url.
-	 */
-	char *data;
-	int data_len;
-	/* 媒体文件信息.	*/
-	media_info *media;
-	/*
-	 * 媒体文件信息个数, 主要为BT文件播放设计, 因为一个torrent中可
-	 * 能存在多个视频文件.
-	 */
-	int media_size;
-	/* 当前播放数据偏移, 绝对位置.*/
-	int64_t offset;
-} media_source;
-
 /* 数据源结构分配和释放. */
-EXPORT_API media_source* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
-EXPORT_API void free_media_source(media_source *src);
+EXPORT_API source_context* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
+EXPORT_API void free_media_source(source_context *ctx);
 
 /* 音频结构分配和释放. */
 EXPORT_API ao_context* alloc_audio_render();
-EXPORT_API void free_audio_render(ao_context *render);
+EXPORT_API void free_audio_render(ao_context *ctx);
 
 /* 视频渲染结构分配和释放. */
 EXPORT_API vo_context* alloc_video_render(void *user_data);
-EXPORT_API void free_video_render(vo_context *render);
-
-// /* 视频播放接口. */
-// typedef struct video_render
-// {
-// 	int (*init_video)(void **ctx, void* user_data,int w, int h, int pix_fmt);
-// 	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt);
-// 	void (*re_size)(void *ctx, int width, int height);
-// 	void (*aspect_ratio)(void *ctx, int srcw, int srch, int enable_aspect);
-// 	int (*use_overlay)(void *ctx);
-// 	void (*destory_video)(void *ctx);
-// 	void *ctx;
-// 	void *user_data; /* for window hwnd. */
-// } video_render;
-
-
+EXPORT_API void free_video_render(vo_context *ctx);
 
 /* 计算视频实时帧率和实时码率的时间单元. */
 #define MAX_CALC_SEC 5
@@ -225,13 +154,12 @@ typedef struct avplay
 	double m_external_clock_time;
 
 	/* 当前数据源读取器. */
-	media_source *m_media_source;
+	source_context *m_source_ctx;
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
 	/* 当前音频渲染器.	*/
 	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
-	/*video_render *m_video_render;*/
 	vo_context *m_vo_ctx;
 
 	/* 当前音频播放buffer大小.	*/
@@ -284,17 +212,17 @@ EXPORT_API void free_avplay_context(avplay *ctx);
 /*
  * Initialize the player.
  * @param play pointer to user-supplied avplayer (allocated by alloc_avplay_context).
- * @param filename filename Name of the stream to open.
+ * @param sc source_context use to read media data.
  * @return 0 on success, a negative AVERROR on failure.
  * example:
  * avplayer* play = alloc_avplay_context();
  * int ret;
- * 
- * ret = initialize(play, "/tmp/test.avi");
+ * source_context sc = alloc_media_source(MEDIA_TYPE_FILE, "test.mp4", strlen("test.mp4") + 1, filesize("test.mp4"));
+ * ret = initialize(play, sc);
  * if (ret != 0)
  *    return ret; // ERROR!
  */
-EXPORT_API int initialize(avplay *play, media_source *ms);
+EXPORT_API int initialize(avplay *play, source_context *sc);
 
 /*
  * The Configure render or source to palyer.

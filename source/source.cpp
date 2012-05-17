@@ -1,4 +1,5 @@
 #include "ins.h"
+#include "defs.h"
 #include "source.h"
 #include "av_source.h"
 #include "file_source.h"
@@ -17,19 +18,27 @@ void ansi_wide(std::string &ansi, std::wstring &wide)
 	mbstowcs((wchar_t*)wide.c_str(), ansi.c_str(), size);
 }
 
-EXPORT_API int file_init_source(void **ctx, char *data, int len, char *save_path)
+EXPORT_API int file_init_source(void *ctx)
 {
-	file_source *fs = new file_source();
-	*ctx = (void*)fs;
+	source_context *sc = (source_context*)ctx;
+	if (sc->media_size <= 0 || !sc->media->name)
+		return -1;
+
+	file_source *fs = NULL;
+	sc->io_dev = (void*)(fs = new file_source());
+
+	// new open_file_data 由file_source内部管理内存.
 	open_file_data *od = new open_file_data;
-	od->filename = data;
+	od->filename = std::string(sc->media->name);
 	od->is_multithread = false;
+
 	return fs->open((void*)od) ? 0 : -1;
 }
 
 EXPORT_API int file_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
 {
-	file_source *fs = (file_source *)ctx;
+	source_context *sc = (source_context*)ctx;
+	file_source *fs = (file_source *)sc->io_dev;
 	uint64_t read_size = 0;
 	bool ret = fs->read_data(buff, offset, buf_size, read_size);
 	return ret ? read_size : -1;
@@ -37,18 +46,24 @@ EXPORT_API int file_read_data(void *ctx, char* buff, int64_t offset, int buf_siz
 
 EXPORT_API void file_close(void *ctx)
 {
-	file_source *fs = (file_source *)ctx;
+	source_context *sc = (source_context*)ctx;
+	file_source *fs = (file_source *)sc->io_dev;
 	fs->close();
 }
 
 EXPORT_API void file_destory(void *ctx)
 {
-	file_source *fs = (file_source *)ctx;
-	fs->close();
-	delete fs;
+	source_context *sc = (source_context*)ctx;
+	file_source *fs = (file_source *)sc->io_dev;
+	if (fs)
+	{
+		fs->close();
+		delete fs;
+		sc->io_dev = NULL;
+	}
 }
 
-EXPORT_API int bt_init_source(void **ctx, char *data, int len, char *save_path)
+EXPORT_API int bt_init_source(void *ctx)
 {
 	return -1;
 }

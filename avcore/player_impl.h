@@ -133,8 +133,8 @@ private:
 	LRESULT win_wnd_proc(HWND, UINT, WPARAM, LPARAM);
 
 	// 播放器相关的函数.
-	void init_file_source(media_source *ms);
-	void init_torrent_source(media_source *ms);
+	void init_file_source(source_context *sc);
+	void init_torrent_source(source_context *sc);
 	void init_audio(ao_context *ao);
 	void init_video(vo_context *vo);
 
@@ -148,13 +148,15 @@ private:
 	HBRUSH m_brbackground;
 	WNDPROC m_old_win_proc;
 
-	// 播放器相关.
+	// 播放器主要由下面几个部件组成.
+	// avplay 是整合source_context和ao_context,vo_context的大框架.
+	// 由 source_context实现数据读入视频数据.
+	// 由 avplay负责分离音视并解码.
+	// 最后由ao_context和vo_context分别负责输出音频和视频.
 	avplay *m_avplay;
-	// audio_render *m_audio;
+	source_context *m_source;
 	ao_context *m_audio;
-	// video_render *m_video;
 	vo_context *m_video;
-	media_source *m_source;
 
 	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt);
 

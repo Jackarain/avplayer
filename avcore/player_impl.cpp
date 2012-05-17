@@ -625,23 +625,23 @@ void player_impl::fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_r
 	DeleteObject(memBM);
 }
 
-void player_impl::init_file_source(media_source *ms)
+void player_impl::init_file_source(source_context *sc)
 {
-	ms->init_source = file_init_source;
-	ms->read_data = file_read_data;
-	ms->close = file_close;
-	ms->destory = file_destory;
-	ms->offset = 0;
+	sc->init_source = file_init_source;
+	sc->read_data = file_read_data;
+	sc->close = file_close;
+	sc->destory = file_destory;
+	sc->offset = 0;
 }
 
-void player_impl::init_torrent_source(media_source *ms)
+void player_impl::init_torrent_source(source_context *sc)
 {
-	ms->init_source = bt_init_source;
-	ms->read_data = bt_read_data;
-	ms->bt_media_info = bt_media_info;
-	ms->close = bt_close;
-	ms->destory = bt_destory;
-	ms->offset = 0;
+	sc->init_source = bt_init_source;
+	sc->read_data = bt_read_data;
+	sc->bt_media_info = bt_media_info;
+	sc->close = bt_close;
+	sc->destory = bt_destory;
+	sc->offset = 0;
 }
 
 void player_impl::init_audio(ao_context *ao)
@@ -752,7 +752,6 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 
 			// 初始化文件媒体源.
 			init_file_source(m_source);
-			m_source->data_len = len + 1;
 		}
 
 		if (media_type == MEDIA_TYPE_BT)
@@ -770,7 +769,6 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 			free(torrent_data);
 
 			// 初始化torrent媒体源.
-			m_source->data_len = file_lentgh;
 			init_torrent_source(m_source);
 		}
 
@@ -782,7 +780,6 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 				break;
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename, filename));
-			m_source->data_len = len;
 		}
 
 		if (media_type == MEDIA_TYPE_RTSP)
@@ -793,7 +790,6 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 				break;
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename, filename));
-			m_source->data_len = len;
 		}
 
 		// 初始化avplay.
@@ -804,8 +800,8 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		if (media_type == MEDIA_TYPE_BT)
 		{
 			int i = 0;
-			media_info *media = m_avplay->m_media_source->media;
-			for (; i < m_avplay->m_media_source->media_size; i++)
+			media_info *media = m_avplay->m_source_ctx->media;
+			for (; i < m_avplay->m_source_ctx->media_size; i++)
 			{
 				std::string name;
 				name = media->name;
