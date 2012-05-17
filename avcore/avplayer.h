@@ -97,11 +97,19 @@ public:
 	// 返回当前播放列表中的媒体文件数.
 	int media_count();
 
-	// 返回播放列表index位置的媒体文件名.
-	// 参数name应该在外部分配内存, 通过size参数传入分配的
-	// 内存大小. 成功返回0, 返回-1表示失败, 返回大于0表示
-	// name分配的内存不够, 返回值为index对应的文件名长度.
-	int query_media_name(int index, char *name, int size);
+	// 返回播放列表.
+	// 参数list在模块内分配内存, 通过size参数传出列表大小.
+	// @ example begin
+	//   char **list;
+	//   int size = 0;
+	//   play->media_list(&list, &size);
+	//   ...
+	//   play->free_media_list(list, size);
+	// @ example end
+	int media_list(char ***list, int* size);
+
+	// 释放播放列表的分配的内存资源.
+	void free_media_list(char **list, int size);
 
 	// 返回当前窗口句柄.
 	HWND get_wnd();

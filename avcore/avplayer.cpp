@@ -108,22 +108,30 @@ int avplayer::media_count()
 	return m_impl->play_list().size();
 }
 
-int avplayer::query_media_name(int index, char *name, int size)
+int avplayer::media_list(char ***list, int *size)
 {
 	std::map<std::string, std::string> mlist = m_impl->play_list();
-	std::map<std::string, std::string>::iterator finder;
-	for (mlist.begin() = finder; finder != mlist.end(); finder++)
+
+	*size = mlist.size();
+	char **temp = new char*[*size];
+
+	int n = 0;
+	for (std::map<std::string, std::string>::iterator i = mlist.begin();
+		i != mlist.end(); i++)
 	{
-		if (index == 0)
-		{
-			if (finder->second.length() + 1 > size)
-				return finder->second.length() + 1;
-			strncpy(name, finder->second.c_str(), size);
-			return 0;
-		}
-		index--;
+		char *file_name = strdup(i->second.c_str());
+		temp[n] = file_name;
 	}
-	return -1;
+	*list = temp;
+
+	return*size;
+}
+
+void avplayer::free_media_list(char **list, int size)
+{
+	for (int i = 0; i < size; i++)
+		free(list[i]);
+	delete[] list;
 }
 
 HWND avplayer::get_wnd()
