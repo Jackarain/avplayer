@@ -37,7 +37,7 @@ extern "C" {
 /* 播放器状态. */
 typedef enum play_status
 {
-	inited, playing, paused, stoped
+	inited, playing, paused, completed, stoped
 } play_status;
 
 /* 用于config_render参数表示所配置的render.  */

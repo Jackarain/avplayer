@@ -27,6 +27,14 @@ gq.flv.torrent 是从优酷找的一个超清视频文件做的种子.
 4. video 是一个视频渲染模块的实现, 实现了video_render中的那几个函数指针. 在这个模块中, 实现了3套视频渲染输出d3d, ddraw, opengl这些方式(还有gdi方式渲染没有添加到video_out.h中).
 5. avplayer 是一个使用avcore实现一个简单播放器的示范, 如果要创建一个播放器, 只需要avplayer.h, 然后使用创建一个avplayer对象, 就可以创建一个播放器, 关于如何使用avcore的具体细节可以参考avplayer/main.cpp.
 
+
+源代码:
+请使用git下载, 以便随时更新代码, 这样做也可以方便在你自己的分支中开发, 并提交补丁.
+$ git clone git://github.com/Jackarain/avplayer.git avplayer
+更新
+$ git pull
+
+
 最后, 任何方式(包括商业或非商业)修改或引用该项目的全部或部分源码(或dll), 请在你的软件中或产品文档中必须清楚的声明引用了该项目, 并注明url(https://github.com/Jackarain/avplayer), 你可以偷偷的不这样做, 但这样做是令人欣赏的做法.
 最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
 

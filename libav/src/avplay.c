@@ -643,14 +643,20 @@ int initialize(avplay *play, media_source *ms)
 	play->m_abort = 0;
 
 	/* 初始化队列. */
-	play->m_audio_q.m_type = QUEUE_PACKET;
-	queue_init(&play->m_audio_q);
-	play->m_video_q.m_type = QUEUE_PACKET;
-	queue_init(&play->m_video_q);
-	play->m_audio_dq.m_type = QUEUE_AVFRAME;
-	queue_init(&play->m_audio_dq);
-	play->m_video_dq.m_type = QUEUE_AVFRAME;
-	queue_init(&play->m_video_dq);
+	if (play->m_audio_index != -1)
+	{
+		play->m_audio_q.m_type = QUEUE_PACKET;
+		queue_init(&play->m_audio_q);
+		play->m_audio_dq.m_type = QUEUE_AVFRAME;
+		queue_init(&play->m_audio_dq);
+	}
+	if (play->m_video_index != -1)
+	{
+		play->m_video_q.m_type = QUEUE_PACKET;
+		queue_init(&play->m_video_q);
+		play->m_video_dq.m_type = QUEUE_AVFRAME;
+		queue_init(&play->m_video_dq);
+	}
 
 	/* 初始化读取文件数据缓冲计数mutex. */
 	pthread_mutex_init(&play->m_buf_size_mtx, NULL);
@@ -1189,13 +1195,16 @@ void* read_pkt_thrd(void *param)
 		ret = av_read_frame(play->m_format_ctx, &packet);
 		if (ret < 0)
 		{
-			if (play->m_video_q.m_size == 0 && play->m_audio_q.m_size == 0)
-				play->m_play_status = stoped;
+			if (play->m_video_q.m_size == 0 &&
+				 play->m_audio_q.m_size == 0 &&
+				 play->m_video_dq.m_size == 0 &&
+				 play->m_audio_dq.m_size == 0)
+				 play->m_play_status = completed;
 			Sleep(200);
 			continue;
 		}
 
-		if (play->m_play_status == stoped)
+		if (play->m_play_status == completed)
 			play->m_play_status = playing;
 
 		/* 更新缓冲字节数.	*/

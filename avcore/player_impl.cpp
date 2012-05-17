@@ -490,7 +490,8 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			int xpos = LOWORD(lparam);
 			double fact = (double)xpos / width;
 
-			if (m_avplay && m_avplay->m_play_status == playing
+			if (m_avplay && (m_avplay->m_play_status == playing
+				|| m_avplay->m_play_status == completed)
 				&& (fact >= 0.0f && fact <=1.0f))
 				::seek(m_avplay, fact);
 		}
@@ -946,7 +947,7 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 {
 	HWND hparent = GetParent(m_hwnd);
 
-	// 不支持非顶层窗口的全屏操作.
+	// 不支持非顶层窗口全屏操作.
 	if (IsWindow(hparent))
 		return FALSE;
 
