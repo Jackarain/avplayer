@@ -229,10 +229,9 @@ typedef struct avplay
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
 	/* 当前音频渲染器.	*/
-	/*audio_render *m_audio_render;*/
 	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
-	video_render *m_video_render;
+	/*video_render *m_video_render;*/
 	vo_context *m_vo_ctx;
 
 	/* 当前音频播放buffer大小.	*/

@@ -517,9 +517,8 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		{
 			RECT window;
 			GetClientRect(hwnd, &window);
-			if (m_video && m_video->ctx)
-				m_video->re_size(m_video->ctx, 
-				LOWORD(lparam), HIWORD(lparam));
+			if (m_video && m_video->video_dev)
+				m_video->re_size(m_video, LOWORD(lparam), HIWORD(lparam));
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
 		break;
@@ -538,8 +537,8 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 
 void player_impl::win_paint(HWND hwnd, HDC hdc)
 {
-	if (m_video && m_video->ctx &&
-		m_video->use_overlay(m_video->ctx) != -1)
+	if (m_video && m_video->video_dev &&
+		 m_video->use_overlay(m_video) != -1)
 	{
 		RECT client_rect;
 		GetClientRect(hwnd, &client_rect);
@@ -652,18 +651,16 @@ void player_impl::init_audio(ao_context *ao)
 	ao->destory_audio = wave_destory_audio;
 }
 
-void player_impl::init_video(video_render *vo)
+void player_impl::init_video(vo_context *vo)
 {
-	void *ctx = NULL;
 	int ret = 0;
 
 	do 
 	{
-		ret = ddraw_init_video(&ctx, (void*)m_hwnd, 10, 10, PIX_FMT_YUV420P);
-		ddraw_destory_render(ctx);
+		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		ddraw_destory_render(vo);
 		if (ret == 0)
 		{
-			m_draw_frame = ddraw_render_one_frame;
 			vo->init_video = ddraw_init_video;
 			vo->render_one_frame = ddraw_render_one_frame;
 			vo->re_size = ddraw_re_size;
@@ -673,11 +670,10 @@ void player_impl::init_video(video_render *vo)
 			break;
 		}
 
-		ret = d3d_init_video(&ctx, (void*)m_hwnd, 10, 10, PIX_FMT_YUV420P);
-		d3d_destory_render(ctx);
+		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		d3d_destory_render(vo);
 		if (ret == 0)
 		{
-			m_draw_frame = d3d_render_one_frame;
 			vo->init_video = d3d_init_video;
 			vo->render_one_frame = d3d_render_one_frame;
 			vo->re_size = d3d_re_size;
@@ -687,8 +683,8 @@ void player_impl::init_video(video_render *vo)
 			break;
 		}
 
-		ret = ogl_init_video(&ctx, (void*)m_hwnd, 10, 10, PIX_FMT_YUV420P);
-		ogl_destory_render(ctx);
+		ret = ogl_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		ogl_destory_render(vo);
 		if (ret == 0)
 		{
 			vo->init_video = ogl_init_video;

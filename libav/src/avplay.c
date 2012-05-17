@@ -460,7 +460,7 @@ ao_context* alloc_audio_render()
 
 void free_audio_render(ao_context *render)
 {
-	if (render->ctx)
+	if (render->audio_dev)
 		render->destory_audio(render);
 	free(render);
 }
@@ -475,7 +475,7 @@ vo_context* alloc_video_render(void *user_data)
 
 void free_video_render(vo_context *render)
 {
-	if (render->ctx)
+	if (render->video_dev)
 		render->destory_video(render);
 	free(render);
 }
@@ -742,13 +742,13 @@ void configure(avplay *play, void* param, int type)
 	{
 		if (play->m_ao_ctx && play->m_ao_ctx->audio_dev)
 			free_audio_render(play->m_ao_ctx);
-		play->m_ao_ctx = param;
+		play->m_ao_ctx = (ao_context*)param;
 	}
 	if (type == VIDEO_RENDER)
 	{
-		if (play->m_video_render && play->m_video_render->ctx)
-			play->m_video_render->destory_video(play->m_video_render->ctx);
-		play->m_video_render = param;
+		if (play->m_vo_ctx && play->m_vo_ctx->video_dev)
+			free_video_render(play->m_vo_ctx);
+		play->m_vo_ctx = (vo_context*)param;
 	}
 	if (type == MEDIA_SOURCE)
 	{
@@ -851,10 +851,10 @@ void stop(avplay *play)
 		free_audio_render(play->m_ao_ctx);
 		play->m_ao_ctx = NULL;
 	}
-	if (play->m_video_render)
+	if (play->m_vo_ctx)
 	{
-		free_video_render(play->m_video_render);
-		play->m_video_render = NULL;
+		free_video_render(play->m_vo_ctx);
+		play->m_vo_ctx = NULL;
 	}
 	if (play->m_avio_ctx)
 	{
@@ -1692,12 +1692,13 @@ void* video_render_thrd(void *param)
 		ret = get_queue(&play->m_video_dq, &video_frame);
 		if (ret != -1)
 		{
-			if (!inited && play->m_video_render)
+			if (!inited && play->m_vo_ctx)
 			{
 				inited = 1;
-				ret = play->m_video_render->init_video(&play->m_video_render->ctx,
-						play->m_video_render->user_data, play->m_video_ctx->width,
-						play->m_video_ctx->height, play->m_video_ctx->pix_fmt);
+				ret = play->m_vo_ctx->init_video(play->m_vo_ctx,
+					play->m_video_ctx->width,
+					play->m_video_ctx->height,
+					play->m_video_ctx->pix_fmt);
 				if (ret != 0)
 					inited = -1;
 				else
@@ -1837,10 +1838,11 @@ void* video_render_thrd(void *param)
 				if (play->m_seeking == SEEKING_FLAG)
 					play->m_seeking = NOSEEKING_FLAG;
 
-				if (inited == 1 && play->m_video_render)
+				if (inited == 1 && play->m_vo_ctx)
 				{
-					play->m_video_render->render_one_frame(
-						play->m_video_render->ctx, &video_frame,
+					play->m_vo_ctx->render_one_frame(
+						play->m_vo_ctx,
+						&video_frame,
 						play->m_video_ctx->pix_fmt);
 					if (delay != 0)
 						Sleep(4);

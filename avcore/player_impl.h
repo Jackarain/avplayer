@@ -136,7 +136,7 @@ private:
 	void init_file_source(media_source *ms);
 	void init_torrent_source(media_source *ms);
 	void init_audio(ao_context *ao);
-	void init_video(video_render *vo);
+	void init_video(vo_context *vo);
 
 	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
 	void draw_frame(void *ctx, AVFrame* data, int pix_fmt);
@@ -152,7 +152,8 @@ private:
 	avplay *m_avplay;
 	// audio_render *m_audio;
 	ao_context *m_audio;
-	video_render *m_video;
+	// video_render *m_video;
+	vo_context *m_video;
 	media_source *m_source;
 
 	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt);
