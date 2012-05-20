@@ -26,13 +26,13 @@ public:
 
 public:
 	// 初始化字幕插件.
-	virtual bool subtitle_init_vobsub() = 0;
+	virtual bool subtitle_init() = 0;
 	// 反初始化字幕插件.
-	virtual void subtitle_uninit_vobsub() = 0;
+	virtual void subtitle_uninit() = 0;
 	// 打开字幕文件, 并指定视频宽高.
-	virtual bool subtitle_open_vobsub(char* fileName, int w, int h) = 0;
+	virtual bool subtitle_open(char* fileName, int w, int h) = 0;
 	// 渲染一帧yuv视频数据. 传入当前时间戳和yuv视频数据及大小(只支持YUV420).
-	virtual void subtitle_vobsub_do(void* yuv_data, int64_t cur_time, long size) = 0;
+	virtual void subtitle_do(void* yuv_data, int64_t cur_time, long size) = 0;
 	// 判断插件是否加载.
 	virtual bool subtitle_is_load() { return false; }
 };
@@ -45,7 +45,7 @@ public:
 
 public:
 	// 创建窗口, 也可以使用subclasswindow附加到一个指定的窗口.
-	HWND create_window(LPCTSTR player_name);
+	HWND create_window(const char *player_name);
 
 	// 销毁窗口, 只能撤销是由create_window创建的窗口.
 	BOOL destory_window();
@@ -61,7 +61,7 @@ public:
 	// 也可以是MEDIA_TYPE_BT, 注意, 这个函数只打开文件, 但并不播放.
 	// 重新打开文件前, 必须关闭之前的媒体文件, 否则可能产生内存泄漏!
 	// 另外, 在播放前, avplayer必须拥有一个窗口.
-	BOOL open(LPCTSTR movie, int media_type);
+	BOOL open(const char *movie, int media_type);
 
 	// 播放索引为index的文件, index表示在播放列表中的
 	// 位置计数, 从0开始计算, index主要用于播放多文件的bt
@@ -70,7 +70,7 @@ public:
 	BOOL play(int index = 0);
 
 	// 加载字幕.
-	BOOL load_subtitle(LPCTSTR subtitle);
+	BOOL load_subtitle(const char *subtitle);
 
 	// 暂停播放.
 	BOOL pause();
@@ -139,7 +139,7 @@ private:
 	void init_video(vo_context *vo);
 
 	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
-	void draw_frame(void *ctx, AVFrame* data, int pix_fmt);
+	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt);
 
 private:
 	// window相关.
@@ -166,6 +166,8 @@ private:
 
 	// 字幕插件.
 	subtitle_plugin *m_plugin;
+	std::string m_subtitle;
+	bool m_change_subtitle;
 
 	// 视频宽高.
 	int m_video_width;

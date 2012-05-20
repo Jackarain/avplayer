@@ -43,6 +43,11 @@ BOOL avplayer::play(int index /*= 0*/)
 	return m_impl->play(index);
 }
 
+BOOL avplayer::load_subtitle(const char *subtitle)
+{
+	return m_impl->load_subtitle(subtitle);
+}
+
 BOOL avplayer::pause()
 {
 	return m_impl->pause();

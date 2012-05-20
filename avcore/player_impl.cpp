@@ -34,7 +34,7 @@ private:
 
 // 线程本地存储.
 template <typename T>
-class thread_tls_ptr 
+class thread_tls_ptr
 {
 public:
 	thread_tls_ptr()
@@ -181,7 +181,7 @@ typedef void WINAPI subtitle_uninit_vobsub_func();
 typedef BOOL WINAPI subtitle_open_vobsub_func(char* fileName, int w, int h);
 typedef void WINAPI subtitle_vobsub_do_func(void* data, LONGLONG curTime, LONG size);
 
-class vsfilter_interface 
+class vsfilter_interface
 	: public subtitle_plugin
 {
 public:
@@ -197,13 +197,13 @@ public:
 			m_vsfilter = LoadLibraryA(vsfilter.c_str());
 		if (m_vsfilter)
 		{
-			m_subtitle_init_vobsub = (subtitle_init_vobsub_func*) 
+			m_subtitle_init_vobsub = (subtitle_init_vobsub_func*)
 				GetProcAddress(m_vsfilter, "InitGenVobSub");
-			m_subtitle_uninit_vobsub = (subtitle_uninit_vobsub_func*) 
+			m_subtitle_uninit_vobsub = (subtitle_uninit_vobsub_func*)
 				GetProcAddress(m_vsfilter, "UnInitGenVobSub");
-			m_subtitle_open_vobsub = (subtitle_open_vobsub_func*) 
+			m_subtitle_open_vobsub = (subtitle_open_vobsub_func*)
 				GetProcAddress(m_vsfilter, "OpenVobSub");
-			m_subtitle_vobsub_do = (subtitle_vobsub_do_func*) 
+			m_subtitle_vobsub_do = (subtitle_vobsub_do_func*)
 				GetProcAddress(m_vsfilter, "VobSubTransform");
 
 			// 加载失败则释放.
@@ -216,7 +216,7 @@ public:
 				m_vsfilter = NULL;
 			}
 		}
-	} 
+	}
 
 	virtual ~vsfilter_interface()
 	{
@@ -227,7 +227,7 @@ public:
 
 public:
 	// 初始化字幕插件.
-	virtual bool subtitle_init_vobsub()
+	virtual bool subtitle_init()
 	{
 		if (!subtitle_is_load())
 			return false;
@@ -235,7 +235,7 @@ public:
 	}
 
 	// 反初始化字幕插件.
-	virtual void subtitle_uninit_vobsub()
+	virtual void subtitle_uninit()
 	{
 		if (!subtitle_is_load())
 			return ;
@@ -243,7 +243,7 @@ public:
 	}
 
 	// 打开字幕文件, 并指定视频宽高.
-	virtual bool subtitle_open_vobsub(char* fileName, int w, int h)
+	virtual bool subtitle_open(char* fileName, int w, int h)
 	{
 		if (!subtitle_is_load())
 			return false;
@@ -251,7 +251,7 @@ public:
 	}
 
 	// 渲染一帧yuv视频数据. 传入当前时间戳和yuv视频数据及大小.
-	virtual void subtitle_vobsub_do(void* yuv_data, int64_t cur_time, long size)
+	virtual void subtitle_do(void* yuv_data, int64_t cur_time, long size)
 	{
 		if (!subtitle_is_load())
 			return ;
@@ -290,6 +290,7 @@ player_impl::player_impl(void)
 	, m_source(NULL)
 	, m_cur_index(-1)
 	, m_plugin(NULL)
+	, m_change_subtitle(false)
 	, m_video_width(0)
 	, m_video_height(0)
 	, m_wnd_style(0)
@@ -308,15 +309,15 @@ player_impl::~player_impl(void)
 	}
 }
 
-HWND player_impl::create_window(LPCTSTR player_name)
+HWND player_impl::create_window(const char *player_name)
 {
-	WNDCLASSEX wcex;
+	WNDCLASSEXA wcex;
 
 	// 得到进程实例句柄.
 	m_hinstance = (HINSTANCE)GetModuleHandle(NULL);
 	// 创建非纯黑色的画刷, 用于ddraw播放时刷背景色.
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
-	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.cbSize = sizeof(WNDCLASSEXA);
 
 	wcex.style			= CS_CLASSDC/*CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS*/;
 	wcex.lpfnWndProc	= player_impl::static_win_wnd_proc;
@@ -330,23 +331,18 @@ HWND player_impl::create_window(LPCTSTR player_name)
 	wcex.lpszClassName	= player_name;
 	wcex.hIconSm			= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDC_ICON));
 
-	if (!RegisterClassEx(&wcex))
+	if (!RegisterClassExA(&wcex))
 		return NULL;
 
 	// 创建hook, 以便在窗口创建之前得到HWND句柄, 使HWND与this绑定.
-	HHOOK hook = SetWindowsHookEx(WH_CBT, 
-		win_cbt_filter_hook, NULL, GetCurrentThreadId());
+	HHOOK hook = SetWindowsHookEx(WH_CBT, win_cbt_filter_hook, NULL, GetCurrentThreadId());
 	win_data_ptr->set_hook_handle(hook);
 	win_data_ptr->set_current_window(this);
 
 	// 创建窗口.
-	m_hwnd = CreateWindowEx(/*WS_EX_APPWINDOW*/0,
+	m_hwnd = CreateWindowExA(/*WS_EX_APPWINDOW*/0,
 		player_name, player_name, WS_OVERLAPPEDWINDOW/* | WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/,
 		0, 0, 800, 600, NULL, NULL, m_hinstance, NULL);
-
-	// 	m_hwnd = CreateWindow(player_name, player_name,
-	// 		WS_OVERLAPPEDWINDOW, 100, 100, 300, 300,
-	// 		0, NULL, m_hinstance, NULL);
 
 	// 撤销hook.
 	UnhookWindowsHookEx(hook);
@@ -383,7 +379,7 @@ BOOL player_impl::subclasswindow(HWND hwnd, BOOL in_process)
 	// 创建非纯黑色的画刷, 用于ddraw播放时刷背景色.
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
 	win_data_ptr->add_window(hwnd, this);
-	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd, 
+	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd,
 		GWLP_WNDPROC, (LONG_PTR)&player_impl::static_win_wnd_proc);
 	if (!m_old_win_proc)
 	{
@@ -443,7 +439,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			int more_y = GetSystemMetrics(SM_CYCAPTION)
 				+ (GetSystemMetrics(SM_CYBORDER) * 2)
 				+ (GetSystemMetrics(SM_CYDLGFRAME) * 2);
-			int more_x = (GetSystemMetrics(SM_CXDLGFRAME) * 2) 
+			int more_x = (GetSystemMetrics(SM_CXDLGFRAME) * 2)
 				+ (GetSystemMetrics(SM_CXBORDER) * 2);
 
 			if (!m_avplay || !m_avplay->m_video_ctx)
@@ -457,8 +453,8 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 				RECT rc = { 0 };
 				GetWindowRect(hwnd, &rc);
 				SetWindowPos(hwnd, HWND_NOTOPMOST, rc.left, rc.top,
-					m_avplay->m_video_ctx->width + more_x, 
-					m_avplay->m_video_ctx->height + more_y, 
+					m_avplay->m_video_ctx->width + more_x,
+					m_avplay->m_video_ctx->height + more_y,
 					SWP_FRAMECHANGED);
 				KillTimer(hwnd, ID_PLAYER_TIMER);
 			}
@@ -611,15 +607,15 @@ void player_impl::win_paint(HWND hwnd, HDC hdc)
 void player_impl::fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_rect)
 {
 	HDC mem_dc = CreateCompatibleDC(hdc);
-	HBITMAP memBM = CreateCompatibleBitmap(hdc, 
+	HBITMAP memBM = CreateCompatibleBitmap(hdc,
 		win_rect.right - win_rect.left, win_rect.bottom - win_rect.top);
 	SelectObject(mem_dc, memBM);
 	FillRect(mem_dc, &win_rect, m_brbackground);
-	BitBlt(hdc, 
-		client_rect.left, client_rect.top, 
-		client_rect.right - client_rect.left, client_rect.bottom - client_rect.top, 
-		mem_dc, 
-		0, 0, 
+	BitBlt(hdc,
+		client_rect.left, client_rect.top,
+		client_rect.right - client_rect.left, client_rect.bottom - client_rect.top,
+		mem_dc,
+		0, 0,
 		SRCCOPY);
 	DeleteDC(mem_dc);
 	DeleteObject(memBM);
@@ -656,18 +652,19 @@ void player_impl::init_video(vo_context *vo)
 {
 	int ret = 0;
 
-	do 
+	do
 	{
 		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
 		ddraw_destory_render(vo);
 		if (ret == 0)
 		{
 			vo->init_video = ddraw_init_video;
-			vo->render_one_frame = ddraw_render_one_frame;
+			m_draw_frame = ddraw_render_one_frame;
 			vo->re_size = ddraw_re_size;
 			vo->aspect_ratio = ddraw_aspect_ratio;
 			vo->use_overlay = ddraw_use_overlay;
 			vo->destory_video = ddraw_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
 			break;
 		}
 
@@ -676,11 +673,12 @@ void player_impl::init_video(vo_context *vo)
 		if (ret == 0)
 		{
 			vo->init_video = d3d_init_video;
-			vo->render_one_frame = d3d_render_one_frame;
+			m_draw_frame = d3d_render_one_frame;
 			vo->re_size = d3d_re_size;
 			vo->aspect_ratio = d3d_aspect_ratio;
 			vo->use_overlay = d3d_use_overlay;
 			vo->destory_video = d3d_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
 			break;
 		}
 
@@ -689,20 +687,24 @@ void player_impl::init_video(vo_context *vo)
 		if (ret == 0)
 		{
 			vo->init_video = ogl_init_video;
-			vo->render_one_frame = ogl_render_one_frame;
+			m_draw_frame = ogl_render_one_frame;
 			vo->re_size = ogl_re_size;
 			vo->aspect_ratio = ogl_aspect_ratio;
 			vo->use_overlay = ogl_use_overlay;
 			vo->destory_video = ogl_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
 			break;
 		}
 
 		// 表示视频渲染器初始化失败!!!
 		assert(0);
 	} while (0);
+
+	// 保存this为user_ctx.
+	vo->user_ctx = (void*)this;
 }
 
-BOOL player_impl::open(LPCTSTR movie, int media_type)
+BOOL player_impl::open(const char *movie, int media_type)
 {
 	// 如果未关闭原来的媒体, 则返回失败.
 	if (m_avplay || m_source)
@@ -713,13 +715,9 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		return FALSE;
 
 	char filename[MAX_PATH];
-	int len = _tcslen(movie) + 1;
+	int len = strlen(movie) + 1;
 
-#ifdef UNICODE
-	WideCharToMultiByte(CP_ACP, 0, movie, len, filename, 2 * len, NULL, NULL);
-#else
 	strcpy(filename, movie);
-#endif
 
 	uint64_t file_lentgh = 0;
 	if (media_type == MEDIA_TYPE_FILE || media_type == MEDIA_TYPE_BT)
@@ -732,7 +730,7 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		}
 	}
 
-	do 
+	do
 	{
 		// 创建avplay.
 		m_avplay = alloc_avplay_context();
@@ -829,7 +827,7 @@ BOOL player_impl::open(LPCTSTR movie, int media_type)
 		if (m_avplay->m_video_ctx)
 		{
 			m_video_width = m_avplay->m_video_ctx->width;
-			m_video_height = m_avplay->m_video_ctx->height;			
+			m_video_height = m_avplay->m_video_ctx->height;
 		}
 
 		// 打开视频实时码率和帧率计算.
@@ -1066,16 +1064,36 @@ HWND player_impl::GetWnd()
 	return m_hwnd;
 }
 
-BOOL player_impl::load_subtitle(LPCTSTR subtitle)
+BOOL player_impl::load_subtitle(const char *subtitle)
 {
 	if (!m_plugin)
-	{
 		m_plugin = new vsfilter_interface("vsfilter.dll");
-	}
+	m_subtitle = subtitle;
+	m_change_subtitle = true;
 	return TRUE;
 }
 
-void player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
+int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 {
-	m_draw_frame(ctx, data, pix_fmt);
+	vo_context *vo = (vo_context*)ctx;
+	player_impl *this_ptr = (player_impl*)vo->user_ctx;
+
+	// 更改字幕.
+	if (this_ptr->m_change_subtitle)
+	{
+		// this_ptr->m_plugin->subtitle_uninit();
+		this_ptr->m_plugin->subtitle_init();
+		this_ptr->m_plugin->subtitle_open((char*)this_ptr->m_subtitle.c_str(), this_ptr->m_video_width, this_ptr->m_video_height);
+		this_ptr->m_change_subtitle = false;
+	}
+
+	if (this_ptr->m_plugin)
+	{
+		// 添加字幕.
+		int size = this_ptr->m_video_width * this_ptr->m_video_height * 3 / 2;
+		this_ptr->m_plugin->subtitle_do(data->data[0], this_ptr->curr_play_time() * 10000000, size);
+	}
+
+	// 实际渲染.
+	return this_ptr->m_draw_frame(ctx, data, pix_fmt);
 }

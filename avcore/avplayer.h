@@ -56,6 +56,9 @@ public:
 	// 参数.
 	BOOL play(int index = 0);
 
+	// 加载字幕.
+	BOOL load_subtitle(const char *subtitle);
+
 	// 暂停播放.
 	BOOL pause();
 

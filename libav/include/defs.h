@@ -10,63 +10,63 @@
 
 #include "libavcodec/avcodec.h"
 
-/* Ã½ÌåÊı¾İÔ´½Ó¿Ú. */
+/* åª’ä½“æ•°æ®æºæ¥å£. */
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1
 #define MEDIA_TYPE_HTTP 2
 #define MEDIA_TYPE_RTSP 3
 
-/* Ã½ÌåÎÄ¼şĞÅÏ¢. */
+/* åª’ä½“æ–‡ä»¶ä¿¡æ¯. */
 typedef struct media_info 
 {
-	char *name;			// ÎÄ¼şÃû.
-	int64_t start_pos;	// ÆğÊ¼Î»ÖÃ.
-	int64_t file_size;	// ÎÄ¼ş´óĞ¡.
+	char *name;			// æ–‡ä»¶å.
+	int64_t start_pos;	// èµ·å§‹ä½ç½®.
+	int64_t file_size;	// æ–‡ä»¶å¤§å°.
 } media_info;
 
-/* Ã½ÌåÊı¾İÔ´½Ó¿Ú. */
+/* åª’ä½“æ•°æ®æºæ¥å£. */
 typedef struct source_context
 {
 	int (*init_source)(void *ctx);
 	/*
-	 * name Êä³öÊÓÆµÃû³Æ, ĞèÒªµ÷ÓÃÕß·ÖÅäÄÚ´æ.
-	 * pos  ÊäÈë²éÑ¯µÄĞòºÅ, ´Ó0¿ªÊ¼; Êä³öÎªÊÓÆµÔÚbtÏÂÔØÖĞµÄÆğÊ¼Î»ÖÃÆ«ÒÆ.
-	 * size ÊäÈëname»º³åÇø³¤¶È, Êä³öÊÓÆµ´óĞ¡.
-	 * ·µ»ØtorrentÖĞµÄÊÓÆµÃ½Ìå¸öÊı, ·µ»Ø-1±íÊ¾³ö´í.
+	 * name è¾“å‡ºè§†é¢‘åç§°, éœ€è¦è°ƒç”¨è€…åˆ†é…å†…å­˜.
+	 * pos  è¾“å…¥æŸ¥è¯¢çš„åºå·, ä»0å¼€å§‹; è¾“å‡ºä¸ºè§†é¢‘åœ¨btä¸‹è½½ä¸­çš„èµ·å§‹ä½ç½®åç§».
+	 * size è¾“å…¥nameç¼“å†²åŒºé•¿åº¦, è¾“å‡ºè§†é¢‘å¤§å°.
+	 * è¿”å›torrentä¸­çš„è§†é¢‘åª’ä½“ä¸ªæ•°, è¿”å›-1è¡¨ç¤ºå‡ºé”™.
 	 */
 	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
 	int (*read_data)(void *ctx, char* buff, int64_t offset, int buf_size);
 	void (*close)(void *ctx);
 	void (*destory)(void *ctx);
-	/* io_devÊÇ±£´æÄÚ²¿ÓÃÓÚ·ÃÎÊÊµ¼ÊÊı¾İµÄ¶ÔÏóÖ¸Õë. */
+	/* io_devæ˜¯ä¿å­˜å†…éƒ¨ç”¨äºè®¿é—®å®é™…æ•°æ®çš„å¯¹è±¡æŒ‡é’ˆ. */
 	void *io_dev;
 	/*
-	 * Êı¾İÀàĞÍ, ¿ÉÒÔÊÇÒÔÏÂÖµ
-	 * MEDIA_TYPE_FILE¡¢MEDIA_TYPE_BT¡¢MEDIA_TYPE_HTTP¡¢MEDIA_TYPE_RTSP 
-	 * ËµÃ÷: ÓÉÓÚhttpºÍrtspÖ±½ÓÊ¹ÓÃÁËffmpegµÄdemux, ËùÒÔ¾ÍÎŞĞè³õÊ¼
-	 * »¯ÉÏÃæµÄ¸÷º¯ÊıÖ¸Õë.
+	 * æ•°æ®ç±»å‹, å¯ä»¥æ˜¯ä»¥ä¸‹å€¼
+	 * MEDIA_TYPE_FILEã€MEDIA_TYPE_BTã€MEDIA_TYPE_HTTPã€MEDIA_TYPE_RTSP 
+	 * è¯´æ˜: ç”±äºhttpå’Œrtspç›´æ¥ä½¿ç”¨äº†ffmpegçš„demux, æ‰€ä»¥å°±æ— éœ€åˆå§‹
+	 * åŒ–ä¸Šé¢çš„å„å‡½æ•°æŒ‡é’ˆ.
 	 */
 	int type;
 	/*
-	 * Èç¹ûÀàĞÍÊÇMEDIA_TYPE_BT, Ôò´ËÖ¸ÏòbtÖÖ×ÓÊı¾İ.
+	 * å¦‚æœç±»å‹æ˜¯MEDIA_TYPE_BT, åˆ™æ­¤æŒ‡å‘btç§å­æ•°æ®.
 	 */
 	char *torrent_data;
 	int torrent_len;
 
-	/* torrentÖĞµÄÃ½ÌåÎÄ¼şĞÅÏ¢, Ö»ÓĞÔÚ´ò¿ª
-	 * torrentÖ®ºó, ÕâÀïÃæ²Å¿ÉÄÜÓĞÊı¾İ.
+	/* torrentä¸­çš„åª’ä½“æ–‡ä»¶ä¿¡æ¯, åªæœ‰åœ¨æ‰“å¼€
+	 * torrentä¹‹å, è¿™é‡Œé¢æ‰å¯èƒ½æœ‰æ•°æ®.
 	 */
 	media_info *media;
 	/*
-	 * Ã½ÌåÎÄ¼şĞÅÏ¢¸öÊı, Ö÷ÒªÎªBTÎÄ¼ş²¥·ÅÉè¼Æ, ÒòÎªÒ»¸ötorrentÖĞ¿É
-	 * ÄÜ´æÔÚ¶à¸öÊÓÆµÎÄ¼ş.
+	 * åª’ä½“æ–‡ä»¶ä¿¡æ¯ä¸ªæ•°, ä¸»è¦ä¸ºBTæ–‡ä»¶æ’­æ”¾è®¾è®¡, å› ä¸ºä¸€ä¸ªtorrentä¸­å¯
+	 * èƒ½å­˜åœ¨å¤šä¸ªè§†é¢‘æ–‡ä»¶.
 	 */
 	int media_size;
-	/* ¼ÇÂ¼µ±Ç°²¥·ÅÊı¾İÆ«ÒÆ, ¾ø¶ÔÎ»ÖÃ. */
+	/* è®°å½•å½“å‰æ’­æ”¾æ•°æ®åç§», ç»å¯¹ä½ç½®. */
 	int64_t offset;
 } source_context;
 
-/* ÊÓÆµ²¥·Å½á¹¹¶¨Òå. */
+/* è§†é¢‘æ’­æ”¾ç»“æ„å®šä¹‰. */
 typedef struct vo_context
 {
 	int (*init_video)(void* ctx, int w, int h, int pix_fmt);
@@ -76,10 +76,11 @@ typedef struct vo_context
 	int (*use_overlay)(void *ctx);
 	void (*destory_video)(void *ctx);
 	void *video_dev;
-	void *user_data; /* for window hwnd. */
+	void *user_data;	/* for window hwnd. */
+	void *user_ctx;	/* for user context. */
 } vo_context;
 
-/* ÒôÆµ²¥·ÅÊä³ö½á¹¹¶¨Òå. */
+/* éŸ³é¢‘æ’­æ”¾è¾“å‡ºç»“æ„å®šä¹‰. */
 typedef struct ao_context 
 {
 	int (*init_audio)(void *ctx, uint32_t channels, uint32_t bits_per_sample,
