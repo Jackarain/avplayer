@@ -1083,7 +1083,8 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 	{
 		// this_ptr->m_plugin->subtitle_uninit();
 		this_ptr->m_plugin->subtitle_init();
-		this_ptr->m_plugin->subtitle_open((char*)this_ptr->m_subtitle.c_str(), this_ptr->m_video_width, this_ptr->m_video_height);
+		this_ptr->m_plugin->subtitle_open((char*)this_ptr->m_subtitle.c_str(),
+			this_ptr->m_video_width, this_ptr->m_video_height);
 		this_ptr->m_change_subtitle = false;
 	}
 
@@ -1091,7 +1092,8 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 	{
 		// 添加字幕.
 		int size = this_ptr->m_video_width * this_ptr->m_video_height * 3 / 2;
-		this_ptr->m_plugin->subtitle_do(data->data[0], this_ptr->curr_play_time() * 10000000, size);
+		int64_t nanosecond = this_ptr->curr_play_time() * 10000000;
+		this_ptr->m_plugin->subtitle_do(data->data[0], nanosecond, size);
 	}
 
 	// 实际渲染.
