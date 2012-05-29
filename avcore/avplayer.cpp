@@ -13,7 +13,7 @@ avplayer::~avplayer(void)
 		delete m_impl;
 }
 
-HWND avplayer::create_window(LPCTSTR player_name)
+HWND avplayer::create_window(const char *player_name)
 {
 	return m_impl->create_window(player_name);
 }
