@@ -32,7 +32,7 @@ public:
 
 public:
 	// 创建窗口, 也可以使用subclasswindow附加到一个指定的窗口.
-	HWND create_window(LPCTSTR player_name);
+	HWND create_window(const char *player_name);
 
 	// 销毁窗口, 只能撤销是由create_window创建的窗口.
 	BOOL destory_window();
