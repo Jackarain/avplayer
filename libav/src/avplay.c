@@ -42,6 +42,29 @@ enum sync_type
 #define av_gettime() (timeGetTime() * 1000.0f)
 #endif
 
+
+/* INT64最大最小取值范围. */
+#ifndef INT64_MIN
+#define INT64_MIN (-9223372036854775807LL - 1)
+#endif
+#ifndef INT64_MAX
+#define INT64_MAX (9223372036854775807LL)
+#endif
+
+/* rgb和yuv互换. */
+#define _r(c) ((c) & 0xFF)
+#define _g(c) (((c) >> 8) & 0xFF)
+#define _b(c) (((c) >> 16) & 0xFF)
+#define _a(c) ((c) >> 24)
+
+#define rgba2y(c)  ( (( 263*_r(c) + 516*_g(c) + 100*_b(c)) >> 10) + 16  )
+#define rgba2u(c)  ( ((-152*_r(c) - 298*_g(c) + 450*_b(c)) >> 10) + 128 )
+#define rgba2v(c)  ( (( 450*_r(c) - 376*_g(c) -  73*_b(c)) >> 10) + 128 )
+
+#define MAX_TRANS   255
+#define TRANS_BITS  8
+
+
 typedef struct AVFrameList
 {
 	AVFrame pkt;
