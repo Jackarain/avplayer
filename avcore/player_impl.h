@@ -165,6 +165,7 @@ private:
 	int m_cur_index;
 
 	// 字幕插件.
+	CRITICAL_SECTION m_plugin_cs;
 	subtitle_plugin *m_plugin;
 	std::string m_subtitle;
 	bool m_change_subtitle;
