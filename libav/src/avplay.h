@@ -51,6 +51,28 @@ typedef enum play_status
 #define VIDEO_RENDER_OPENGL	2
 #define VIDEO_RENDER_SOFT		3
 
+/* INT64最大最小取值范围. */
+#ifndef INT64_MIN
+#define INT64_MIN (-9223372036854775807LL - 1)
+#endif
+#ifndef INT64_MAX
+#define INT64_MAX (9223372036854775807LL)
+#endif
+
+/* rgb和yuv互换. */
+#define _r(c) ((c) & 0xFF)
+#define _g(c) (((c) >> 8) & 0xFF)
+#define _b(c) (((c) >> 16) & 0xFF)
+#define _a(c) ((c) >> 24)
+
+#define rgba2y(c)  ( (( 263*_r(c) + 516*_g(c) + 100*_b(c)) >> 10) + 16  )
+#define rgba2u(c)  ( ((-152*_r(c) - 298*_g(c) + 450*_b(c)) >> 10) + 128 )
+#define rgba2v(c)  ( (( 450*_r(c) - 376*_g(c) -  73*_b(c)) >> 10) + 128 )
+
+#define MAX_TRANS   255
+#define TRANS_BITS  8
+
+
 /* 队列.	*/
 typedef struct av_queue
 {
@@ -333,6 +355,32 @@ EXPORT_API int current_bit_rate(avplay *play);
  */
 EXPORT_API int current_frame_rate(avplay *play);
 
+/*
+ * Blurring algorithm to the input video.
+ * @param frame pointer to the frame.
+ * @param fw is the width of the video.
+ * @param fh is the height of the video.
+ * @param dx is the x start coordinates of the target location.
+ * @param dy is the y start coordinates of the target location.
+ * @param dcx is width of the target range.
+ * @param dcx is height of the target range.
+ */
+EXPORT_API void blurring(AVFrame *frame,
+	int fw, int fh, int dx, int dy, int dcx, int dcy);
+
+/*
+ * Alpha blend image mixing.
+ * @param frame pointer to the frame.
+ * @param rgba pointer to the RGBA image.
+ * @param fw is the width of the video.
+ * @param fh is the height of the video.
+ * @param rgba_w is the width of the image.
+ * @param rgba_h is the height of the image.
+ * @param x is the x start coordinates of the target location.
+ * @param y is the y start coordinates of the target location.
+ */
+EXPORT_API void alpha_blend(AVFrame *frame, uint8_t *rgba,
+	int fw, int fh, int rgba_w, int rgba_h, int x, int y);
 
 #ifdef  __cplusplus
 }

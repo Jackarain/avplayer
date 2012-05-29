@@ -1,5 +1,6 @@
 #include "avplay.h"
 #include <stdlib.h>
+#include <math.h>
 
 /* 定义bool值 */
 #ifndef _MSC_VER
@@ -1882,5 +1883,185 @@ void* video_render_thrd(void *param)
 		}
 	}
 	return NULL;
+}
+
+void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
+{
+	uint8_t* tempLogo = malloc(dcx * dcy);
+	uint8_t* borderN = malloc(dcx);
+	uint8_t* borderS = malloc(dcx);
+	uint8_t* borderW = malloc(dcy);
+	uint8_t* borderE = malloc(dcy);
+	double* uwetable = malloc(dcx * dcy * sizeof(double));
+	double* uweweightsum = malloc(dcx * dcy * sizeof(double));
+	uint8_t* pic[3] = { frame->data[0],
+		frame->data[1], frame->data[2]};
+	int i = 0;
+
+	if (dcx <= 0 || dcy <= 0)
+		return ;
+
+	for (i = 0; i < 3; i++)
+	{
+		int shift = (i == 0) ? 0 : 1;
+		int sx = dx >> shift;
+		int sy = dy >> shift;
+		int w = dcx >> shift;
+		int h = dcy >> shift;
+		int stride = fw >> shift;
+		int x;
+		int y;
+		int k = 0;
+
+		memcpy(borderN, pic[i] + sx + stride * sy, w);
+		memcpy(borderS, pic[i] + sx + stride * (sy + h), w);
+
+		for (k = 0; k < h; k++)
+		{
+			borderW[k] = *(pic[i] + sx + stride * (sy + k));
+			borderE[k] = *(pic[i] + sx + w + stride * (sy + k));
+		}
+
+		memcpy(tempLogo, borderN, w);
+		memcpy(tempLogo + w * (h - 1), borderS, w);
+		for (k = 0; k < h; k++)
+		{
+			tempLogo[w * k] = borderW[k];
+			tempLogo[w * k + w - 1] = borderE[k];
+		}
+
+		{
+			int power = 3;
+			double e = 1.0 + (0.3 * power);
+			for (x = 0; x < w; x++)
+				for (y = 0; y < h; y++)
+					if(x + y != 0)
+					{
+						double d = pow(sqrt((double)(x * x + y * y)), e);
+						uwetable[x + y * w] = 1.0 / d;
+					}
+					else
+						uwetable[x + y * w] = 1.0;
+
+			for (x = 1; x < w - 1; x++)
+				for (y = 1; y < h - 1; y++)
+				{
+					double weightsum = 0;
+					int bx;
+					int by;
+					for (bx = 0; bx < w; bx++)
+					{
+						weightsum += uwetable[abs(bx - x) + y * w];
+						weightsum += uwetable[abs(bx - x) + abs(h - 1 - y) * w];
+					}
+					for (by = 1; by < h - 1; by++)
+					{
+						weightsum += uwetable[x + abs(by - y) * w];
+						weightsum += uwetable[abs(w - 1 - x) + abs(by - y) * w];
+					}
+					uweweightsum[y * w + x] = weightsum;
+				}
+		}
+
+		for (x = 1; x < w - 1; x++)
+		{
+			for (y = 1; y < h - 1; y++)
+			{
+				double r = 0;
+				const unsigned char *lineN = borderN, *lineS = borderS;
+				const unsigned char *lineW = borderW, *lineE = borderE;
+				int bx;
+				int by;
+				for (bx = 0; bx < w; bx++)
+				{
+					r += lineN[bx] * uwetable[abs(bx - x) + y * w];
+					r += lineS[bx] * uwetable[abs(bx - x) + abs(h - 1 - y) * w];
+				}
+				for (by = 1; by < h - 1; by++)
+				{
+					r += lineW[by] * uwetable[x + abs(by - y) * w];
+					r += lineE[by] * uwetable[abs(w - 1 - x) + abs(by - y) * w];
+				}
+				tempLogo[y * w + x] = (uint8_t)(r / uweweightsum[y * w + x]);
+			}
+		}
+
+		for (k = 0; k < h; k++)
+		{
+			memcpy(pic[i] + sx + stride * (sy + k), tempLogo + w * k, w);
+		}
+	}
+
+	free(uweweightsum);
+	free(uwetable);
+	free(tempLogo);
+	free(borderN);
+	free(borderS);
+	free(borderW);
+	free(borderE);
+}
+
+void alpha_blend(AVFrame* frame, uint8_t* rgba,
+	int fw, int fh, int rgba_w, int rgba_h, int x, int y)
+{
+	uint8_t *dsty, *dstu, *dstv;
+	uint32_t* src, color;
+	unsigned char cy, cu, cv, opacity;
+	int b_even_scanline;
+	int i, j;
+
+	src = (uint32_t*)rgba;
+
+	b_even_scanline = y % 2;
+
+	// Y份量的开始位置.
+	dsty = frame->data[0] + y * fw + x;
+	dstu = frame->data[1] + ((y / 2) * (fw / 2)) + x / 2;
+	dstv = frame->data[2] + ((y / 2) * (fw / 2)) + x / 2;
+
+	// alpha融合YUV各分量.
+	for (i = 0; i < rgba_h
+		; i++
+		, dsty += fw
+		, dstu += b_even_scanline ? fw / 2 : 0
+		, dstv += b_even_scanline ? fw / 2 : 0
+		)
+	{
+		b_even_scanline = !b_even_scanline;
+		for (j = 0; j < rgba_w; j++)
+		{
+			color = src[i * rgba_w + j];
+			cy = rgba2y(color);
+			cu = rgba2u(color);
+			cv = rgba2v(color);
+
+			opacity = _a(color);
+			if (!opacity) // 全透明.
+				continue;
+
+			if (opacity == MAX_TRANS)
+			{
+				dsty[j] = cy;
+				if (b_even_scanline && j % 2 == 0)
+				{
+					dstu[j / 2] = cu;
+					dstv[j / 2] = cv;
+				}
+			}
+			else
+			{
+				dsty[j] = (cy * opacity + dsty[j] *
+					(MAX_TRANS - opacity)) >> TRANS_BITS;
+
+				if (b_even_scanline && j % 2 == 0)
+				{
+					dstu[j / 2] = (cu * opacity + dstu[j / 2] *
+						(MAX_TRANS - opacity)) >> TRANS_BITS;
+					dstv[j / 2] = (cv * opacity + dstv[j / 2] *
+						(MAX_TRANS - opacity)) >> TRANS_BITS;
+				}
+			}
+		}
+	}
 }
 
