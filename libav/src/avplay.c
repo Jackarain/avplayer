@@ -1921,9 +1921,6 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 		frame->data[1], frame->data[2]};
 	int i = 0;
 
-	if (dcx <= 0 || dcy <= 0)
-		return ;
-
 	for (i = 0; i < 3; i++)
 	{
 		int shift = (i == 0) ? 0 : 1;
