@@ -1908,6 +1908,115 @@ void* video_render_thrd(void *param)
 	return NULL;
 }
 
+static
+inline void blur(uint8_t *dst, uint8_t *src, int w, int radius, int dstStep, int srcStep)
+{
+	int x;
+	const int length= radius*2 + 1;
+	const int inv= ((1<<16) + length/2)/length;
+
+	int sum= 0;
+
+	for(x=0; x<radius; x++){
+		sum+= src[x*srcStep]<<1;
+	}
+	sum+= src[radius*srcStep];
+
+	for(x=0; x<=radius; x++){
+		sum+= src[(radius+x)*srcStep] - src[(radius-x)*srcStep];
+		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
+	}
+
+	for(; x<w-radius; x++){
+		sum+= src[(radius+x)*srcStep] - src[(x-radius-1)*srcStep];
+		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
+	}
+
+	for(; x<w; x++){
+		sum+= src[(2*w-radius-x-1)*srcStep] - src[(x-radius-1)*srcStep];
+		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
+	}
+}
+
+static
+inline void blur2(uint8_t *dst, uint8_t *src, int w, int radius, int power, int dstStep, int srcStep)
+{
+	uint8_t temp[2][4096];
+	uint8_t *a= temp[0], *b=temp[1];
+
+	if(radius){
+		blur(a, src, w, radius, 1, srcStep);
+		for(; power>2; power--){
+			uint8_t *c;
+			blur(b, a, w, radius, 1, 1);
+			c=a; a=b; b=c;
+		}
+		if(power>1)
+			blur(dst, a, w, radius, dstStep, 1);
+		else{
+			int i;
+			for(i=0; i<w; i++)
+				dst[i*dstStep]= a[i];
+		}
+	}else{
+		int i;
+		for(i=0; i<w; i++)
+			dst[i*dstStep]= src[i*srcStep];
+	}
+}
+
+static
+void hBlur(uint8_t *dst, uint8_t *src, int w, int h, int dstStride, int srcStride, int radius, int power)
+{
+	int y;
+
+	if(radius==0 && dst==src) return;
+
+	for(y=0; y<h; y++){
+		blur2(dst + y*dstStride, src + y*srcStride, w, radius, power, 1, 1);
+	}
+}
+
+static
+void vBlur(uint8_t *dst, uint8_t *src, int w, int h, int dstStride, int srcStride, int radius, int power)
+{
+	int x;
+
+	if(radius==0 && dst==src) return;
+
+	for(x=0; x<w; x++){
+		blur2(dst + x, src + x, h, radius, power, dstStride, srcStride);
+	}
+}
+
+void blurring2(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
+{
+	int cw = dcx/2;
+	int ch = dcy/2;
+	uint8_t *data[3] = { frame->data[0],
+		frame->data[1], frame->data[2]};
+	int linesize[3] = { frame->linesize[0],
+		frame->linesize[1], frame->linesize[2]	};
+
+	data[0] = frame->data[0] + dy * fw + dx;
+	data[1] = frame->data[1] + ((dy / 2) * (fw / 2)) + dx / 2;
+	data[2] = frame->data[2] + ((dy / 2) * (fw / 2)) + dx / 2;
+
+	hBlur(data[0], data[0], dcx, dcy,
+		linesize[0], linesize[0], 16, 2);
+	hBlur(data[1], data[1], cw, ch,
+		linesize[1], linesize[1], 16, 2);
+	hBlur(data[2], data[2], cw, ch,
+		linesize[2], linesize[2], 16, 2);
+
+	vBlur(data[0], data[0], dcx, dcy,
+		linesize[0], linesize[0], 16, 2);
+	vBlur(data[1], data[1], cw, ch,
+		linesize[1], linesize[1], 16, 2);
+	vBlur(data[2], data[2], cw, ch,
+		linesize[2], linesize[2], 16, 2);
+}
+
 void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 {
 	uint8_t* tempLogo = malloc(dcx * dcy);
@@ -1915,11 +2024,14 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 	uint8_t* borderS = malloc(dcx);
 	uint8_t* borderW = malloc(dcy);
 	uint8_t* borderE = malloc(dcy);
-	double* uwetable = malloc(dcx * dcy * sizeof(double));
-	double* uweweightsum = malloc(dcx * dcy * sizeof(double));
+	double* uwetable = NULL;
+	double* uweweightsum = NULL;
 	uint8_t* pic[3] = { frame->data[0],
 		frame->data[1], frame->data[2]};
 	int i = 0;
+
+	uweweightsum = malloc(dcx * dcy * sizeof(double));
+	uwetable = malloc(dcx * dcy * sizeof(double));
 
 	if (dcx <= 0 || dcy <= 0)
 		return ;
@@ -1957,16 +2069,22 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 			int power = 3;
 			double e = 1.0 + (0.3 * power);
 			for (x = 0; x < w; x++)
+			{
 				for (y = 0; y < h; y++)
+				{
 					if(x + y != 0)
 					{
-						double d = pow(sqrt((double)(x * x + y * y)), e);
-						uwetable[x + y * w] = 1.0 / d;
+						uwetable[x + y * w] = 1.0 / pow(sqrt((double)(x * x + y * y)), e);
 					}
 					else
+					{
 						uwetable[x + y * w] = 1.0;
+					}
+				}
+			}
 
 			for (x = 1; x < w - 1; x++)
+			{
 				for (y = 1; y < h - 1; y++)
 				{
 					double weightsum = 0;
@@ -1984,6 +2102,7 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 					}
 					uweweightsum[y * w + x] = weightsum;
 				}
+			}
 		}
 
 		for (x = 1; x < w - 1; x++)
