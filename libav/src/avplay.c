@@ -2024,17 +2024,11 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 	uint8_t* borderS = malloc(dcx);
 	uint8_t* borderW = malloc(dcy);
 	uint8_t* borderE = malloc(dcy);
-	double* uwetable = NULL;
-	double* uweweightsum = NULL;
+	double* uwetable = malloc(dcx * dcy * sizeof(double));
+	double* uweweightsum = malloc(dcx * dcy * sizeof(double));
 	uint8_t* pic[3] = { frame->data[0],
 		frame->data[1], frame->data[2]};
 	int i = 0;
-
-	uweweightsum = malloc(dcx * dcy * sizeof(double));
-	uwetable = malloc(dcx * dcy * sizeof(double));
-
-	if (dcx <= 0 || dcy <= 0)
-		return ;
 
 	for (i = 0; i < 3; i++)
 	{
