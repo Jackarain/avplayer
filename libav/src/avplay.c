@@ -1244,7 +1244,7 @@ void* read_pkt_thrd(void *param)
 				 play->m_video_dq.m_size == 0 &&
 				 play->m_audio_dq.m_size == 0)
 				 play->m_play_status = completed;
-			Sleep(200);
+			Sleep(100);
 			continue;
 		}
 
