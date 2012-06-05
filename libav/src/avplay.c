@@ -1908,6 +1908,7 @@ void* video_render_thrd(void *param)
 	return NULL;
 }
 
+/* 下面模糊代码来自ffmpeg. */
 static
 inline void blur(uint8_t *dst, uint8_t *src, int w, int radius, int dstStep, int srcStep)
 {

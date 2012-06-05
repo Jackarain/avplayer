@@ -517,7 +517,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		{
 			RECT window;
 			GetClientRect(hwnd, &window);
-			if (m_video && m_video->video_dev)
+			if (m_avplay && m_avplay->m_vo_ctx)
 				m_video->re_size(m_video, LOWORD(lparam), HIWORD(lparam));
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
@@ -537,7 +537,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 
 void player_impl::win_paint(HWND hwnd, HDC hdc)
 {
-	if (m_video && m_video->video_dev &&
+	if (m_avplay && m_avplay->m_vo_ctx &&
 		 m_video->use_overlay(m_video) != -1)
 	{
 		RECT client_rect;
@@ -1114,9 +1114,6 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 		int64_t nanosecond = this_ptr->curr_play_time() * 10000000;
 		this_ptr->m_plugin->subtitle_do(data->data[0], nanosecond, size);
 	}
-
-	blurring(data, this_ptr->m_video_width, this_ptr->m_video_height,
-		20, 20, 100, 100);
 
 	// 实际渲染.
 	return this_ptr->m_draw_frame(ctx, data, pix_fmt);
