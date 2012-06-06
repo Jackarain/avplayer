@@ -70,7 +70,7 @@ typedef struct source_context
 typedef struct vo_context
 {
 	int (*init_video)(void* ctx, int w, int h, int pix_fmt);
-	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt);
+	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt, double pts);
 	void (*re_size)(void *ctx, int width, int height);
 	void (*aspect_ratio)(void *ctx, int srcw, int srch, int enable_aspect);
 	int (*use_overlay)(void *ctx);

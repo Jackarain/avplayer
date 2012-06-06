@@ -1081,7 +1081,7 @@ BOOL player_impl::load_subtitle(const char *subtitle)
 	return TRUE;
 }
 
-int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
+int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	player_impl *this_ptr = (player_impl*)vo->user_ctx;
@@ -1122,5 +1122,5 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 	}
 
 	// 实际渲染.
-	return this_ptr->m_draw_frame(ctx, data, pix_fmt);
+	return this_ptr->m_draw_frame(ctx, data, pix_fmt, pts);
 }

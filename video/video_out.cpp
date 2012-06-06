@@ -17,7 +17,7 @@ EXPORT_API int d3d_init_video(void *ctx, int w, int h, int pix_fmt)
    return d3d->init_render(vo->user_data, w, h, pix_fmt) ? 0 : -1;
 }
 
-EXPORT_API int d3d_render_one_frame(void *ctx, AVFrame* data, int pix_fmt)
+EXPORT_API int d3d_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	d3d_render *d3d = (d3d_render*)vo->video_dev;
@@ -66,7 +66,7 @@ EXPORT_API int ddraw_init_video(void *ctx, int w, int h, int pix_fmt)
 	return ddraw->init_render(vo->user_data, w, h, pix_fmt) ? 0 : -1;
 }
 
-EXPORT_API int ddraw_render_one_frame(void *ctx, AVFrame* data, int pix_fmt)
+EXPORT_API int ddraw_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	ddraw_render *ddraw = (ddraw_render*)vo->video_dev;
@@ -114,7 +114,7 @@ EXPORT_API int ogl_init_video(void *ctx, int w, int h, int pix_fmt)
 	return ogl->init_render(vo->user_data, w, h, pix_fmt) ? 0 : -1;
 }
 
-EXPORT_API int ogl_render_one_frame(void *ctx, AVFrame* data, int pix_fmt)
+EXPORT_API int ogl_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	opengl_render *ogl = (opengl_render*)vo->video_dev;

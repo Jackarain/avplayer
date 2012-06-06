@@ -1896,7 +1896,8 @@ void* video_render_thrd(void *param)
 					play->m_vo_ctx->render_one_frame(
 						play->m_vo_ctx,
 						&video_frame,
-						play->m_video_ctx->pix_fmt);
+						play->m_video_ctx->pix_fmt,
+						curr_play_time(play));
 					if (delay != 0)
 						Sleep(4);
 				}
