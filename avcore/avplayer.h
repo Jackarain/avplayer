@@ -22,6 +22,11 @@
 #define MEDIA_TYPE_HTTP 2
 #define MEDIA_TYPE_RTSP 3
 
+// 渲染模式.
+#define RENDER_DDRAW	0
+#define RENDER_D3D	1
+#define RENDER_OGL	2
+
 class player_impl;
 // avplayer封装类.
 class EXPORT_API avplayer
@@ -44,11 +49,14 @@ public:
 	BOOL unsubclasswindow(HWND hwnd);
 
 public:
-	// 打开一个媒体文件, movie是文件名, media_type可以是MEDIA_TYPE_FILE,
-	// 也可以是MEDIA_TYPE_BT, 注意, 这个函数只打开文件, 但并不播放.
-	// 重新打开文件前, 必须关闭之前的媒体文件, 否则可能产生内存泄漏!
-	// 另外, 在播放前, avplayer必须拥有一个窗口.
-	BOOL open(LPCTSTR movie, int media_type);
+	// 打开一个媒体文件
+	// movie 文件名.
+	// media_type 表示打开的媒体类型.
+	// render_type 表示播放渲染模式, 默认是ddraw渲染.
+	// 注意, 这个函数只打开文件, 但并不播放, 重新打开文件前, 必
+	// 须关闭之前的媒体文件, 否则可能产生内存泄漏! 另外, 在播放
+	// 前, avplayer必须拥有一个窗口.
+	BOOL open(const char *movie, int media_type, int render_type = RENDER_DDRAW);
 
 	// 播放索引为index的文件, index表示在播放列表中的
 	// 位置计数, 从0开始计算, index主要用于播放多文件的bt
@@ -75,8 +83,8 @@ public:
 	// 在这个bt文件中的所有视频文件将被关闭.
 	BOOL close();
 
-	// seek到某个时间播放, 单位秒.
-	void seek_to(double sec);
+	// seek到某个时间播放, 按视频时长的百分比.
+	void seek_to(double fact);
 
 	// 设置声音音量大小.
 	void volume(double vol);

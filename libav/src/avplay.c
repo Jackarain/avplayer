@@ -925,7 +925,7 @@ void resume(avplay *play)
 	play->m_play_status = playing;
 }
 
-void seek(avplay *play, double sec)
+void seek(avplay *play, double fact)
 {
 	double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
 
@@ -933,7 +933,7 @@ void seek(avplay *play, double sec)
 	if (play->m_seeking == SEEKING_FLAG || 
 		(play->m_seeking > NOSEEKING_FLAG && play->m_seek_req))
 	{
-		play->m_seeking = sec * 1000;
+		play->m_seeking = fact * 1000;
 		return ;
 	}
 
@@ -945,7 +945,7 @@ void seek(avplay *play, double sec)
 		{
 			play->m_seek_req = 1;
 			play->m_seeking = SEEKING_FLAG;
-			play->m_seek_pos = sec * size;
+			play->m_seek_pos = fact * size;
 			play->m_seek_rel = 0;
 			play->m_seek_flags &= ~AVSEEK_FLAG_BYTE;
 			play->m_seek_flags |= AVSEEK_FLAG_BYTE;
@@ -957,7 +957,7 @@ void seek(avplay *play, double sec)
 		{
 			play->m_seek_req = 1;
 			play->m_seeking = SEEKING_FLAG;
-			play->m_seek_pos = sec * duration;
+			play->m_seek_pos = fact * duration;
 			play->m_seek_rel = 0;
 			play->m_seek_flags &= ~AVSEEK_FLAG_BYTE;
 			/* play->m_seek_flags |= AVSEEK_FLAG_BYTE; */

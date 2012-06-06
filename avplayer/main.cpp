@@ -125,7 +125,7 @@ void play_thread(void *param)
 {
 	avplayer *play = (avplayer*)param;
 	play->play();
-	play->load_subtitle("d:\\media\\dfsschs.srt");
+	// play->load_subtitle("d:\\media\\dfsschs2.srt");
 	// 一直等待直到播放完成.
 	play->wait_for_completion();
 	// 播放完成后, 处理各种事件.

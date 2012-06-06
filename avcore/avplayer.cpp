@@ -33,9 +33,9 @@ BOOL avplayer::unsubclasswindow(HWND hwnd)
 	return m_impl->unsubclasswindow(hwnd);
 }
 
-BOOL avplayer::open(LPCTSTR movie, int media_type)
+BOOL avplayer::open(const char *movie, int media_type, int render_type/* = 0*/)
 {
-	return m_impl->open(movie, media_type);
+	return m_impl->open(movie, media_type, render_type);
 }
 
 BOOL avplayer::play(int index /*= 0*/)
@@ -73,9 +73,9 @@ BOOL avplayer::close()
 	return m_impl->close();
 }
 
-void avplayer::seek_to(double sec)
+void avplayer::seek_to(double fact)
 {
-	m_impl->seek_to(sec);
+	m_impl->seek_to(fact);
 }
 
 void avplayer::volume(double vol)

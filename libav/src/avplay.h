@@ -271,12 +271,12 @@ EXPORT_API void pause(avplay *play);
 EXPORT_API void resume(avplay *play);
 
 /*
- * Moves the current seek second.
+ * Moves the current seek percent.
  * @param play pointer to the player.
  * @param sec at time, second.
  * @This function does not return a value.
  */
-EXPORT_API void seek(avplay *play, double sec);
+EXPORT_API void seek(avplay *play, double fact);
 
 /* Set audio volume.
  * @param play pointer to the player.

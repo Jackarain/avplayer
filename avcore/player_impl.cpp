@@ -657,20 +657,6 @@ void player_impl::init_video(vo_context *vo)
 
 	do
 	{
-		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		d3d_destory_render(vo);
-		if (ret == 0)
-		{
-			vo->init_video = d3d_init_video;
-			m_draw_frame = d3d_render_one_frame;
-			vo->re_size = d3d_re_size;
-			vo->aspect_ratio = d3d_aspect_ratio;
-			vo->use_overlay = d3d_use_overlay;
-			vo->destory_video = d3d_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
-			break;
-		}
-
 		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
 		ddraw_destory_render(vo);
 		if (ret == 0)
@@ -681,6 +667,20 @@ void player_impl::init_video(vo_context *vo)
 			vo->aspect_ratio = ddraw_aspect_ratio;
 			vo->use_overlay = ddraw_use_overlay;
 			vo->destory_video = ddraw_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
+			break;
+		}
+
+		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		d3d_destory_render(vo);
+		if (ret == 0)
+		{
+			vo->init_video = d3d_init_video;
+			m_draw_frame = d3d_render_one_frame;
+			vo->re_size = d3d_re_size;
+			vo->aspect_ratio = d3d_aspect_ratio;
+			vo->use_overlay = d3d_use_overlay;
+			vo->destory_video = d3d_destory_render;
 			vo->render_one_frame = &player_impl::draw_frame;
 			break;
 		}
@@ -707,7 +707,7 @@ void player_impl::init_video(vo_context *vo)
 	vo->user_ctx = (void*)this;
 }
 
-BOOL player_impl::open(const char *movie, int media_type)
+BOOL player_impl::open(const char *movie, int media_type, int render_type)
 {
 	// 如果未关闭原来的媒体, 则返回失败.
 	if (m_avplay || m_source)
@@ -924,11 +924,11 @@ BOOL player_impl::close()
 	return FALSE;
 }
 
-void player_impl::seek_to(double sec)
+void player_impl::seek_to(double fact)
 {
 	if (m_avplay)
 	{
-		::seek(m_avplay, sec);
+		::seek(m_avplay, fact);
 	}
 }
 
@@ -1099,8 +1099,14 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt)
 		else
 		{
 			this_ptr->m_plugin->subtitle_init();
-			this_ptr->m_plugin->subtitle_open((char*)this_ptr->m_subtitle.c_str(),
+			bool b = this_ptr->m_plugin->subtitle_open((char*)this_ptr->m_subtitle.c_str(),
 				this_ptr->m_video_width, this_ptr->m_video_height);
+			if (!b)
+			{
+				this_ptr->m_plugin->subtitle_uninit();
+				delete this_ptr->m_plugin;
+				this_ptr->m_plugin = NULL;
+			}
 		}
 
 		this_ptr->m_change_subtitle = false;
