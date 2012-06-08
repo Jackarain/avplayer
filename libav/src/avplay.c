@@ -1003,9 +1003,34 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	dst->type = 0;
 	assert(dst->data[0]);
 
+	/* 重采样到AV_SAMPLE_FMT_S16格式. */
+	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
+	{
+		if (!play->m_audio_convert_ctx)
+			play->m_audio_convert_ctx = av_audio_convert_alloc(
+			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
+			NULL, 0);
+		if (play->m_audio_convert_ctx)
+		{
+			const void *ibuf[6] = { src->data[0] };
+			void *obuf[6] = { dst->data[0] };
+			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
+			int ostride[6] = { 2 };
+			int len = src->linesize[0] / istride[0];
+			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
+				istride, len) < 0)
+			{
+				assert(0);
+			}
+			dst->linesize[0] = src->linesize[0] = len * 2;
+			memcpy(src->data[0], dst->data[0], src->linesize[0]);
+			/* FIXME: existing code assume that data_size equals framesize*channels*2
+			   remove this legacy cruft */
+		}
+	}
+
 	/* 重采样到双声道. */
-	if (play->m_audio_ctx->channels > 2 ||
-		play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
+	if (play->m_audio_ctx->channels > 2)
 	{
 		if (!play->m_resample_ctx)
 		{
@@ -1013,12 +1038,12 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 					FFMIN(2, play->m_audio_ctx->channels),
 					play->m_audio_ctx->channels, play->m_audio_ctx->sample_rate,
 					play->m_audio_ctx->sample_rate, AV_SAMPLE_FMT_S16,
-					play->m_audio_ctx->sample_fmt, 16, 10, 0, 0.f);
+					AV_SAMPLE_FMT_S16/*play->m_audio_ctx->sample_fmt*/, 16, 10, 0, 0.f);
 		}
 
 		if (play->m_resample_ctx)
 		{
-			int samples = src->linesize[0] / (av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt)
+			int samples = src->linesize[0] / (av_get_bytes_per_sample(AV_SAMPLE_FMT_S16/*play->m_audio_ctx->sample_fmt*/)
 				* play->m_audio_ctx->channels);
 			dst->linesize[0] = audio_resample(play->m_resample_ctx,
 					(short *) dst->data[0], (short *) src->data[0], samples)
