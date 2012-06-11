@@ -643,6 +643,7 @@ void player_impl::init_torrent_source(source_context *sc)
 	sc->close = bt_close;
 	sc->destory = bt_destory;
 	sc->offset = 0;
+	sc->save_path = ".";
 }
 
 void player_impl::init_audio(ao_context *ao)
