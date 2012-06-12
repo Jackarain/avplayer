@@ -210,10 +210,6 @@
 				RelativePath=".\source.h"
 				>
 			</File>
-			<File
-				RelativePath=".\torrent_source.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="资源文件"

@@ -1,4 +1,7 @@
 #include "ins.h"
+
+#ifdef USE_TORRENT
+
 #include <boost/filesystem.hpp>
 #include "torrent_source.h"
 #include "libtorrent/escape_string.hpp"
@@ -235,3 +238,4 @@ void torrent_source::reset()
 	m_reset = true;
 }
 
+#endif // USE_TORRENT
