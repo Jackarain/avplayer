@@ -1838,6 +1838,7 @@ namespace aux {
 #endif
 
 		m_disk_thread.abort();
+		m_io_service.stop();
 	}
 
 	void session_impl::set_port_filter(port_filter const& f)

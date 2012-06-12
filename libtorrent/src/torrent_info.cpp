@@ -716,10 +716,6 @@ namespace libtorrent
 		, m_private(false)
 		, m_i2p(false)
 	{
-		boost::shared_array<char> info_section;
-		info_section.reset(new char[12]);
-		memset(info_section.get(), 0, 12);
-		m_info_section = info_section;
 		lazy_entry e;
 		if (lazy_bdecode(buffer, buffer + size, e, ec) != 0)
 			return;
