@@ -1,11 +1,11 @@
-prefix=/d/ffmpeg/build
+prefix=/d/home/ffmpeg-0.11.1/build
 exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: libavutil
 Description: FFmpeg utility library
-Version: 51.41.100
+Version: 51.54.100
 Requires: 
 Requires.private: 
 Conflicts:

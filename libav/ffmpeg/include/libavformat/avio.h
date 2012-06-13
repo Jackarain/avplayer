@@ -78,7 +78,7 @@ typedef struct {
      * warning -- this field can be NULL, be sure to not pass this AVIOContext
      * to any av_opt_* functions in that case.
      */
-    AVClass *av_class;
+    const AVClass *av_class;
     unsigned char *buffer;  /**< Start of the buffer. */
     int buffer_size;        /**< Maximum buffer size */
     unsigned char *buf_ptr; /**< Current position in the buffer */
@@ -121,6 +121,13 @@ typedef struct {
      * This field is internal to libavformat and access from outside is not allowed.
      */
      int64_t maxsize;
+
+     /**
+      * avio_read and avio_write should if possible be satisfied directly
+      * instead of going through a buffer, and avio_seek will always
+      * call the underlying seek function directly.
+      */
+     int direct;
 } AVIOContext;
 
 /* unbuffered I/O */
@@ -320,6 +327,14 @@ int avio_get_str16be(AVIOContext *pb, int maxlen, char *buf, int buflen);
 #define AVIO_FLAG_NONBLOCK 8
 
 /**
+ * Use direct mode.
+ * avio_read and avio_write should if possible be satisfied directly
+ * instead of going through a buffer, and avio_seek will always
+ * call the underlying seek function directly.
+ */
+#define AVIO_FLAG_DIRECT 0x8000
+
+/**
  * Create and initialize a AVIOContext for accessing the
  * resource indicated by url.
  * @note When the resource indicated by url has been opened in
@@ -383,7 +398,7 @@ int avio_close_dyn_buf(AVIOContext *s, uint8_t **pbuffer);
 
 /**
  * Iterate through names of available protocols.
- * @note it is recommanded to use av_protocol_next() instead of this
+ * @note it is recommended to use av_protocol_next() instead of this
  *
  * @param opaque A private pointer representing current protocol.
  *        It must be a pointer to NULL on first iteration and will

@@ -35,8 +35,18 @@
 /**
  * Copy the frame properties of src to dst, without copying the actual
  * image data.
+ *
+ * @return 0 on success, a negative number on error.
  */
 int avfilter_copy_frame_props(AVFilterBufferRef *dst, const AVFrame *src);
+
+/**
+ * Copy the frame properties and data pointers of src to dst, without copying
+ * the actual data.
+ *
+ * @return 0 on success, a negative number on error.
+ */
+int avfilter_copy_buf_props(AVFrame *dst, const AVFilterBufferRef *src);
 
 /**
  * Create and return a picref reference from the data and properties
@@ -45,6 +55,27 @@ int avfilter_copy_frame_props(AVFilterBufferRef *dst, const AVFrame *src);
  * @param perms permissions to assign to the new buffer reference
  */
 AVFilterBufferRef *avfilter_get_video_buffer_ref_from_frame(const AVFrame *frame, int perms);
+
+
+/**
+ * Create and return a picref reference from the data and properties
+ * contained in frame.
+ *
+ * @param perms permissions to assign to the new buffer reference
+ */
+AVFilterBufferRef *avfilter_get_audio_buffer_ref_from_frame(const AVFrame *frame,
+                                                            int perms);
+
+/**
+ * Fill an AVFrame with the information stored in samplesref.
+ *
+ * @param frame an already allocated AVFrame
+ * @param samplesref an audio buffer reference
+ * @return 0 in case of success, a negative AVERROR code in case of
+ * failure
+ */
+int avfilter_fill_frame_from_audio_buffer_ref(AVFrame *frame,
+                                              const AVFilterBufferRef *samplesref);
 
 /**
  * Fill an AVFrame with the information stored in picref.
@@ -56,6 +87,29 @@ AVFilterBufferRef *avfilter_get_video_buffer_ref_from_frame(const AVFrame *frame
  */
 int avfilter_fill_frame_from_video_buffer_ref(AVFrame *frame,
                                               const AVFilterBufferRef *picref);
+
+/**
+ * Fill an AVFrame with information stored in ref.
+ *
+ * @param frame an already allocated AVFrame
+ * @param ref a video or audio buffer reference
+ * @return 0 in case of success, a negative AVERROR code in case of
+ * failure
+ */
+int avfilter_fill_frame_from_buffer_ref(AVFrame *frame,
+                                        const AVFilterBufferRef *ref);
+
+/**
+ * Add frame data to buffer_src.
+ *
+ * @param buffer_src  pointer to a buffer source context
+ * @param frame       a frame, or NULL to mark EOF
+ * @param flags       a combination of AV_BUFFERSRC_FLAG_*
+ * @return            >= 0 in case of success, a negative AVERROR code
+ *                    in case of failure
+ */
+int av_buffersrc_add_frame(AVFilterContext *buffer_src,
+                           const AVFrame *frame, int flags);
 
 /**
  * Add frame data to buffer_src.

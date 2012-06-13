@@ -6,156 +6,179 @@ EXPORTS
     av_buffersink_get_buffer_ref @5
     av_buffersink_params_alloc @6
     av_buffersink_poll_frame @7
-    av_buffersrc_buffer @8
-    av_filter_next @9
-    av_vsink_buffer_get_video_buffer_ref @10
-    av_vsrc_buffer_add_frame @11
-    av_vsrc_buffer_add_video_buffer_ref @12
-    avfilter_add_format @13
-    avfilter_add_matrix @14
-    avfilter_af_aconvert @15 DATA
-    avfilter_af_aformat @16 DATA
-    avfilter_af_amerge @17 DATA
-    avfilter_af_anull @18 DATA
-    avfilter_af_aresample @19 DATA
-    avfilter_af_ashowinfo @20 DATA
-    avfilter_af_asplit @21 DATA
-    avfilter_af_astreamsync @22 DATA
-    avfilter_af_earwax @23 DATA
-    avfilter_af_pan @24 DATA
-    avfilter_af_silencedetect @25 DATA
-    avfilter_af_volume @26 DATA
-    avfilter_all_channel_layouts @27 DATA
-    avfilter_all_formats @28
-    avfilter_asink_abuffersink @29 DATA
-    avfilter_asink_anullsink @30 DATA
-    avfilter_asrc_abuffer @31 DATA
-    avfilter_asrc_aevalsrc @32 DATA
-    avfilter_asrc_amovie @33 DATA
-    avfilter_asrc_anullsrc @34 DATA
-    avfilter_config_links @35
-    avfilter_configuration @36
-    avfilter_copy_frame_props @37
-    avfilter_default_draw_slice @38
-    avfilter_default_end_frame @39
-    avfilter_default_filter_samples @40
-    avfilter_default_get_audio_buffer @41
-    avfilter_default_get_video_buffer @42
-    avfilter_default_query_formats @43
-    avfilter_default_start_frame @44
-    avfilter_draw_slice @45
-    avfilter_end_frame @46
-    avfilter_fill_frame_from_video_buffer_ref @47
-    avfilter_filter_samples @48
-    avfilter_formats_changeref @49
-    avfilter_formats_ref @50
-    avfilter_formats_unref @51
-    avfilter_free @52
-    avfilter_get_audio_buffer @53
-    avfilter_get_audio_buffer_ref_from_arrays @54
-    avfilter_get_by_name @55
-    avfilter_get_matrix @56
-    avfilter_get_video_buffer @57
-    avfilter_get_video_buffer_ref_from_arrays @58
-    avfilter_get_video_buffer_ref_from_frame @59
-    avfilter_graph_add_filter @60
-    avfilter_graph_alloc @61
-    avfilter_graph_config @62
-    avfilter_graph_create_filter @63
-    avfilter_graph_dump @64
-    avfilter_graph_free @65
-    avfilter_graph_get_filter @66
-    avfilter_graph_parse @67
-    avfilter_graph_queue_command @68
-    avfilter_graph_send_command @69
-    avfilter_init_filter @70
-    avfilter_inout_alloc @71
-    avfilter_inout_free @72
-    avfilter_insert_filter @73
-    avfilter_insert_pad @74
-    avfilter_license @75
-    avfilter_link @76
-    avfilter_link_free @77
-    avfilter_make_all_channel_layouts @78
-    avfilter_make_all_formats @79
-    avfilter_make_all_packing_formats @80
-    avfilter_make_format64_list @81
-    avfilter_make_format_list @82
-    avfilter_merge_formats @83
-    avfilter_mul_matrix @84
-    avfilter_null_draw_slice @85
-    avfilter_null_end_frame @86
-    avfilter_null_filter_samples @87
-    avfilter_null_get_audio_buffer @88
-    avfilter_null_get_video_buffer @89
-    avfilter_null_start_frame @90
-    avfilter_open @91
-    avfilter_poll_frame @92
-    avfilter_process_command @93
-    avfilter_ref_buffer @94
-    avfilter_register @95
-    avfilter_register_all @96
-    avfilter_request_frame @97
-    avfilter_set_common_channel_layouts @98
-    avfilter_set_common_packing_formats @99
-    avfilter_set_common_pixel_formats @100
-    avfilter_set_common_sample_formats @101
-    avfilter_start_frame @102
-    avfilter_sub_matrix @103
-    avfilter_transform @104
-    avfilter_uninit @105
-    avfilter_unref_buffer @106
-    avfilter_version @107
-    avfilter_vf_blackframe @108 DATA
-    avfilter_vf_boxblur @109 DATA
-    avfilter_vf_copy @110 DATA
-    avfilter_vf_crop @111 DATA
-    avfilter_vf_cropdetect @112 DATA
-    avfilter_vf_delogo @113 DATA
-    avfilter_vf_deshake @114 DATA
-    avfilter_vf_drawbox @115 DATA
-    avfilter_vf_fade @116 DATA
-    avfilter_vf_fieldorder @117 DATA
-    avfilter_vf_fifo @118 DATA
-    avfilter_vf_format @119 DATA
-    avfilter_vf_gradfun @120 DATA
-    avfilter_vf_hflip @121 DATA
-    avfilter_vf_hqdn3d @122 DATA
-    avfilter_vf_lut @123 DATA
-    avfilter_vf_lutrgb @124 DATA
-    avfilter_vf_lutyuv @125 DATA
-    avfilter_vf_mp @126 DATA
-    avfilter_vf_negate @127 DATA
-    avfilter_vf_noformat @128 DATA
-    avfilter_vf_null @129 DATA
-    avfilter_vf_overlay @130 DATA
-    avfilter_vf_pad @131 DATA
-    avfilter_vf_pixdesctest @132 DATA
-    avfilter_vf_scale @133 DATA
-    avfilter_vf_select @134 DATA
-    avfilter_vf_setdar @135 DATA
-    avfilter_vf_setfield @136 DATA
-    avfilter_vf_setpts @137 DATA
-    avfilter_vf_setsar @138 DATA
-    avfilter_vf_settb @139 DATA
-    avfilter_vf_showinfo @140 DATA
-    avfilter_vf_slicify @141 DATA
-    avfilter_vf_split @142 DATA
-    avfilter_vf_thumbnail @143 DATA
-    avfilter_vf_tinterlace @144 DATA
-    avfilter_vf_transpose @145 DATA
-    avfilter_vf_unsharp @146 DATA
-    avfilter_vf_vflip @147 DATA
-    avfilter_vf_yadif @148 DATA
-    avfilter_vsink_buffersink @149 DATA
-    avfilter_vsink_nullsink @150 DATA
-    avfilter_vsrc_buffer @151 DATA
-    avfilter_vsrc_cellauto @152 DATA
-    avfilter_vsrc_color @153 DATA
-    avfilter_vsrc_life @154 DATA
-    avfilter_vsrc_mandelbrot @155 DATA
-    avfilter_vsrc_movie @156 DATA
-    avfilter_vsrc_mptestsrc @157 DATA
-    avfilter_vsrc_nullsrc @158 DATA
-    avfilter_vsrc_rgbtestsrc @159 DATA
-    avfilter_vsrc_testsrc @160 DATA
+    av_buffersink_read @8
+    av_buffersink_read_samples @9
+    av_buffersrc_add_frame @10
+    av_buffersrc_add_ref @11
+    av_buffersrc_buffer @12
+    av_buffersrc_get_nb_failed_requests @13
+    av_buffersrc_write_frame @14
+    av_filter_next @15
+    av_vsink_buffer_get_video_buffer_ref @16
+    av_vsrc_buffer_add_frame @17
+    av_vsrc_buffer_add_video_buffer_ref @18
+    av_vsrc_buffer_get_nb_failed_requests @19
+    avfilter_add_format @20
+    avfilter_add_matrix @21
+    avfilter_af_aconvert @22 DATA
+    avfilter_af_aformat @23 DATA
+    avfilter_af_amerge @24 DATA
+    avfilter_af_amix @25 DATA
+    avfilter_af_anull @26 DATA
+    avfilter_af_aresample @27 DATA
+    avfilter_af_ashowinfo @28 DATA
+    avfilter_af_asplit @29 DATA
+    avfilter_af_astreamsync @30 DATA
+    avfilter_af_earwax @31 DATA
+    avfilter_af_pan @32 DATA
+    avfilter_af_silencedetect @33 DATA
+    avfilter_af_volume @34 DATA
+    avfilter_all_channel_layouts @35 DATA
+    avfilter_all_formats @36
+    avfilter_asink_abuffer @37 DATA
+    avfilter_asink_abuffersink @38 DATA
+    avfilter_asink_anullsink @39 DATA
+    avfilter_asrc_abuffer @40 DATA
+    avfilter_asrc_aevalsrc @41 DATA
+    avfilter_asrc_amovie @42 DATA
+    avfilter_asrc_anullsrc @43 DATA
+    avfilter_config_links @44
+    avfilter_configuration @45
+    avfilter_copy_buf_props @46
+    avfilter_copy_buffer_ref_props @47
+    avfilter_copy_frame_props @48
+    avfilter_default_draw_slice @49
+    avfilter_default_end_frame @50
+    avfilter_default_get_video_buffer @51
+    avfilter_default_query_formats @52
+    avfilter_default_start_frame @53
+    avfilter_draw_slice @54
+    avfilter_end_frame @55
+    avfilter_fill_frame_from_audio_buffer_ref @56
+    avfilter_fill_frame_from_buffer_ref @57
+    avfilter_fill_frame_from_video_buffer_ref @58
+    avfilter_formats_changeref @59
+    avfilter_formats_ref @60
+    avfilter_formats_unref @61
+    avfilter_free @62
+    avfilter_get_audio_buffer_ref_from_arrays @63
+    avfilter_get_audio_buffer_ref_from_frame @64
+    avfilter_get_by_name @65
+    avfilter_get_matrix @66
+    avfilter_get_video_buffer @67
+    avfilter_get_video_buffer_ref_from_arrays @68
+    avfilter_get_video_buffer_ref_from_frame @69
+    avfilter_graph_add_filter @70
+    avfilter_graph_alloc @71
+    avfilter_graph_config @72
+    avfilter_graph_create_filter @73
+    avfilter_graph_dump @74
+    avfilter_graph_free @75
+    avfilter_graph_get_filter @76
+    avfilter_graph_parse @77
+    avfilter_graph_parse2 @78
+    avfilter_graph_queue_command @79
+    avfilter_graph_request_oldest @80
+    avfilter_graph_send_command @81
+    avfilter_graph_set_auto_convert @82
+    avfilter_init_filter @83
+    avfilter_inout_alloc @84
+    avfilter_inout_free @85
+    avfilter_insert_filter @86
+    avfilter_insert_pad @87
+    avfilter_license @88
+    avfilter_link @89
+    avfilter_link_free @90
+    avfilter_make_all_formats @91
+    avfilter_make_all_packing_formats @92
+    avfilter_make_format64_list @93
+    avfilter_make_format_list @94
+    avfilter_merge_formats @95
+    avfilter_mul_matrix @96
+    avfilter_null_draw_slice @97
+    avfilter_null_end_frame @98
+    avfilter_null_get_video_buffer @99
+    avfilter_null_start_frame @100
+    avfilter_open @101
+    avfilter_poll_frame @102
+    avfilter_process_command @103
+    avfilter_ref_buffer @104
+    avfilter_register @105
+    avfilter_register_all @106
+    avfilter_request_frame @107
+    avfilter_set_common_channel_layouts @108
+    avfilter_set_common_formats @109
+    avfilter_set_common_packing_formats @110
+    avfilter_set_common_pixel_formats @111
+    avfilter_set_common_sample_formats @112
+    avfilter_start_frame @113
+    avfilter_sub_matrix @114
+    avfilter_transform @115
+    avfilter_uninit @116
+    avfilter_unref_buffer @117
+    avfilter_unref_bufferp @118
+    avfilter_version @119
+    avfilter_vf_bbox @120 DATA
+    avfilter_vf_blackdetect @121 DATA
+    avfilter_vf_blackframe @122 DATA
+    avfilter_vf_boxblur @123 DATA
+    avfilter_vf_colormatrix @124 DATA
+    avfilter_vf_copy @125 DATA
+    avfilter_vf_crop @126 DATA
+    avfilter_vf_cropdetect @127 DATA
+    avfilter_vf_delogo @128 DATA
+    avfilter_vf_deshake @129 DATA
+    avfilter_vf_drawbox @130 DATA
+    avfilter_vf_fade @131 DATA
+    avfilter_vf_fieldorder @132 DATA
+    avfilter_vf_fifo @133 DATA
+    avfilter_vf_format @134 DATA
+    avfilter_vf_fps @135 DATA
+    avfilter_vf_gradfun @136 DATA
+    avfilter_vf_hflip @137 DATA
+    avfilter_vf_hqdn3d @138 DATA
+    avfilter_vf_idet @139 DATA
+    avfilter_vf_lut @140 DATA
+    avfilter_vf_lutrgb @141 DATA
+    avfilter_vf_lutyuv @142 DATA
+    avfilter_vf_mp @143 DATA
+    avfilter_vf_negate @144 DATA
+    avfilter_vf_noformat @145 DATA
+    avfilter_vf_null @146 DATA
+    avfilter_vf_overlay @147 DATA
+    avfilter_vf_pad @148 DATA
+    avfilter_vf_pixdesctest @149 DATA
+    avfilter_vf_removelogo @150 DATA
+    avfilter_vf_scale @151 DATA
+    avfilter_vf_select @152 DATA
+    avfilter_vf_setdar @153 DATA
+    avfilter_vf_setfield @154 DATA
+    avfilter_vf_setpts @155 DATA
+    avfilter_vf_setsar @156 DATA
+    avfilter_vf_settb @157 DATA
+    avfilter_vf_showinfo @158 DATA
+    avfilter_vf_slicify @159 DATA
+    avfilter_vf_split @160 DATA
+    avfilter_vf_super2xsai @161 DATA
+    avfilter_vf_swapuv @162 DATA
+    avfilter_vf_thumbnail @163 DATA
+    avfilter_vf_tile @164 DATA
+    avfilter_vf_tinterlace @165 DATA
+    avfilter_vf_transpose @166 DATA
+    avfilter_vf_unsharp @167 DATA
+    avfilter_vf_vflip @168 DATA
+    avfilter_vf_yadif @169 DATA
+    avfilter_vsink_buffer @170 DATA
+    avfilter_vsink_buffersink @171 DATA
+    avfilter_vsink_nullsink @172 DATA
+    avfilter_vsrc_buffer @173 DATA
+    avfilter_vsrc_cellauto @174 DATA
+    avfilter_vsrc_color @175 DATA
+    avfilter_vsrc_life @176 DATA
+    avfilter_vsrc_mandelbrot @177 DATA
+    avfilter_vsrc_movie @178 DATA
+    avfilter_vsrc_mptestsrc @179 DATA
+    avfilter_vsrc_nullsrc @180 DATA
+    avfilter_vsrc_rgbtestsrc @181 DATA
+    avfilter_vsrc_testsrc @182 DATA
+    ff_default_query_formats @183
