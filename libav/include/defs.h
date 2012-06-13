@@ -52,6 +52,7 @@ typedef struct source_context
 	 */
 	char *torrent_data;
 	int torrent_len;
+	char *save_path;
 
 	/* torrent中的媒体文件信息, 只有在打开
 	 * torrent之后, 这里面才可能有数据.
