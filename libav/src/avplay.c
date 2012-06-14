@@ -534,6 +534,7 @@ int initialize(avplay *play, source_context *sc)
 
 	av_register_all();
 	avcodec_register_all();
+	avformat_network_init();
 
 	/* 置0. */
 	memset(play, 0, sizeof(avplay));
@@ -911,6 +912,7 @@ void stop(avplay *play)
 		av_free(play->m_avio_ctx);
 		play->m_avio_ctx = NULL;
 	}
+	avformat_network_deinit();
 }
 
 void pause(avplay *play)
