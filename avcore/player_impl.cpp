@@ -762,6 +762,11 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		{
 			// 先读取bt种子数据, 然后作为附加数据保存到媒体源.
 			FILE *fp = fopen(filename, "r+b");
+			if (!fp)
+			{
+				assert(0);
+				break;
+			}
 			char *torrent_data = (char*)malloc(file_lentgh);
 			int readbytes = fread(torrent_data, 1, file_lentgh, fp);
 			if (readbytes != file_lentgh)
