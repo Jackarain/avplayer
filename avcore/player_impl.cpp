@@ -533,7 +533,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 	}
 
 	if (m_old_win_proc)
-		return m_old_win_proc(hwnd, msg, wparam, lparam);
+		return CallWindowProc(m_old_win_proc, hwnd, msg, wparam, lparam);// m_old_win_proc(hwnd, msg, wparam, lparam);
 	else
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 }
