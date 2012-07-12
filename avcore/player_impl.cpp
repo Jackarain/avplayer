@@ -517,8 +517,11 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		{
 			RECT window;
 			GetClientRect(hwnd, &window);
-			if (m_avplay && m_avplay->m_vo_ctx)
+			if (m_avplay && m_avplay->m_vo_ctx &&
+				m_video->video_dev)
+			{
 				m_video->re_size(m_video, LOWORD(lparam), HIWORD(lparam));
+			}
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
 		break;
