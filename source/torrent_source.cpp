@@ -147,7 +147,7 @@ bool torrent_source::open(void* ctx)
 
 bool torrent_source::read_data(char* data, uint64_t offset, uint64_t size, uint64_t& read_size)
 {
-	if (!m_read_op || !data)
+	if (!m_read_op || !data || m_videos.size() == 0)
 		return false;
 
 	bool ret = false;
