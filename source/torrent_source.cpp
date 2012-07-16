@@ -68,7 +68,7 @@ bool torrent_source::open(void* ctx)
 	for (file_storage::iterator i = fs.begin();
 		i != fs.end(); i++)
 	{
-		boost::filesystem::path p(i->filename());
+		boost::filesystem::path p(convert_to_native(i->filename()));
 		std::string ext = p.extension().string();
 		if (ext == ".rmvb" ||
 			ext == ".wmv" ||
