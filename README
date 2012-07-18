@@ -3,7 +3,7 @@
 目前, 在这个代码中, 主要链接到FFmpeg来进行解码, 并将其改造成一个通用的播放器框架. 在这个框架中能够接受各种数据的读入, 可以很方便的封装自己的数据读取模块, 也可以很方便的定制自己的视频渲染模块和音频播放模块, 你只需要参考其中的实现即可.
 另外在当前的实现中, 因为个人精力实在有限, 所以借鉴了一些开源项目的代码(如Mplayer), 并且该代码主要基于windows平台, 有移植到linux等其它平台的打算. 所以, 我希望有朋友能参与到这个项目中一起研究和学习, 并完成这个目标.
 
-在 https://github.com/Jackarain/avplayer/downloads 中有已经编译好的exe可供测试, 测试命令如下:
+在 https://dl.dropbox.com/u/1530370/bin.7z 中有已经编译好的exe可供测试, 测试命令如下:
 avplayer.exe test.mp4
 或者
 avplayer.exe http://edstream.googlecode.com/files/stream.m3u8
