@@ -118,7 +118,7 @@ EXPORT_API int bt_init_source(void *ctx)
 
 	return -1;
 #else
-	return 0;
+	return -1;
 #endif // USE_TORRENT
 }
 
@@ -145,7 +145,7 @@ EXPORT_API int bt_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
 
 	return vfi.size();
 #else
-	return 0;
+	return -1;
 #endif // USE_TORRENT
 }
 
@@ -161,7 +161,7 @@ EXPORT_API int bt_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
 
 	return readbytes;
 #else
-	return 0;
+	return -1;
 #endif // USE_TORRENT
 }
 

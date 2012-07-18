@@ -584,7 +584,7 @@ int initialize(avplay *play, source_context *sc)
 	}
 
 	if (sc->type == MEDIA_TYPE_BT ||
-		 sc->type == MEDIA_TYPE_FILE)
+		sc->type == MEDIA_TYPE_FILE)
 	{
 		/* 分配用于io的缓冲. */
 		play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);

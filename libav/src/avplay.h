@@ -49,7 +49,7 @@ typedef enum play_status
 /* 用于标识渲染器类型. */
 #define VIDEO_RENDER_D3D		0
 #define VIDEO_RENDER_DDRAW		1
-#define VIDEO_RENDER_OPENGL	2
+#define VIDEO_RENDER_OPENGL		2
 #define VIDEO_RENDER_SOFT		3
 
 /* 队列.	*/
