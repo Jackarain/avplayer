@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\libav\include;..\libav\ffmpeg\include;..\openssl\include;..\libtorrent\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;_USRDLL;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS;USE_TORRENT"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -119,7 +119,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\libav\include;..\libav\ffmpeg\include;..\openssl\include;..\libtorrent\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;_USRDLL;SOURCE_EXPORTS;USE_TORRENT"
+				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
