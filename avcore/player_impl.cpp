@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "player_impl.h"
 
-
 //////////////////////////////////////////////////////////////////////////
 // class win_data 作为局部线程存储, 用于保存HWND对应
 // 的player指针. 在消息回调时, 查找所对应的窗口, 正确
@@ -335,7 +334,10 @@ HWND player_impl::create_window(const char *player_name)
 	wcex.hIconSm			= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDC_ICON));
 
 	if (!RegisterClassExA(&wcex))
+	{
+		::logger("register window class failed!\n");
 		return NULL;
+	}
 
 	// 创建hook, 以便在窗口创建之前得到HWND句柄, 使HWND与this绑定.
 	HHOOK hook = SetWindowsHookEx(WH_CBT, win_cbt_filter_hook, NULL, GetCurrentThreadId());
@@ -415,6 +417,7 @@ LRESULT CALLBACK player_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM wp
 	player_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
 	if (!this_ptr)
 	{
+		::logger("Impossible running to here!\n");
 		assert(0); // 不可能执行到此!!!
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
@@ -491,7 +494,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 
 			if (m_avplay && (m_avplay->m_play_status == playing
 				|| m_avplay->m_play_status == completed)
-				&& (fact >= 0.0f && fact <=1.0f))
+				&& (fact >= 0.0f && fact <= 1.0f))
 				::seek(m_avplay, fact);
 		}
 		break;
@@ -671,6 +674,9 @@ void player_impl::init_video(vo_context *vo)
 			vo->use_overlay = ddraw_use_overlay;
 			vo->destory_video = ddraw_destory_render;
 			vo->render_one_frame = &player_impl::draw_frame;
+
+			::logger("init video render to ddraw.\n");
+
 			break;
 		}
 
@@ -685,6 +691,9 @@ void player_impl::init_video(vo_context *vo)
 			vo->use_overlay = d3d_use_overlay;
 			vo->destory_video = d3d_destory_render;
 			vo->render_one_frame = &player_impl::draw_frame;
+
+			::logger("init video render to d3d.\n");
+
 			break;
 		}
 
@@ -699,8 +708,13 @@ void player_impl::init_video(vo_context *vo)
 			vo->use_overlay = ogl_use_overlay;
 			vo->destory_video = ogl_destory_render;
 			vo->render_one_frame = &player_impl::draw_frame;
+
+			::logger("init video render to ogl.\n");
+
 			break;
 		}
+
+		::logger("init video render failed!\n");
 
 		// 表示视频渲染器初始化失败!!!
 		assert(0);
@@ -731,7 +745,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		file_lentgh = file_size(movie);
 		if (file_lentgh < 0)
 		{
-			printf("get file size failed!\n");
+			::logger("get file size failed!\n");
 			return FALSE;
 		}
 	}
@@ -741,7 +755,10 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		// 创建avplay.
 		m_avplay = alloc_avplay_context();
 		if (!m_avplay)
+		{
+			::logger("allocate avplay context failed!\n");
 			break;
+		}
 
 		// 根据打开的文件类型, 创建不同媒体源.
 		if (media_type == MEDIA_TYPE_FILE)
@@ -749,7 +766,10 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			len = strlen(filename);
 			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename, len + 1, file_lentgh);
 			if (!m_source)
+			{
+				::logger("allocate media source failed, type is file.\n");
 				break;
+			}
 
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename, filename));
@@ -764,17 +784,23 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			FILE *fp = fopen(filename, "r+b");
 			if (!fp)
 			{
-				assert(0);
+				::logger("open torrent file \'%s\' failed!\n", filename);
 				break;
 			}
 			char *torrent_data = (char*)malloc(file_lentgh);
 			int readbytes = fread(torrent_data, 1, file_lentgh, fp);
 			if (readbytes != file_lentgh)
 			{
-				assert(0);
+				::logger("read torrent file \'%s\' failed!\n", filename);
 				break;
 			}
 			m_source = alloc_media_source(MEDIA_TYPE_BT, torrent_data, file_lentgh, 0);
+			if (!m_source)
+			{
+				::logger("allocate media source failed, type is torrent.\n");
+				break;
+			}
+
 			free(torrent_data);
 
 			// 初始化torrent媒体源.
@@ -786,7 +812,11 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			len = strlen(filename) + 1;
 			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename, len, 0);
 			if (!m_source)
+			{
+				::logger("allocate media source failed, type is http.\n");
 				break;
+			}
+
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename, filename));
 		}
@@ -796,14 +826,21 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			len = strlen(filename) + 1;
 			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename, len, 0);
 			if (!m_source)
+			{
+				::logger("allocate media source failed, type is rtsp.\n");
 				break;
+			}
+
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename, filename));
 		}
 
 		// 初始化avplay.
 		if (initialize(m_avplay, m_source) != 0)
+		{
+			::logger("initialize avplay failed!\n");
 			break;
+		}
 
 		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
 		if (media_type == MEDIA_TYPE_BT)
@@ -821,10 +858,17 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		// 分配音频和视频的渲染器.
 		m_audio = alloc_audio_render();
 		if (!m_audio)
+		{
+			::logger("allocate audio render failed!\n");
 			break;
+		}
+
 		m_video = alloc_video_render(m_hwnd);
 		if (!m_video)
+		{
+			::logger("allocate video render failed!\n");
 			break;
+		}
 
 		// 初始化音频和视频渲染器.
 		init_audio(m_audio);
@@ -859,6 +903,8 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 	if (m_video)
 		free_video_render(m_video);
 
+	::logger("open avplay failed!\n");
+
 	return FALSE;
 }
 
@@ -871,6 +917,7 @@ BOOL player_impl::play(int index /*= 0*/)
 	// 如果是文件数据, 则直接播放.
 	if (::start(m_avplay, index) != 0)
 		return FALSE;
+
 	m_cur_index = index;
 
 	return TRUE;
@@ -881,6 +928,7 @@ BOOL player_impl::pause()
 	if (m_avplay && m_avplay->m_play_status == playing)
 	{
 		::pause(m_avplay);
+		::logger("set to pause.\n");
 		return TRUE;
 	}
 
@@ -892,6 +940,7 @@ BOOL player_impl::resume()
 	if (m_avplay && m_avplay->m_play_status == paused)
 	{
 		::resume(m_avplay);
+		::logger("set to resume.\n");
 		return TRUE;
 	}
 
@@ -904,6 +953,7 @@ BOOL player_impl::stop()
 	{
 		::stop(m_avplay);
 		m_cur_index = -1;
+		::logger("stop play.\n");
 		return TRUE;
 	}
 
@@ -915,6 +965,7 @@ BOOL player_impl::wait_for_completion()
 	if (m_avplay)
 	{
 		::wait_for_completion(m_avplay);
+		::logger("play completed.\n");
 		return TRUE;
 	}
 
@@ -927,6 +978,7 @@ BOOL player_impl::close()
 	{
 		::destory(m_avplay);
 		m_cur_index = -1;
+		::logger("close avplay.\n");
 		return TRUE;
 	}
 	return FALSE;
@@ -937,6 +989,7 @@ void player_impl::seek_to(double fact)
 	if (m_avplay)
 	{
 		::seek(m_avplay, fact);
+		::logger("seek to %.2f.\n", fact);
 	}
 }
 
@@ -945,6 +998,7 @@ void player_impl::volume(double vol)
 	if (m_avplay)
 	{
 		::volume(m_avplay, vol);
+		::logger("set volume to %.2f.\n", vol);
 	}
 }
 
@@ -954,7 +1008,10 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 
 	// 不支持非顶层窗口全屏操作.
 	if (IsWindow(hparent))
+	{
+		::logger("do\'nt support full screen mode\n");
 		return FALSE;
+	}
 
 	// Save the current windows placement/placement to
 	// restore when fullscreen is over

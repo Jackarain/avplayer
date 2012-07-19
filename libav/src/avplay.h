@@ -361,6 +361,24 @@ EXPORT_API void blurring(AVFrame *frame,
 EXPORT_API void alpha_blend(AVFrame *frame, uint8_t *rgba,
 	int fw, int fh, int rgba_w, int rgba_h, int x, int y);
 
+
+/*
+ * Set log to file.
+ * @param logfile write log to logfile file.
+ */
+EXPORT_API int logger_to_file(const char* logfile);
+
+/*
+ * Close log file.
+ */
+EXPORT_API int close_logger_file();
+
+/*
+ * Write formatted output to log.
+ * @param format string that contains the text to be written to log.
+ */
+EXPORT_API int logger(const char *fmt, ...);
+
 #ifdef  __cplusplus
 }
 #endif

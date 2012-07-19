@@ -15,6 +15,14 @@
 
 #pragma once
 
+// 日志类.
+class avplay_logger
+{
+public:
+	avplay_logger() { ::logger_to_file("avplayer.log"); }
+	~avplay_logger() { ::close_logger_file(); }
+};
+
 // 字幕插件统一接口类.
 class subtitle_plugin
 {
@@ -142,6 +150,7 @@ private:
 	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
 
 private:
+	avplay_logger m_log;
 	// window相关.
 	HWND m_hwnd;
 	HINSTANCE m_hinstance;
