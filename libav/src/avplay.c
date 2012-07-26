@@ -651,6 +651,12 @@ int initialize(avplay *play, source_context *sc)
 	if (play->m_video_index == -1 && play->m_audio_index == -1)
 		goto FAILED_FLG;
 
+	/* 保存audio和video的AVStream指针.	*/
+	if (play->m_video_index != -1)
+		play->m_video_st = play->m_format_ctx->streams[play->m_video_index];
+	if (play->m_audio_index != -1)
+		play->m_audio_st = play->m_format_ctx->streams[play->m_audio_index];
+
 	/* 保存audio和video的AVCodecContext指针.	*/
 	if (play->m_audio_index != -1)
 		play->m_audio_ctx = play->m_format_ctx->streams[play->m_audio_index]->codec;
@@ -664,18 +670,12 @@ int initialize(avplay *play, source_context *sc)
 		if (ret != 0)
 			goto FAILED_FLG;
 	}
-	if (play->m_video_index != -1)
-	{
-		ret = open_decoder(play->m_video_ctx);
-		if (ret != 0)
-			goto FAILED_FLG;
-	}
-
-	/* 保存audio和video的AVStream指针.	*/
-	if (play->m_video_index != -1)
-		play->m_video_st = play->m_format_ctx->streams[play->m_video_index];
-	if (play->m_audio_index != -1)
-		play->m_audio_st = play->m_format_ctx->streams[play->m_audio_index];
+ 	if (play->m_video_index != -1)
+ 	{
+ 		ret = open_decoder(play->m_video_ctx);
+ 		if (ret != 0)
+ 			goto FAILED_FLG;
+ 	}
 
 	/* 默认同步到音频.	*/
 	play->m_av_sync_type = AV_SYNC_AUDIO_MASTER;
@@ -1610,7 +1610,7 @@ void* video_dec_thrd(void *param)
 				/*
 				 *	计算当前帧的延迟时长.
 				 */
-				frame_delay = av_q2d(play->m_video_st->codec->time_base);
+				frame_delay = av_q2d(play->m_video_ctx->time_base);
 				frame_delay += avcopy.repeat_pict * (frame_delay * 0.5);
 
 				/*
