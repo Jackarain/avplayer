@@ -4,6 +4,7 @@
 #include "d3d_render.h"
 #include "ddraw_render.h"
 #include "opengl_render.h"
+#include "y4m_render.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -153,6 +154,48 @@ EXPORT_API void ogl_destory_render(void *ctx)
 		vo->video_dev = NULL;
 	}
 }
+
+
+EXPORT_API int y4m_init_video(void *ctx, int w, int h, int pix_fmt)
+{
+	vo_context *vo = (vo_context*)ctx;
+	y4m_render *y4m = NULL;
+	vo->video_dev = (void*)(y4m = new y4m_render);
+	return y4m->init_render(vo->user_data, w, h, pix_fmt, vo->fps) ? 0 : -1;
+}
+
+EXPORT_API int y4m_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
+{
+	vo_context *vo = (vo_context*)ctx;
+	y4m_render *y4m = (y4m_render*)vo->video_dev;
+	return y4m->render_one_frame(data, pix_fmt) ? 0 : -1;
+}
+
+EXPORT_API void y4m_re_size(void *ctx, int width, int height)
+{
+}
+
+EXPORT_API void y4m_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect)
+{
+}
+
+EXPORT_API int y4m_use_overlay(void *ctx)
+{
+	return -1;
+}
+
+EXPORT_API void y4m_destory_render(void *ctx)
+{
+	vo_context *vo = (vo_context*)ctx;
+	y4m_render *y4m = (y4m_render*)vo->video_dev;
+	if (y4m)
+	{
+		y4m->destory_render();
+		delete y4m;
+		vo->video_dev = NULL;
+	}
+}
+
 
 #ifdef  __cplusplus
 }

@@ -78,7 +78,8 @@ typedef struct vo_context
 	void (*destory_video)(void *ctx);
 	void *video_dev;
 	void *user_data;	/* for window hwnd. */
-	void *user_ctx;	/* for user context. */
+	void *user_ctx;		/* for user context. */
+	float fps;			/* fps */
 } vo_context;
 
 /* 音频播放输出结构定义. */

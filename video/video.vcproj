@@ -200,6 +200,10 @@
 				RelativePath=".\video_out.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\y4m_render.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -246,6 +250,10 @@
 			</File>
 			<File
 				RelativePath=".\video_render.h"
+				>
+			</File>
+			<File
+				RelativePath=".\y4m_render.h"
 				>
 			</File>
 		</Filter>

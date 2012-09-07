@@ -1775,6 +1775,7 @@ void* video_render_thrd(void *param)
 			if (!inited && play->m_vo_ctx)
 			{
 				inited = 1;
+				play->m_vo_ctx->fps = (float)play->m_video_st->r_frame_rate.num / (float)play->m_video_st->r_frame_rate.den;
 				ret = play->m_vo_ctx->init_video(play->m_vo_ctx,
 					play->m_video_ctx->width,
 					play->m_video_ctx->height,

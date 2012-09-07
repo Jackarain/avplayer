@@ -666,6 +666,25 @@ void player_impl::init_video(vo_context *vo)
 
 	do
 	{
+#ifdef USE_Y4M_OUT
+		ret = y4m_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		y4m_destory_render(vo);
+		if (ret == 0)
+		{
+			vo->init_video = y4m_init_video;
+			m_draw_frame = y4m_render_one_frame;
+			vo->re_size = y4m_re_size;
+			vo->aspect_ratio = y4m_aspect_ratio;
+			vo->use_overlay = y4m_use_overlay;
+			vo->destory_video = y4m_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
+
+			::logger("init video render to y4m.\n");
+
+			break;
+		}
+#endif
+
 		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
 		ddraw_destory_render(vo);
 		if (ret == 0)
