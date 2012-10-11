@@ -72,7 +72,7 @@ namespace libtorrent
 	struct torrent_status;
 
 	// jackarain: 添加的读取函数回调接口函数定义.
-	typedef boost::function<void (char*, int, int)> read_data_fun;
+	typedef boost::function<void (char*, size_type, size_type)> read_data_fun;
 
 	TORRENT_EXPORT std::size_t hash_value(torrent_status const& ts);
 

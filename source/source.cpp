@@ -46,11 +46,11 @@ EXPORT_API int file_init_source(void *ctx)
 	return fs->open((void*)od) ? 0 : -1;
 }
 
-EXPORT_API int file_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
+EXPORT_API int64_t file_read_data(void *ctx, char* buff, int64_t offset, size_t buf_size)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->io_dev;
-	uint64_t read_size = 0;
+	size_t read_size = 0;
 	bool ret = true;
 
 	ret = fs->read_data(buff, offset, buf_size, read_size);
@@ -149,12 +149,12 @@ EXPORT_API int bt_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
 #endif // USE_TORRENT
 }
 
-EXPORT_API int bt_read_data(void *ctx, char* buff, int64_t offset, int buf_size)
+EXPORT_API int64_t bt_read_data(void *ctx, char* buff, int64_t offset, size_t buf_size)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
 	torrent_source *ts =  (torrent_source*)sc->io_dev;
-	boost::uint64_t readbytes = 0;
+	size_t readbytes = 0;
 
 	if (!ts->read_data(buff, offset, buf_size, readbytes))
 		return -1;

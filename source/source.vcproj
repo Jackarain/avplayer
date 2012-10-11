@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\libav\include;..\libav\ffmpeg\include;..\openssl\include;..\libtorrent\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS;USE_TORRENT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

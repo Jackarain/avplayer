@@ -35,7 +35,7 @@ typedef struct source_context
 	 * 返回torrent中的视频媒体个数, 返回-1表示出错.
 	 */
 	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
-	int (*read_data)(void *ctx, char* buff, int64_t offset, int buf_size);
+	int64_t (*read_data)(void *ctx, char* buff, int64_t offset, size_t buf_size);
 	void (*close)(void *ctx);
 	void (*destory)(void *ctx);
 	/* io_dev是保存内部用于访问实际数据的对象指针. */

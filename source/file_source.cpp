@@ -40,7 +40,7 @@ file_source::file_source()
 
 file_source::~file_source()
 {
-   close();
+	close();
 	pthread_mutex_destroy(&m_mutex);
 	if (m_open_data)
 		delete m_open_data;
@@ -74,7 +74,7 @@ bool file_source::open(void* ctx)
    return true;
 }
 
-bool file_source::read_data(char* data, uint64_t offset, uint64_t size, uint64_t& read_size)
+bool file_source::read_data(char* data, uint64_t offset, size_t size, size_t& read_size)
 {
    static char read_buffer[AVG_READ_SIZE];
 
@@ -119,7 +119,7 @@ bool file_source::read_data(char* data, uint64_t offset, uint64_t size, uint64_t
       // 移到偏移位置.
       fseek(m_file, offset, SEEK_SET);
       // 开始读取数据.
-      int r = fread(m_circle_buffer, 1, AVG_READ_SIZE, m_file);
+      size_t r = fread(m_circle_buffer, 1, AVG_READ_SIZE, m_file);
       m_write_p += r;
       // 复制数据到读取buf.
       size = _min(AVG_READ_SIZE, size);
@@ -135,7 +135,7 @@ bool file_source::read_data(char* data, uint64_t offset, uint64_t size, uint64_t
       offset < m_file_size)
    {
       fseek(m_file, offset, SEEK_SET);
-      int r = fread(read_buffer, 1, AVG_READ_SIZE, m_file);
+      size_t r = fread(read_buffer, 1, AVG_READ_SIZE, m_file);
       if (r > 0)
          put_data(read_buffer, r);
    }
