@@ -999,6 +999,8 @@ BOOL player_impl::close()
 	if (m_avplay)
 	{
 		::destory(m_avplay);
+		m_avplay = NULL;	// 清空指针, 避免下一次重新open时出错.
+		m_source = NULL;	// m_source 在 read_pkt_thrd 线程退出时, 会自动释放, 这里只需要简单清空即可.
 		m_cur_index = -1;
 		::logger("close avplay.\n");
 		return TRUE;
