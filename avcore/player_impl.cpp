@@ -685,23 +685,6 @@ void player_impl::init_video(vo_context *vo)
 		}
 #endif
 
-		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		ddraw_destory_render(vo);
-		if (ret == 0)
-		{
-			vo->init_video = ddraw_init_video;
-			m_draw_frame = ddraw_render_one_frame;
-			vo->re_size = ddraw_re_size;
-			vo->aspect_ratio = ddraw_aspect_ratio;
-			vo->use_overlay = ddraw_use_overlay;
-			vo->destory_video = ddraw_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
-
-			::logger("init video render to ddraw.\n");
-
-			break;
-		}
-
 		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
 		d3d_destory_render(vo);
 		if (ret == 0)
@@ -715,6 +698,23 @@ void player_impl::init_video(vo_context *vo)
 			vo->render_one_frame = &player_impl::draw_frame;
 
 			::logger("init video render to d3d.\n");
+
+			break;
+		}
+
+		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+		ddraw_destory_render(vo);
+		if (ret == 0)
+		{
+			vo->init_video = ddraw_init_video;
+			m_draw_frame = ddraw_render_one_frame;
+			vo->re_size = ddraw_re_size;
+			vo->aspect_ratio = ddraw_aspect_ratio;
+			vo->use_overlay = ddraw_use_overlay;
+			vo->destory_video = ddraw_destory_render;
+			vo->render_one_frame = &player_impl::draw_frame;
+
+			::logger("init video render to ddraw.\n");
 
 			break;
 		}
