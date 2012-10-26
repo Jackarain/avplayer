@@ -337,6 +337,8 @@ void d3d_render::aspect_ratio(int srcw, int srch, bool enable_aspect)
 
 void d3d_render::destory_render()
 {
+	destroy_d3d_surfaces();
+
 	if (m_d3d_texture_osd)
 	{
 		m_d3d_texture_osd->Release();
