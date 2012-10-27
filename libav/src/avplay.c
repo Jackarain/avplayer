@@ -1360,7 +1360,7 @@ void* audio_dec_thrd(void *param)
 	for (; !play->m_abort;)
 	{
 		av_init_packet(&pkt);
-		while (play->m_play_status == paused)
+		while (play->m_play_status == paused && !play->m_abort)
 			Sleep(10);
 		ret = get_queue(&play->m_audio_q, &pkt);
 		if (ret != -1)
@@ -1471,7 +1471,7 @@ void* video_dec_thrd(void *param)
 	for (; !play->m_abort;)
 	{
 		av_init_packet(&pkt);
-		while (play->m_play_status == paused)
+		while (play->m_play_status == paused && !play->m_abort)
 			Sleep(10);
 		ret = get_queue(&play->m_video_q, (AVPacket*) &pkt);
 		if (ret != -1)
