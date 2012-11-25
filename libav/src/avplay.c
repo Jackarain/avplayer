@@ -290,6 +290,10 @@ int read_packet(void *opaque, uint8_t *buf, int buf_size)
 {
 	int read_bytes = 0;
 	avplay *play = (avplay*)opaque;
+	if (play->m_source_ctx->offset >= play->m_source_ctx->media->file_size)
+	{
+		assert(0);
+	}
 	read_bytes = play->m_source_ctx->read_data(play->m_source_ctx, 
 		buf, play->m_source_ctx->offset, buf_size);
 	if (read_bytes == -1)
@@ -380,7 +384,15 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 			offset = size;
 		}
 		break;
+// 	case AVSEEK_FORCE:
+// 		{
+// 
+// 		}
+// 		break;
 	default:
+		{
+			assert(0);
+		}
 		break;
 	}
 
@@ -583,8 +595,7 @@ int initialize(avplay *play, source_context *sc)
 		}
 	}
 
-	if (sc->type == MEDIA_TYPE_BT ||
-		sc->type == MEDIA_TYPE_FILE)
+	if (sc->type == MEDIA_TYPE_BT || sc->type == MEDIA_TYPE_FILE)
 	{
 		/* 分配用于io的缓冲. */
 		play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
@@ -865,6 +876,8 @@ void wait_for_threads(avplay *play)
 void stop(avplay *play)
 {
 	play->m_abort = TRUE;
+	if (play->m_source_ctx)
+		play->m_source_ctx->abort = TRUE;
 
 	/* 通知各线程退出. */
 	play->m_audio_q.abort_request = TRUE;
@@ -917,6 +930,9 @@ void stop(avplay *play)
 
 void pause(avplay *play)
 {
+	/* 一直等待为渲染状态时才控制为暂停, 原因是这样可以在暂停时继续渲染而不至于黑屏. */
+	while (!play->m_rendering)
+		Sleep(0);
 	/* 更改播放状态. */
 	play->m_play_status = paused;
 }
@@ -967,9 +983,14 @@ void seek(avplay *play, double fact)
 	}
 }
 
-void volume(avplay *play, double vol)
+void volume(avplay *play, double l, double r)
 {
-	play->m_ao_ctx->audio_control(play->m_ao_ctx, vol);
+	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
+}
+
+void mute_set(avplay *play, int s)
+{
+	play->m_ao_ctx->mute_set(play->m_ao_ctx, s);
 }
 
 double curr_play_time(avplay *play)
@@ -1229,27 +1250,24 @@ void* read_pkt_thrd(void *param)
 			if (play->m_format_ctx->start_time != AV_NOPTS_VALUE)
 				seek_target += play->m_format_ctx->start_time;
 
-			ret = avformat_seek_file(play->m_format_ctx, -1, 
-				seek_min, seek_target, seek_max, seek_flags);
+			if (play->m_audio_index >= 0)
+			{
+				queue_flush(&play->m_audio_q);
+				put_queue(&play->m_audio_q, &flush_pkt);
+			}
+			if (play->m_video_index >= 0)
+			{
+				queue_flush(&play->m_video_q);
+				put_queue(&play->m_video_q, &flush_pkt);
+			}
+			play->m_pkt_buffer_size = 0;
 
+			ret = avformat_seek_file(play->m_format_ctx, -1, seek_min, seek_target, seek_max, seek_flags);
 			if (ret < 0)
 			{
 				fprintf(stderr, "%s: error while seeking\n", play->m_format_ctx->filename);
 			}
-			else
-			{
-				if (play->m_audio_index >= 0)
-				{
-					queue_flush(&play->m_audio_q);
-					put_queue(&play->m_audio_q, &flush_pkt);
-				}
-				if (play->m_video_index >= 0)
-				{
-					queue_flush(&play->m_video_q);
-					put_queue(&play->m_video_q, &flush_pkt);
-				}
-				play->m_pkt_buffer_size = 0;
-			}
+
 			printf("Seek to %2.0f%% (%02d:%02d:%02d) of total duration (%02d:%02d:%02d)\n",
 				frac * 100, hh, mm, ss, thh, tmm, tss);
 
@@ -1772,6 +1790,9 @@ void* video_render_thrd(void *param)
 		ret = get_queue(&play->m_video_dq, &video_frame);
 		if (ret != -1)
 		{
+			// 状态为正在渲染.
+			play->m_rendering = 1;
+			// 如果没有初始化渲染器, 则初始化渲染器.
 			if (!inited && play->m_vo_ctx)
 			{
 				inited = 1;
@@ -1789,8 +1810,7 @@ void* video_render_thrd(void *param)
 			if (video_frame.data[0] == flush_frm.data[0])
 				continue;
 
-			do
-			{
+			do {
 				/* 判断是否skip. */
 				if (video_frame.type == 1)
 				{
@@ -1843,8 +1863,7 @@ void* video_render_thrd(void *param)
 
 				/* 更新m_frame_timer. */
 				if (delay > 0.0f)
-					play->m_frame_timer +=
-					delay * FFMAX(1, floor((time - play->m_frame_timer) / delay));
+					play->m_frame_timer += delay * FFMAX(1, floor((time - play->m_frame_timer) / delay));
 
 				pthread_mutex_lock(&play->m_video_dq.m_mutex);
 				update_video_pts(play, current_pts, video_frame.pkt_pos);
@@ -1853,8 +1872,7 @@ void* video_render_thrd(void *param)
 				/* 计算下一帧的时间.  */
 				if (play->m_video_dq.m_size > 0)
 				{
-					memcpy(&next_pts, 
-						&(((AVFrameList*) play->m_video_dq.m_last_pkt)->pkt.pts), sizeof(double));
+					memcpy(&next_pts, &(((AVFrameList*) play->m_video_dq.m_last_pkt)->pkt.pts), sizeof(double));
 					duration = next_pts - current_pts;
 				}
 				else
@@ -1869,8 +1887,7 @@ void* video_render_thrd(void *param)
 						pthread_mutex_lock(&play->m_video_dq.m_mutex);
 						play->m_drop_frame_num++;
 						pthread_mutex_unlock(&play->m_video_dq.m_mutex);
-						printf("\nDROP: %3d drop a frame of pts is: %.3f\n",
-							play->m_drop_frame_num, current_pts);
+						printf("\nDROP: %3d drop a frame of pts is: %.3f\n", play->m_drop_frame_num, current_pts);
 						break;
 					}
 				}
@@ -1931,6 +1948,22 @@ void* video_render_thrd(void *param)
 				}
 				break;
 			} while (TRUE);
+
+			/* 渲染完成. */
+			play->m_rendering = 0;
+
+			/* 如果处于暂停状态, 则直接渲染窗口, 以免黑屏. */
+			while (play->m_play_status == paused && inited == 1 && play->m_vo_ctx && !play->m_abort)
+			{
+				play->m_vo_ctx->render_one_frame(
+					play->m_vo_ctx,
+					&video_frame,
+					play->m_video_ctx->pix_fmt,
+					curr_play_time(play));
+				Sleep(16);
+			}
+
+			/* 释放视频帧缓冲. */
 			av_free(video_frame.data[0]);
 		}
 	}

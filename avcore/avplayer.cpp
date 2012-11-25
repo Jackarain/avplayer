@@ -78,14 +78,29 @@ void avplayer::seek_to(double fact)
 	m_impl->seek_to(fact);
 }
 
-void avplayer::volume(double vol)
+void avplayer::volume(double l, double r)
 {
-	m_impl->volume(vol);
+	m_impl->volume(l, r);
+}
+
+void avplayer::mute_set(bool s)
+{
+	m_impl->mute_set(s);
 }
 
 BOOL avplayer::full_screen(BOOL fullscreen)
 {
 	return m_impl->full_screen(fullscreen);
+}
+
+int avplayer::download_rate()
+{
+	return m_impl->download_rate();
+}
+
+void avplayer::set_download_rate(int k)
+{
+	return m_impl->set_download_rate(k);
 }
 
 double avplayer::curr_play_time()

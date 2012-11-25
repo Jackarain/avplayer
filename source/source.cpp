@@ -126,7 +126,7 @@ EXPORT_API int bt_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
-	torrent_source *ts =  (torrent_source*)sc->io_dev;
+	torrent_source *ts = (torrent_source*)sc->io_dev;
 
 	if (!ts)
 		return -1;
@@ -153,7 +153,7 @@ EXPORT_API int64_t bt_read_data(void *ctx, char* buff, int64_t offset, size_t bu
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
-	torrent_source *ts =  (torrent_source*)sc->io_dev;
+	torrent_source *ts = (torrent_source*)sc->io_dev;
 	size_t readbytes = 0;
 
 	if (!ts->read_data(buff, offset, buf_size, readbytes))
@@ -169,7 +169,7 @@ EXPORT_API void bt_close(void *ctx)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
-	torrent_source *ts =  (torrent_source*)sc->io_dev;
+	torrent_source *ts = (torrent_source*)sc->io_dev;
 	ts->close();
 #endif // USE_TORRENT
 }
@@ -178,7 +178,7 @@ EXPORT_API void bt_destory(void *ctx)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
-	torrent_source *ts =  (torrent_source*)sc->io_dev;
+	torrent_source *ts = (torrent_source*)sc->io_dev;
 	ts->close();
 	delete ts;
 #endif // USE_TORRENT
@@ -187,3 +187,4 @@ EXPORT_API void bt_destory(void *ctx)
 #ifdef  __cplusplus
 }
 #endif
+

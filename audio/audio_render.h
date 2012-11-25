@@ -109,11 +109,13 @@ extern int channel_mask[];
 typedef struct control_vol_s {
    float left;
    float right;
+   bool mute;
 } control_vol_t;
 
 // 播放控制定义
 #define CONTROL_GET_VOLUME 1
 #define CONTROL_SET_VOLUME 2
+#define CONTROL_MUTE_SET   3
 
 class audio_render
 {

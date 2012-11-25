@@ -173,6 +173,7 @@ typedef struct avplay
 
 	/* 播放状态. */
 	play_status m_play_status;
+	int m_rendering;
 
 	/* 实时视频输入位率. */
 	int m_enable_calc_video_bite;
@@ -280,10 +281,18 @@ EXPORT_API void seek(avplay *play, double fact);
 
 /* Set audio volume.
  * @param play pointer to the player.
- * @param vol is volume.
+ * @param l is left channel.
+ * @param r is right channel.
  * @This function does not return a value.
  */
-EXPORT_API void volume(avplay *play, double vol);
+EXPORT_API void volume(avplay *play, double l, double r);
+
+/* Sets mute.
+ * @param play pointer to the player.
+ * @param vol is mute.
+ * @This function does not return a value.
+ */
+EXPORT_API void mute_set(avplay *play, int s);
 
 /*
  * The current playback time position

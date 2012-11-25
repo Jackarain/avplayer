@@ -100,11 +100,23 @@ public:
 	void seek_to(double fact);
 
 	// 设置声音音量大小.
-	void volume(double vol);
+	void volume(double l, double r);
+
+	// 静音切换.
+	void toggle_mute();
+
+	// 静音设置.
+	void mute_set(bool s);
 
 	// 全屏切换.
 	// 注意: 该函数不支持非顶层窗口的全屏操作!
 	BOOL full_screen(BOOL fullscreen);
+
+	// 当前下载速率, 单位kB/s.
+	int download_rate();
+
+	// 限制下载速率.
+	void set_download_rate(int k);
 
 	// 返回当前播放时间.
 	double curr_play_time();
@@ -186,6 +198,9 @@ private:
 	// 全屏选项.
 	BOOL m_full_screen;
 	DWORD m_wnd_style;
+
+	// 声音选项.
+	bool m_mute;
 };
 
 #endif // __PLAYER_IMPL_H__

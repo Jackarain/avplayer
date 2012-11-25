@@ -43,7 +43,7 @@ static T extension(const T &filename)
 		: T(filename.c_str() + pos);
 }
 
-
+std::string filename;
 void play_thread(void *param);
 
 int main(int argc, char* argv[])
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 		return -1;
 
 	// 判断打开的媒体类型, 根据媒体文件类型选择不同的方式打开.
-	std::string filename = std::string(argv[1]);
+	filename = std::string(argv[1]);
 	std::string ext = extension<std::string>(filename);
 	if (ext == ".torrent")
 	{
@@ -125,8 +125,23 @@ void play_thread(void *param)
 {
 	avplayer *play = (avplayer*)param;
 	play->play();
+	play->wait_for_completion();
 	// play->load_subtitle("d:\\media\\dfsschs2.srt");
 	// 一直等待直到播放完成.
-	play->wait_for_completion();
-	// 播放完成后, 处理各种事件.
+// 	Sleep(5000);
+// 	play->stop();
+// 	play->close();
+
+// 	// 播放完成后, 处理各种事件.
+// 
+// 	printf("+++++++++++++++ play completed! ++++++++++++++\n");
+// 	return ;
+// 
+// 	for (;;)
+// 	{
+// 		double d = play->duration();
+// 		double cur_time = play->curr_play_time();
+// 		printf("-----------time: %0.2f, duration: %0.2f---------\n", cur_time, d - cur_time);
+// 		Sleep(200);
+// 	}
 }

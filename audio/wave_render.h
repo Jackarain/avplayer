@@ -53,6 +53,9 @@ private:
 
    // 播放位置.
    volatile int m_buf_read;
+
+   // 保存当前音量大小.
+   control_vol_t m_volume;
 };
 
 #endif // __WAVE_RENDER_H__

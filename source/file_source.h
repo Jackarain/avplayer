@@ -14,7 +14,7 @@
 
 #include "av_source.h"
 
-struct open_file_data 
+struct open_file_data
 {
    // 是否是多线程访问, 如果单线程访问
    // , 则内部自动使用无锁设计.

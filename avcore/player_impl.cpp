@@ -294,6 +294,7 @@ player_impl::player_impl(void)
 	, m_video_height(0)
 	, m_wnd_style(0)
 	, m_full_screen(FALSE)
+	, m_mute(false)
 {
 	// 初始化线程局部存储对象.
 	win_data_ptr.set(new win_data());
@@ -498,18 +499,19 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 				::seek(m_avplay, fact);
 		}
 		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hwnd, &ps);
-		if (m_avplay)
-			win_paint(hwnd, hdc);
-		EndPaint(hwnd, &ps);
-		break;
+// 	case WM_PAINT:
+// 		hdc = BeginPaint(hwnd, &ps);
+// 		if (m_avplay)
+// 			win_paint(hwnd, hdc);
+// 		EndPaint(hwnd, &ps);
+// 		break;
 	case WM_ERASEBKGND:
 		{
-			if (m_video && m_avplay->m_play_status == playing)
-				return 1;
-			else
-				return DefWindowProc(hwnd, msg, wparam, lparam);
+			return 1;
+// 			if (m_video && m_avplay->m_play_status == playing)
+// 				return 1;
+// 			else
+// 				return DefWindowProc(hwnd, msg, wparam, lparam);
 		}
 	case WM_ACTIVATE:
 	case WM_SYNCPAINT:
@@ -657,6 +659,7 @@ void player_impl::init_audio(ao_context *ao)
 	ao->init_audio = wave_init_audio;
 	ao->play_audio = wave_play_audio;
 	ao->audio_control = wave_audio_control;
+	ao->mute_set = wave_mute_set;
 	ao->destory_audio = wave_destory_audio;
 }
 
@@ -748,9 +751,9 @@ void player_impl::init_video(vo_context *vo)
 
 BOOL player_impl::open(const char *movie, int media_type, int render_type)
 {
-	// 如果未关闭原来的媒体, 则返回失败.
+	// 如果未关闭原来的媒体, 则先关闭.
 	if (m_avplay || m_source)
-		return FALSE;
+		close();
 
 	// 未创建窗口, 无法播放, 返回失败.
 	if (!IsWindow(m_hwnd))
@@ -772,8 +775,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		}
 	}
 
-	do
-	{
+	do {
 		// 创建avplay.
 		m_avplay = alloc_avplay_context();
 		if (!m_avplay)
@@ -1005,6 +1007,15 @@ BOOL player_impl::close()
 		::logger("close avplay.\n");
 		return TRUE;
 	}
+	else
+	{
+		// m_avplay已经不存在, 手动释放m_source.
+		if (m_source)
+		{
+			free_media_source(m_source);
+			m_source = NULL;
+		}
+	}
 	return FALSE;
 }
 
@@ -1017,12 +1028,12 @@ void player_impl::seek_to(double fact)
 	}
 }
 
-void player_impl::volume(double vol)
+void player_impl::volume(double l, double r)
 {
 	if (m_avplay)
 	{
-		::volume(m_avplay, vol);
-		::logger("set volume to %.2f.\n", vol);
+		::volume(m_avplay, l, r);
+		::logger("set volume to left: %.2f, right: %.2f.\n", l, r);
 	}
 }
 
@@ -1212,4 +1223,34 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 
 	// 实际渲染.
 	return this_ptr->m_draw_frame(ctx, data, pix_fmt, pts);
+}
+
+int player_impl::download_rate()
+{
+	if (m_source)
+		return m_source->info.speed;
+}
+
+void player_impl::set_download_rate(int k)
+{
+	if (m_source)
+		m_source->info.limit_speed = k;
+}
+
+void player_impl::toggle_mute()
+{
+	if (m_avplay)
+	{
+		m_mute = !m_mute;
+		::mute_set(m_avplay, m_mute);
+	}
+}
+
+void player_impl::mute_set(bool s)
+{
+	if (m_avplay)
+	{
+		m_mute = s;
+		::mute_set(m_avplay, s);
+	}
 }

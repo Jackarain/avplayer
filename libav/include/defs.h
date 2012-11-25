@@ -24,6 +24,14 @@ typedef struct media_info
 	int64_t file_size;	// 文件大小.
 } media_info;
 
+/*  */
+typedef struct download_info
+{
+	int speed;			// 下载下载速率.
+	int limit_speed;	// 限制下载速率.
+} download_info;
+
+
 /* 媒体数据源接口. */
 typedef struct source_context
 {
@@ -65,6 +73,10 @@ typedef struct source_context
 	int media_size;
 	/* 记录当前播放数据偏移, 绝对位置. */
 	int64_t offset;
+	/* 用于控制和获得下载信息. */
+	download_info info;
+	/* 当前退出标识, 退出时为true */
+	int abort;
 } source_context;
 
 /* 视频播放结构定义. */
@@ -88,7 +100,8 @@ typedef struct ao_context
 	int (*init_audio)(void *ctx, uint32_t channels, uint32_t bits_per_sample,
 		uint32_t sample_rate, int format);
 	int (*play_audio)(void *ctx, uint8_t *data, uint32_t size);
-	void (*audio_control)(void *ctx, double vol);
+	void (*audio_control)(void *ctx, double l, double r);
+	void (*mute_set)(void *ctx, int s);
 	void (*destory_audio)(void *ctx);
 	void *audio_dev;
 } ao_context;

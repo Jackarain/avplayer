@@ -1,5 +1,6 @@
 #include "ins.h"
 #include "wave_render.h"
+#include <math.h>
 
 #define SAMPLESIZE   1024
 #define BUFFER_SIZE  4096
@@ -12,7 +13,7 @@ wave_render::wave_render()
    , m_buf_write(0)
    , m_buf_read(0)
 {
-
+	m_volume.left = m_volume.right = m_volume.mute = 0;
 }
 
 wave_render::~wave_render()
@@ -133,41 +134,66 @@ int wave_render::play_audio(uint8_t* data, uint32_t size)
 
 void wave_render::audio_control(int cmd, void* arg)
 {
-   DWORD volume;
-   switch (cmd)
-   {
-   case CONTROL_GET_VOLUME:
-      {
-         control_vol_t* vol = (control_vol_t*)arg;
-         waveOutGetVolume(m_hwaveout, &volume);
-         vol->left = (float)(LOWORD(volume) / 655.35);
-         vol->right = (float)(HIWORD(volume) / 655.35);
-         printf("volume left:%f volume right:%f\n", vol->left, vol->right);
-      }
-      break;
-   case CONTROL_SET_VOLUME:
-      {
-         control_vol_t* vol = (control_vol_t*)arg;
-         volume = MAKELONG(vol->left * 655.35, vol->right * 655.35);
-         waveOutSetVolume(m_hwaveout, volume);
-      }
-      break;
-   }
+	DWORD volume;
+	switch (cmd)
+	{
+	case CONTROL_GET_VOLUME:
+		{
+			control_vol_t* vol = (control_vol_t*)arg;
+			waveOutGetVolume(m_hwaveout, &volume);
+			vol->left = (float)(LOWORD(volume) / 655.35);
+			vol->right = (float)(HIWORD(volume) / 655.35);
+			printf("volume left:%f volume right:%f\n", vol->left, vol->right);
+		}
+		break;
+	case CONTROL_SET_VOLUME:
+		{
+			control_vol_t* vol = (control_vol_t*)arg;
+			volume = MAKELONG(vol->left * 655.35, vol->right * 655.35);
+			waveOutSetVolume(m_hwaveout, volume);
+		}
+		break;
+	case CONTROL_MUTE_SET:
+		{
+			control_vol_t* v = (control_vol_t*)arg;
+			if (v->mute && !m_volume.mute)
+			{
+				control_vol_t* vol = &m_volume;
+				waveOutGetVolume(m_hwaveout, &volume);
+				vol->left = (float)(LOWORD(volume) / 655.35);
+				vol->right = (float)(HIWORD(volume) / 655.35);
+				vol->mute = true;
+				waveOutSetVolume(m_hwaveout, 0);
+			}
+
+			if (!v->mute && m_volume.mute)
+			{
+				control_vol_t* vol = &m_volume;
+				volume = MAKELONG(vol->left * 655.35, vol->right * 655.35);
+				vol->mute = false;
+				waveOutSetVolume(m_hwaveout, volume);
+			}
+		}
+		break;
+	}
 }
 
 void wave_render::destory_audio()
 {
-   if (m_hwaveout)
-   {
-      waveOutReset(m_hwaveout);
-      while (waveOutClose(m_hwaveout) == WAVERR_STILLPLAYING) 
-         Sleep(0);
-      m_hwaveout = NULL;
-   }
+	if (m_hwaveout)
+	{
+		// 修正在win7上退出后重启程序依然保持静音状态.
+		DWORD volume = MAKELONG(100.0f * 655.35, 100.0f * 655.35);
+		waveOutSetVolume(m_hwaveout, volume);
+		waveOutReset(m_hwaveout);
+		while (waveOutClose(m_hwaveout) == WAVERR_STILLPLAYING) 
+			Sleep(0);
+		m_hwaveout = NULL;
+	}
 
-   if (m_wave_blocks)
-   {
-      free(m_wave_blocks);
-      m_wave_blocks = NULL;
-   }
+	if (m_wave_blocks)
+	{
+		free(m_wave_blocks);
+		m_wave_blocks = NULL;
+	}
 }

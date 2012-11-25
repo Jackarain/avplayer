@@ -14,35 +14,44 @@ EXPORT_API int wave_init_audio(void* ctx, uint32_t channels,
 {
 	ao_context *ao = (ao_context*)ctx;
 	wave_render* wave = NULL;
-   ao->audio_dev = (void*)(wave = new wave_render);
-   return wave->init_audio((void*)ao->audio_dev, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
+	ao->audio_dev = (void*)(wave = new wave_render);
+	return wave->init_audio((void*)ao->audio_dev, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
 }
 
 EXPORT_API int wave_play_audio(void* ctx, uint8_t* data, uint32_t size)
 {
 	ao_context *ao = (ao_context*)ctx;
-   wave_render* wave = (wave_render*)ao->audio_dev;
-   return wave->play_audio(data, size);
+	wave_render* wave = (wave_render*)ao->audio_dev;
+	return wave->play_audio(data, size);
 }
 
-EXPORT_API void wave_audio_control(void* ctx, double vol)
+EXPORT_API void wave_audio_control(void* ctx, double l, double r)
 {
 	ao_context *ao = (ao_context*)ctx;
 	wave_render* wave = (wave_render*)ao->audio_dev;
-	control_vol_t ctrl_vol = { vol, vol };
-   wave->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
+	control_vol_t ctrl_vol = { l, r };
+	wave->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
+}
+
+EXPORT_API void wave_mute_set(void* ctx, int s)
+{
+	ao_context *ao = (ao_context*)ctx;
+	wave_render* wave = (wave_render*)ao->audio_dev;
+	control_vol_t ctrl_vol;
+	ctrl_vol.mute = s;
+	wave->audio_control(CONTROL_MUTE_SET, &ctrl_vol);
 }
 
 EXPORT_API void wave_destory_audio(void* ctx)
 {
 	ao_context *ao = (ao_context*)ctx;
 	wave_render* wave = (wave_render*)ao->audio_dev;
-   if (wave)
-   {
-      wave->destory_audio();
-      delete wave;
+	if (wave)
+	{
+		wave->destory_audio();
+		delete wave;
 		ao->audio_dev = NULL;
-   }
+	}
 }
 
 
@@ -52,34 +61,43 @@ EXPORT_API int dsound_init_audio(void* ctx, void* user_data,
 	ao_context *ao = (ao_context*)ctx;
 	dsound_render* dsound = NULL;
 	ao->audio_dev = (void*)(dsound = new dsound_render);
-   return dsound->init_audio((void*)dsound, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
+	return dsound->init_audio((void*)dsound, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
 }
 
 EXPORT_API int dsound_play_audio(void* ctx, uint8_t* data, uint32_t size)
 {
 	ao_context *ao = (ao_context*)ctx;
-   dsound_render* dsound = (dsound_render*)ao->audio_dev;
-   return dsound->play_audio(data, size);
+	dsound_render* dsound = (dsound_render*)ao->audio_dev;
+	return dsound->play_audio(data, size);
 }
 
-EXPORT_API void dsound_audio_control(void* ctx, double vol)
+EXPORT_API void dsound_audio_control(void* ctx, double l, double r)
 {
 	ao_context *ao = (ao_context*)ctx;
 	dsound_render* dsound = (dsound_render*)ao->audio_dev;
-	control_vol_t ctrl_vol = { vol, vol };
+	control_vol_t ctrl_vol = { l, r };
 	dsound->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
+}
+
+EXPORT_API void dsound_mute_set(void* ctx, int s)
+{
+	ao_context *ao = (ao_context*)ctx;
+	dsound_render* dsound = (dsound_render*)ao->audio_dev;
+	control_vol_t ctrl_vol;
+	ctrl_vol.mute = s;
+	dsound->audio_control(CONTROL_MUTE_SET, &ctrl_vol);
 }
 
 EXPORT_API void dsound_destory_audio(void* ctx)
 {
 	ao_context *ao = (ao_context*)ctx;
 	dsound_render* dsound = (dsound_render*)ao->audio_dev;
-   if (dsound)
-   {
-      dsound->destory_audio();
-      delete dsound;
+	if (dsound)
+	{
+		dsound->destory_audio();
+		delete dsound;
 		ao->audio_dev = NULL;
-   }
+	}
 }
 
 #ifdef  __cplusplus
