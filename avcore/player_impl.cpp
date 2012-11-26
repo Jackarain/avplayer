@@ -932,14 +932,14 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 	return FALSE;
 }
 
-BOOL player_impl::play(int index /*= 0*/)
+BOOL player_impl::play(double fact/* = 0.0f*/, int index /*= 0*/)
 {
 	// 重复播放, 返回错误.
 	if (m_cur_index == index)
 		return FALSE;
 
 	// 如果是文件数据, 则直接播放.
-	if (::start(m_avplay, index) != 0)
+	if (::start(m_avplay, fact, index) != 0)
 		return FALSE;
 
 	m_cur_index = index;

@@ -58,11 +58,12 @@ public:
 	// 前, avplayer必须拥有一个窗口.
 	BOOL open(const char *movie, int media_type, int render_type = RENDER_DDRAW);
 
-	// 播放索引为index的文件, index表示在播放列表中的
-	// 位置计数, 从0开始计算, index主要用于播放多文件的bt
-	// 文件, 单个文件播放可以使用直接默认为0而不需要填写
-	// 参数.
-	BOOL play(int index = 0);
+	// 开始播放视频.
+	// fact 表示播放视频的起始位置, 按视频百分比计算, 默认从文件头开始播放.
+	// index 播放索引为index的文件, index表示在播放列表中的位置计数, 从0开始计
+	// 算, index主要用于播放多文件的bt文件, 单个文件播放可以使用直接默认为0而不
+	// 需要填写参数.
+	BOOL play(double fact = 0.0f, int index = 0);
 
 	// 加载字幕.
 	BOOL load_subtitle(const char *subtitle);

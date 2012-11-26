@@ -38,9 +38,9 @@ BOOL avplayer::open(const char *movie, int media_type, int render_type/* = 0*/)
 	return m_impl->open(movie, media_type, render_type);
 }
 
-BOOL avplayer::play(int index /*= 0*/)
+BOOL avplayer::play(double fact/* = 0.0f*/, int index/* = 0*/)
 {
-	return m_impl->play(index);
+	return m_impl->play(fact, index);
 }
 
 BOOL avplayer::load_subtitle(const char *subtitle)
