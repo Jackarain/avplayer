@@ -290,10 +290,8 @@ int read_packet(void *opaque, uint8_t *buf, int buf_size)
 {
 	int read_bytes = 0;
 	avplay *play = (avplay*)opaque;
-	if (play->m_source_ctx->offset >= play->m_source_ctx->media->file_size)
-	{
-		assert(0);
-	}
+	if (play->m_abort)
+		return 0;
 	read_bytes = play->m_source_ctx->read_data(play->m_source_ctx, 
 		buf, play->m_source_ctx->offset, buf_size);
 	if (read_bytes == -1)
@@ -731,7 +729,7 @@ FAILED_FLG:
 	return -1;
 }
 
-int start(avplay *play, int index)
+int start(avplay *play, double fact, int index)
 {
 	pthread_attr_t attr;
 	int ret;
@@ -740,6 +738,8 @@ int start(avplay *play, int index)
 	play->m_current_play_index = index;
 	if (index > play->m_source_ctx->media_size)
 		return -1;
+	/* 保存起始播放时间. */
+	play->m_start_time = fact;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -1126,8 +1126,15 @@ double audio_clock(avplay *play)
 	if (play->m_audio_st)
 		bytes_per_sec = play->m_audio_st->codec->sample_rate * 2
 				* FFMIN(play->m_audio_st->codec->channels, 2); /* 固定为2通道.	*/
-	if (play->m_audio_current_pts_drift == 0.0f)
-		play->m_audio_current_pts_drift = pts;
+
+	if (fabs(play->m_audio_current_pts_drift) <= 1.0e-6)
+	{
+		if (fabs(play->m_start_time) > 1.0e-6)
+			play->m_audio_current_pts_drift = pts - play->m_audio_current_pts_last;
+		else
+			play->m_audio_current_pts_drift = pts;
+	}
+
 	if (bytes_per_sec)
 		pts -= (double) hw_buf_size / bytes_per_sec;
 	return pts - play->m_audio_current_pts_drift;
@@ -1204,6 +1211,27 @@ void* read_pkt_thrd(void *param)
 	avplay *play = (avplay*) param;
 	int last_paused = play->m_play_status;
 	AVStream *stream = NULL;
+
+	// 起始时间不等于0, 则先seek至指定时间.
+	if (fabs(play->m_start_time) > 1.0e-6)
+	{
+		seek(play, play->m_start_time);
+// 		double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
+// 		int64_t seek_pos = play->m_start_time * duration;
+// 		if (duration <= 0.0f)
+// 		{
+// 			uint64_t size = avio_size(play->m_format_ctx->pb);
+// 			seek_pos = play->m_start_time * size;
+// 		}
+// 
+// 		if (play->m_format_ctx->start_time != AV_NOPTS_VALUE)
+// 			seek_pos += play->m_format_ctx->start_time;
+// 
+// 		seek_pos *= AV_TIME_BASE;
+// 		ret = avformat_seek_file(play->m_format_ctx, -1, INT64_MIN, seek_pos, INT64_MAX, 0);
+// 		if (ret < 0)
+// 			printf("start seek error: could not seek to position %0.3f\n", (double)seek_pos / AV_TIME_BASE);
+	}
 
 	play->m_real_bit_rate = 0;
 
@@ -1401,6 +1429,9 @@ void* audio_dec_thrd(void *param)
 			if (pkt.pts != AV_NOPTS_VALUE)
 				play->m_audio_clock = av_q2d(play->m_audio_st->time_base) * (pkt.pts - v_start_time);
 
+			if (fabs(play->m_audio_current_pts_last) < 1.0e-6)
+				play->m_audio_current_pts_last = play->m_audio_clock;
+
 			/* 计算pkt缓冲数据大小. */
 			pthread_mutex_lock(&play->m_audio_q.m_mutex);
 			play->m_pkt_buffer_size -= pkt.size;
@@ -1447,9 +1478,8 @@ void* audio_dec_thrd(void *param)
 						/ (double) (n * play->m_audio_ctx->sample_rate));
 
 				/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
-				if (((play->m_av_sync_type == AV_SYNC_VIDEO_MASTER
-						&& play->m_video_st)
-						|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK))
+				if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
+					play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
 				{
 					/* 暂无实现.	*/
 				}
@@ -1682,8 +1712,7 @@ void* audio_render_thrd(void *param)
 				inited = 1;
 				/* 配置渲染器. */
 				ret = play->m_ao_ctx->init_audio(play->m_ao_ctx,
-					FFMIN(play->m_audio_ctx->channels, 2), 16,
-					play->m_audio_ctx->sample_rate, 0);
+					FFMIN(play->m_audio_ctx->channels, 2), 16, play->m_audio_ctx->sample_rate, 0);
 				if (ret != 0)
 					inited = -1;
 				else
@@ -1691,9 +1720,8 @@ void* audio_render_thrd(void *param)
 					/* 更改播放状态. */
 					play->m_play_status = playing;
 				}
-				bytes_per_sec = play->m_audio_ctx->sample_rate
-					* FFMIN(play->m_audio_ctx->channels, 2) 
-					* av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+				bytes_per_sec = play->m_audio_ctx->sample_rate *
+					FFMIN(play->m_audio_ctx->channels, 2) * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 			}
 			else if (!play->m_ao_ctx)
 			{
@@ -1720,10 +1748,8 @@ void* audio_render_thrd(void *param)
 			{
 				if (inited == 1 && play->m_ao_ctx)
 				{
-					temp = play->m_ao_ctx->play_audio(
-						play->m_ao_ctx,
-						audio_frame.data[0] + play->m_audio_buf_index,
-						play->m_audio_buf_size - play->m_audio_buf_index);
+					temp = play->m_ao_ctx->play_audio(play->m_ao_ctx,
+						audio_frame.data[0] + play->m_audio_buf_index, play->m_audio_buf_size - play->m_audio_buf_index);
 					play->m_audio_buf_index += temp;
 					/* 如果缓冲已满, 则休眠一小会. */
 					if (temp == 0)
@@ -1774,14 +1800,13 @@ void* video_render_thrd(void *param)
 		if (play->m_video_dq.m_size == 0)
 		{
 			pthread_mutex_lock(&play->m_video_dq.m_mutex);
-			/* 如果最后丢弃帧的pts不为空, 且大于最后pts则
+			/*
+			 * 如果最后丢弃帧的pts不为空, 且大于最后pts则
 			 * 使用最后丢弃帧的pts值更新其它相关的pts值.
 			 */
-			if (play->m_frame_last_dropped_pts != AV_NOPTS_VALUE
-					&& play->m_frame_last_dropped_pts > play->m_frame_last_pts)
+			if (play->m_frame_last_dropped_pts != AV_NOPTS_VALUE && play->m_frame_last_dropped_pts > play->m_frame_last_pts)
 			{
-				update_video_pts(play, play->m_frame_last_dropped_pts,
-						play->m_frame_last_dropped_pos);
+				update_video_pts(play, play->m_frame_last_dropped_pts, play->m_frame_last_dropped_pos);
 				play->m_frame_last_dropped_pts = AV_NOPTS_VALUE;
 			}
 			pthread_mutex_unlock(&play->m_video_dq.m_mutex);
@@ -1798,9 +1823,7 @@ void* video_render_thrd(void *param)
 				inited = 1;
 				play->m_vo_ctx->fps = (float)play->m_video_st->r_frame_rate.num / (float)play->m_video_st->r_frame_rate.den;
 				ret = play->m_vo_ctx->init_video(play->m_vo_ctx,
-					play->m_video_ctx->width,
-					play->m_video_ctx->height,
-					play->m_video_ctx->pix_fmt);
+					play->m_video_ctx->width, play->m_video_ctx->height, play->m_video_ctx->pix_fmt);
 				if (ret != 0)
 					inited = -1;
 				else
@@ -1829,9 +1852,8 @@ void* video_render_thrd(void *param)
 
 				/* 更新延迟同步到主时钟源. */
 				delay = play->m_frame_last_duration;
-				if (((play->m_av_sync_type == AV_SYNC_AUDIO_MASTER
-						&& play->m_audio_st)
-						|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK))
+				if ((play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK) ||
+					(play->m_av_sync_type == AV_SYNC_AUDIO_MASTER && play->m_audio_st))
 				{
 					diff = video_clock(play) - master_clock(play);
 					sync_threshold = FFMAX(AV_SYNC_THRESHOLD, delay) * 0.75;
@@ -1938,11 +1960,7 @@ void* video_render_thrd(void *param)
 
 				if (inited == 1 && play->m_vo_ctx)
 				{
-					play->m_vo_ctx->render_one_frame(
-						play->m_vo_ctx,
-						&video_frame,
-						play->m_video_ctx->pix_fmt,
-						curr_play_time(play));
+					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
 					if (delay != 0)
 						Sleep(4);
 				}
@@ -1955,11 +1973,7 @@ void* video_render_thrd(void *param)
 			/* 如果处于暂停状态, 则直接渲染窗口, 以免黑屏. */
 			while (play->m_play_status == paused && inited == 1 && play->m_vo_ctx && !play->m_abort)
 			{
-				play->m_vo_ctx->render_one_frame(
-					play->m_vo_ctx,
-					&video_frame,
-					play->m_video_ctx->pix_fmt,
-					curr_play_time(play));
+				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
 				Sleep(16);
 			}
 

@@ -170,6 +170,7 @@ typedef struct avplay
 	uint32_t m_audio_buf_index;
 	int32_t m_audio_write_buf_size;
 	double m_audio_current_pts_drift;
+	double m_audio_current_pts_last;
 
 	/* 播放状态. */
 	play_status m_play_status;
@@ -191,6 +192,7 @@ typedef struct avplay
 
 	/* 正在播放的索引, 只用于BT文件播放. */
 	int m_current_play_index;
+	double m_start_time;
 
 	/* 停止标志.	*/
 	int m_abort;
@@ -238,10 +240,11 @@ EXPORT_API void configure(avplay *play, void *param, int type);
 /*
  * The start action player to play. 
  * @param play pointer to the player. 
+ * @param fact at time, percent of duration.
  * @param index Specifies the index of the file to play.
  * @param Returns 0 if successful, or an error value otherwise. 
  */
-EXPORT_API int start(avplay *play, int index);
+EXPORT_API int start(avplay *play, double fact, int index);
 
 /*
  * Wait for playback to complete.
@@ -274,7 +277,7 @@ EXPORT_API void resume(avplay *play);
 /*
  * Moves the current seek percent.
  * @param play pointer to the player.
- * @param sec at time, second.
+ * @param fact at time, percent of duration.
  * @This function does not return a value.
  */
 EXPORT_API void seek(avplay *play, double fact);
