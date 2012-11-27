@@ -33,8 +33,8 @@ $ git clone git://github.com/Jackarain/avplayer.git avplayer
 更新
 $ git pull
 
-
-最后, 任何方式(包括商业或非商业)修改或引用该项目的全部或部分源码(或dll), 请在你的软件中或产品文档中必须清楚的声明引用了该项目, 并注明url(https://github.com/Jackarain/avplayer), 你可以偷偷的不这样做, 但这样做是令人欣赏的做法.
+本程序基于FFmpeg, 所以只能以GPL协议发布, 任何人请在遵守协议的前提下复制、发布、修改.
 最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
+
 
 mail: jack.wgm@gmail.com
