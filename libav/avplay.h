@@ -28,7 +28,11 @@
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
+#if LIBAVCODEC_VERSION_MINOR == 59
+#include <libavutil/audioconvert.h>
+#else
 #include <libavcodec/audioconvert.h>
+#endif
 #include <assert.h>
 #include "defs.h"
 
