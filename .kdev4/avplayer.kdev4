@@ -11,9 +11,9 @@ ProjectRootRelative=./
 Build Directory Path=file:///home/cai/projects/avplayer/build
 Build Type=Debug
 CMake Binary=file:///usr/bin/cmake
-Environment Profile=
+Environment Profile=default
 Extra Arguments=
-Install Directory=file:///usr/local
+Install Directory=file:///usr
 
 [Project]
 VersionControlSupport=kdevgit

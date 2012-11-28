@@ -432,7 +432,7 @@ int open_decoder(AVCodecContext *ctx)
    return ret;
 }
 
-source_context* alloc_media_source(int type, char *data, int len, int64_t size)
+source_context* alloc_media_source(int type, const char *data, int len, int64_t size)
 {
 	struct source_context *ptr = malloc(sizeof(source_context));
 

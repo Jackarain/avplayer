@@ -13,15 +13,14 @@ add_definitions(-DBOOST_SYSTEM_NO_DEPRECATED)
 
 find_package( Boost 1.51 COMPONENTS date_time filesystem regex system)
 
-#find_package( CryptoPP )
-
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_libraries(${Boost_LIBRARIES})
-endif()
-
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(libav/)
+include_directories(source/)
+include_directories(audio/)
+include_directories(video/)
+
 add_subdirectory(libav)
+add_subdirectory(source)
 
 if(UNIX)
 	add_subdirectory(linux)

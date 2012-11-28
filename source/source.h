@@ -7,11 +7,14 @@
 
 #ifndef __SOURCE_H__
 #define __SOURCE_H__
-
+#ifdef _MSC_VER
 #ifdef SOURCE_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
+#endif
+#else
+#define EXPORT_API
 #endif
 
 #ifdef  __cplusplus

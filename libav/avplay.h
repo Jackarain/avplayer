@@ -64,7 +64,7 @@ typedef struct _av_queue
 } av_queue;
 
 /* 数据源结构分配和释放. */
-EXPORT_API source_context* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
+EXPORT_API source_context* alloc_media_source(int type, const char *addition, int addition_len, int64_t size);
 EXPORT_API void free_media_source(source_context *ctx);
 
 /* 音频结构分配和释放. */

@@ -30,7 +30,7 @@
 # pragma once
 #endif
 
-#include <io.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -38,19 +38,20 @@
 #include <stdint.h>
 
 #ifndef WIN32
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#	include <sys/types.h>
+#	include <sys/stat.h>
+#	include <unistd.h>
+#else
+#	include <io.h>
+#	include <windows.h>
 #endif // WIN32
 
-
-#include <windows.h>
 
 #include <set>
 #include <map>
 #include <list>
 #include <algorithm>
 
-#include "pthread.h"
+
 
 #endif // __INS_H__

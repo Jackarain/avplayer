@@ -9,7 +9,7 @@
 #define __DEFS_H__
 
 // #include "libavcodec/avcodec.h"
-
+struct AVFrame;
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
 #define MEDIA_TYPE_BT	1

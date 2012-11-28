@@ -1,3 +1,6 @@
+
+#include <string.h>
+
 #include "ins.h"
 #include "file_source.h"
 

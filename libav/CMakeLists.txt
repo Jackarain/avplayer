@@ -1,3 +1,3 @@
 
-add_library(libavplayer OBJECT avplay.c)
+add_library(libav OBJECT avplay.c)
 

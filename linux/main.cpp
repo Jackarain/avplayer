@@ -4,6 +4,8 @@
 #include <boost/filesystem.hpp>
 namespace fs=boost::filesystem;
 
+#include <SDL.h>
+
 #include <avplay.h>
 
 static void play_thread(void *param)
@@ -39,6 +41,11 @@ int main(int argc, char* argv[])
 		printf("usage: avplayer.exe <video>\n");
 		return -1;
 	}
+
+	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO);
+
+	//创建第一个窗口
+	SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
 
 	// 判断打开的媒体类型, 根据媒体文件类型选择不同的方式打开.
 	fs::path filename(argv[1]);
