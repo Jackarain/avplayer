@@ -30,6 +30,8 @@
 #include <boost/filesystem.hpp>
 namespace fs=boost::filesystem;
 
+#include <SDL/SDL.h>
+
 #include "player.h"
 #include "source/source.h"
 #include "video/video_out.h"
@@ -43,8 +45,23 @@ void player::init_file_source(source_context* sc)
 	sc->offset = 0;
 }
 
+bool player::play(double fact, int index)
+{
+	// 重复播放, 返回错误.
+	if (m_cur_index == index)
+		return false;
 
-int player::open(const char* movie, int media_type, int render_type)
+	// 如果是文件数据, 则直接播放.
+	if (::av_start(m_avplay, fact, index) != 0)
+		return false;
+
+	m_cur_index = index;
+
+	return true;
+}
+
+
+int player::open(const char* movie, int media_type)
 {	// 如果未关闭原来的媒体, 则先关闭.
 	if (m_avplay || m_source);
 		//close();
@@ -219,6 +236,9 @@ int player::open(const char* movie, int media_type, int render_type)
 
 void player::init_video(vo_context* vo)
 {
+	//创建第一个窗口
+	SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
+	
 	vo->init_video = sdl_init_video;
 	m_draw_frame = sdl_render_one_frame;
 	vo->re_size = sdl_re_size;

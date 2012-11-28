@@ -80,5 +80,5 @@ EXPORT_API void sdl_destory_render(void *ctx)
 
 bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 {
-	
+	logger("%s called\n",__func__);
 }

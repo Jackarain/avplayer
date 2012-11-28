@@ -39,7 +39,8 @@ class player
 	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
 
 public:
-	int open(const char *movie, int media_type, int render_type);
+	int open(const char *movie, int media_type);
+	bool play(double fact = 0.0f, int index = 0);
     void close();
 private:
     avplay* m_avplay;
@@ -50,6 +51,7 @@ private:
     vo_context* m_video;
     int m_video_width;
     int m_video_height;
+    int m_cur_index;
 };
 
 #endif // PLAYER_H

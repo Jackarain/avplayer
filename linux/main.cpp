@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string>
 #include <boost/filesystem.hpp>
+#include <boost/concept_check.hpp>
 namespace fs=boost::filesystem;
 
 #include <SDL.h>
 
 #include <avplay.h>
+#include "player.h"
 
 static void play_thread(void *param)
 {
@@ -42,18 +44,17 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO);
+	player ply;
 
-	//创建第一个窗口
-	SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
+	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO);
 
 	// 判断打开的媒体类型, 根据媒体文件类型选择不同的方式打开.
 	fs::path filename(argv[1]);
 	std::string ext = filename.extension().string();
 	if (ext == ".torrent")
 	{
-		//if (!win.open(filename.c_str(), MEDIA_TYPE_BT))
-			//return -1;
+		if(ply.open(filename.c_str(), MEDIA_TYPE_BT)<0)
+			return -1;
 	}
 	else
 	{
@@ -61,21 +62,24 @@ int main(int argc, char* argv[])
 		std::string is_url = str.substr(0, 7);
 		if (is_url == "http://")
 		{
-			//if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP))
+			if (ply.open(filename.c_str(), MEDIA_TYPE_HTTP)<0)
 				return -1;
 		}
 		else if (is_url == "rtsp://")
 		{
-			//if (!win.open(filename.c_str(), MEDIA_TYPE_RTSP))
+			//if (!ply.open(filename.c_str(), MEDIA_TYPE_RTSP))
 				return -1;
 		}
 		else
 		{
-			//if (!win.open(filename.c_str(), MEDIA_TYPE_FILE))
+			if (ply.open(filename.c_str(), MEDIA_TYPE_FILE)<0)
 			return -1;
 		}
 	}
 
+	//开始播放
+
+	
 
 	return 0;
 }
