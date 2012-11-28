@@ -18,12 +18,14 @@ find_package( Boost 1.51 COMPONENTS date_time filesystem regex system)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_libraries(${Boost_LIBRARIES})
-    if(UNIX) # windows 下就算了
-		link_libraries("-static-libgcc -static-libstdc++")
-	endif()
 endif()
 
+include_directories(libav/)
 add_subdirectory(libav)
+
+if(UNIX)
+	add_subdirectory(linux)
+endif()
 
 if(WIN32)
 	add_subdirectory(win32)

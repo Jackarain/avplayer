@@ -244,7 +244,7 @@ EXPORT_API void configure(avplay *play, void *param, int type);
  * @param index Specifies the index of the file to play.
  * @param Returns 0 if successful, or an error value otherwise. 
  */
-EXPORT_API int start(avplay *play, double fact, int index);
+EXPORT_API int av_start(avplay *play, double fact, int index);
 
 /*
  * Wait for playback to complete.
@@ -258,21 +258,21 @@ EXPORT_API void wait_for_completion(avplay *play);
  * @param play pointer to the player. 
  * @This function does not return a value.
  */
-EXPORT_API void stop(avplay *play);
+EXPORT_API void av_stop(avplay *play);
 
 /*
  * The Pause method pauses the current player.
  * @param play pointer to the player. 
  * @This function does not return a value.
  */
-EXPORT_API void pause(avplay *play);
+EXPORT_API void av_pause(avplay *play);
 
 /*
  * The Resume function starts the player from the current position, after a Pause function call. 
  * @param play pointer to the player.
  * @This function does not return a value.
  */
-EXPORT_API void resume(avplay *play);
+EXPORT_API void av_resume(avplay *play);
 
 /*
  * Moves the current seek percent.
@@ -280,7 +280,7 @@ EXPORT_API void resume(avplay *play);
  * @param fact at time, percent of duration.
  * @This function does not return a value.
  */
-EXPORT_API void seek(avplay *play, double fact);
+EXPORT_API void av_seek(avplay *play, double fact);
 
 /* Set audio volume.
  * @param play pointer to the player.
@@ -288,7 +288,7 @@ EXPORT_API void seek(avplay *play, double fact);
  * @param r is right channel.
  * @This function does not return a value.
  */
-EXPORT_API void volume(avplay *play, double l, double r);
+EXPORT_API void av_volume(avplay *play, double l, double r);
 
 /* Sets mute.
  * @param play pointer to the player.

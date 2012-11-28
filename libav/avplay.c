@@ -727,7 +727,7 @@ FAILED_FLG:
 	return -1;
 }
 
-int start(avplay *play, double fact, int index)
+int av_start(avplay *play, double fact, int index)
 {
 	pthread_attr_t attr;
 	int ret;
@@ -871,7 +871,7 @@ void wait_for_threads(avplay *play)
 	play->m_play_status = stoped;
 }
 
-void stop(avplay *play)
+void av_stop(avplay *play)
 {
 	play->m_abort = TRUE;
 	if (play->m_source_ctx)
@@ -925,7 +925,7 @@ void stop(avplay *play)
 	avformat_network_deinit();
 }
 
-void pause(avplay *play)
+void av_pause(avplay *play)
 {
 	/* 一直等待为渲染状态时才控制为暂停, 原因是这样可以在暂停时继续渲染而不至于黑屏. */
 	while (!play->m_rendering)
@@ -934,13 +934,13 @@ void pause(avplay *play)
 	play->m_play_status = paused;
 }
 
-void resume(avplay *play)
+void av_resume(avplay *play)
 {
 	/* 更改播放状态. */
 	play->m_play_status = playing;
 }
 
-void seek(avplay *play, double fact)
+void av_seek(avplay *play, double fact)
 {
 	double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
 
@@ -980,7 +980,7 @@ void seek(avplay *play, double fact)
 	}
 }
 
-void volume(avplay *play, double l, double r)
+void av_volume(avplay *play, double l, double r)
 {
 	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
 }
@@ -1008,7 +1008,7 @@ void destory(avplay *play)
 		/* 关闭数据源. */
 		if (play->m_source_ctx && play->m_source_ctx->io_dev)
 			play->m_source_ctx->close(play->m_source_ctx);
-		stop(play);
+		av_stop(play);
 	}
 
 	free(play);
@@ -1212,7 +1212,7 @@ void* read_pkt_thrd(void *param)
 	// 起始时间不等于0, 则先seek至指定时间.
 	if (fabs(play->m_start_time) > 1.0e-6)
 	{
-		seek(play, play->m_start_time);
+		av_seek(play, play->m_start_time);
 // 		double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
 // 		int64_t seek_pos = play->m_start_time * duration;
 // 		if (duration <= 0.0f)
@@ -1249,7 +1249,7 @@ void* read_pkt_thrd(void *param)
 
 		/* 如果seek未完成又来了新的seek请求. */
 		if (play->m_seeking > NOSEEKING_FLAG)
-			seek(play, (double)play->m_seeking / 1000.0f);
+			av_seek(play, (double)play->m_seeking / 1000.0f);
 
 		if (play->m_seek_req)
 		{
