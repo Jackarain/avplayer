@@ -84,8 +84,12 @@ int main(int argc, char* argv[])
 	//开始播放
 	ply.play();
 
-	ply.wait_for_completion();
+	while(true){
+		SDL_Event event[1];
+		SDL_WaitEvent(event);
+	}
 	
+	//ply.wait_for_completion();
 
 	return 0;
 }

@@ -87,4 +87,5 @@ bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 	this->m_yuv = SDL_CreateYUVOverlay(w,h,SDL_IYUV_OVERLAY,sfc);
 	SDL_UnlockSurface(sfc);
 	logger("%s is called %p \n",__func__, sfc);
+	return m_yuv;
 }

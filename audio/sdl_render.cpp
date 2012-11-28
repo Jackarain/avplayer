@@ -20,8 +20,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-
+#include <queue>
+#include <sys/socket.h>
 #include <SDL/SDL_audio.h>
+#include <boost/thread/condition.hpp>
+
 #include <avplay.h>
 #include "sdl_render.h"
 
@@ -80,18 +83,66 @@ EXPORT_API void sdl_destory_audio(void* ctx)
 }
 #endif
 
+void sdl_audio_render::sdl_audio_callback(void* userdata, Uint8* stream, int len)
+{
+	sdl_audio_render *my = reinterpret_cast<sdl_audio_render *>(userdata);	
+	my->audio_callback(stream,len);
+}
+
+void sdl_audio_render::audio_callback(Uint8* stream, int len)
+{
+	ssize_t readed=0;
+	logger("sdl ask for %d length of data %p\n",len,stream);
+
+	while(readed < len){
+
+		ssize_t ret = 	read(adfd[1],stream,len - readed);
+		if(ret >= 0){
+			readed += ret;
+		}else{
+			logger("unexpeted read return\n");
+			exit(1);
+		}
+	}
+}
+
+int sdl_audio_render::play_audio(uint8_t* data, uint32_t size)
+{
+	// push to stack
+	ssize_t ret =  write(adfd[0],data,size);
+	if(ret != size){
+		logger("write audio error\b");
+		exit(1);
+	}
+	return ret;
+}
+
+void sdl_audio_render::audio_control(int cmd, void* arg)
+{
+
+}
+
+void sdl_audio_render::destory_audio()
+{
+
+}
 
 bool sdl_audio_render::init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format)
 {
-	SDL_AudioSpec fmt;
+	socketpair(AF_UNIX,SOCK_CLOEXEC|SOCK_STREAM,0,adfd);
+	logger("socket created for audio %d %d\n",adfd[0],adfd[1]);
+	SDL_AudioSpec fmt[1];// = new SDL_AudioSpec;
 
     /* Set 16-bit stereo audio at 22Khz */
-    fmt.freq = sample_rate;
-    fmt.format = AUDIO_S16;
-    fmt.channels = channels;
-    fmt.samples = 512;        /* A good value for games */
-    fmt.callback = mixaudio;
-    fmt.userdata = NULL;
+	fmt->silence = 0;
+    fmt->freq = sample_rate;
+    fmt->format = AUDIO_S16;
+    fmt->channels = channels;
+    fmt->samples = 1024;    /* A good value for games */
+    fmt->callback = sdl_audio_callback;
+    fmt->userdata = this;
 
-	SDL_OpenAudio();	
+	bool ret = SDL_OpenAudio(fmt,0)>=0;
+	SDL_PauseAudio(0);
+	return ret;
 }

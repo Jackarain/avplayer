@@ -181,7 +181,7 @@ int player::open(const char* movie, int media_type)
 
 		// 初始化音频和视频渲染器.
 		init_audio(m_audio);
-	//	init_video(m_video);
+		init_video(m_video);
 
 		// 配置音频视频渲染器.
 		configure(m_avplay, m_video, VIDEO_RENDER);

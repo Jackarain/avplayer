@@ -19,7 +19,7 @@
 
 #ifndef SDL_RENDER_H
 #define SDL_RENDER_H
-
+#include <boost/thread/mutex.hpp>
 #include "audio_render.h"
 
 class sdl_audio_render:public audio_render
@@ -37,6 +37,15 @@ public:
    // 销毁音频输出组件.
    virtual void destory_audio();
 
+   static void sdl_audio_callback(void *userdata, Uint8 *stream, int len);
+   friend void sdl_audio_callback(void *userdata, Uint8 *stream, int len);
+private:
+	void audio_callback(Uint8 *stream, int len);
+private:
+	int adfd[2];
+// 		boost::mutex adqueue_mutex;
+// 		boost::condition_variable	adqueue_mutex_cond;
+// 		std::queue<std::pair<uint8_t*,uint32_t> > adqueue;
 };
 
 #endif // SDL_RENDER_H
