@@ -35,7 +35,8 @@ struct AVFormatContext;
 struct ReSampleContext;
 struct AVCodecContext;
 struct AVStream;
-
+struct _AVAudioConvert;
+typedef struct _AVAudioConvert AVAudioConvert;
 
 /* 播放器状态. */
 typedef enum play_status
@@ -100,7 +101,7 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
-// 	AVAudioConvert *m_audio_convert_ctx;
+ 	AVAudioConvert *m_audio_convert_ctx;
 	ReSampleContext *m_resample_ctx;
 
 	/* 音频和视频的AVStream、AVCodecContext指针和index.	*/

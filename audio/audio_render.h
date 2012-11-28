@@ -12,6 +12,7 @@
 # pragma once
 #endif
 
+#include <stdint.h>
 
 #if !defined(WAVE_FORMAT_PCM)
 #define WAVE_FORMAT_PCM     1
@@ -49,9 +50,11 @@
 #define WAVE_FORMAT_DOLBY_AC3_SPDIF 0x0092
 #define WAVE_FORMAT_EXTENSIBLE      0xFFFE
 
+#ifdef _WIN32
 static const  GUID KSDATAFORMAT_SUBTYPE_PCM = {
    0x1,0x0000,0x0010,{0x80,0x00,0x00,0xaa,0x00,0x38,0x9b,0x71}
 };
+#endif
 
 #define SPEAKER_FRONT_LEFT             0x1
 #define SPEAKER_FRONT_RIGHT            0x2
@@ -80,6 +83,8 @@ static const  GUID KSDATAFORMAT_SUBTYPE_PCM = {
 #define DSSPEAKER_SURROUND          0x00000005
 #define DSSPEAKER_5POINT1           0x00000006
 
+#ifdef _WIN32
+
 #ifndef _WAVEFORMATEXTENSIBLE_
 typedef struct {
    WAVEFORMATEX    Format;
@@ -92,6 +97,7 @@ typedef struct {
    /* present in stream  */
    GUID            SubFormat;
 } WAVEFORMATEXTENSIBLE, *PWAVEFORMATEXTENSIBLE;
+#endif
 #endif
 
 // Special flags refering to non pcm data
@@ -125,7 +131,7 @@ public:
 
 public:
    // 初始化音频输出.
-   virtual bool init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format) = 0;
+   virtual bool init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format) = 0;
 
    // 播放音频数据.
    virtual int play_audio(uint8_t* data, uint32_t size) = 0;

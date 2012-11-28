@@ -39,6 +39,8 @@ public:
 
 	// 撤销render.
 	virtual void destory_render(){}
+private:
+    SDL_Overlay* m_yuv;
 };
 
 #endif // SDL_RENDER_H

@@ -26,15 +26,14 @@
 #include <stdio.h>
 #include <cstdio>
 #include <stdint.h>
-
+#include <SDL/SDL.h>
 #include <boost/filesystem.hpp>
 namespace fs=boost::filesystem;
-
-#include <SDL/SDL.h>
 
 #include "player.h"
 #include "source/source.h"
 #include "video/video_out.h"
+#include "audio/audio_out.h"
 
 void player::init_file_source(source_context* sc)
 {
@@ -44,22 +43,6 @@ void player::init_file_source(source_context* sc)
 	sc->destory = file_destory;
 	sc->offset = 0;
 }
-
-bool player::play(double fact, int index)
-{
-	// 重复播放, 返回错误.
-	if (m_cur_index == index)
-		return false;
-
-	// 如果是文件数据, 则直接播放.
-	if (::av_start(m_avplay, fact, index) != 0)
-		return false;
-
-	m_cur_index = index;
-
-	return true;
-}
-
 
 int player::open(const char* movie, int media_type)
 {	// 如果未关闭原来的媒体, 则先关闭.
@@ -198,7 +181,7 @@ int player::open(const char* movie, int media_type)
 
 		// 初始化音频和视频渲染器.
 		init_audio(m_audio);
-		init_video(m_video);
+	//	init_video(m_video);
 
 		// 配置音频视频渲染器.
 		configure(m_avplay, m_video, VIDEO_RENDER);
@@ -237,8 +220,8 @@ int player::open(const char* movie, int media_type)
 void player::init_video(vo_context* vo)
 {
 	//创建第一个窗口
-	SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
-	
+	vo->user_data = SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
+
 	vo->init_video = sdl_init_video;
 	m_draw_frame = sdl_render_one_frame;
 	vo->re_size = sdl_re_size;
@@ -252,7 +235,11 @@ void player::init_video(vo_context* vo)
 
 void player::init_audio(ao_context* ao)
 {
-
+	ao->init_audio = sdl_init_audio;
+	ao->play_audio = sdl_play_audio;
+	ao->audio_control = sdl_audio_control;
+	ao->mute_set = sdl_mute_set;
+	ao->destory_audio = sdl_destory_audio;
 }
 
 
@@ -261,3 +248,29 @@ int player::draw_frame(void* ctx, AVFrame* data, int pix_fmt, double pts)
 
 }
 
+
+bool player::play(double fact, int index)
+{
+	// 重复播放, 返回错误.
+	if (m_cur_index == index)
+		return false;
+
+	// 如果是文件数据, 则直接播放.
+	if (::av_start(m_avplay, fact, index) != 0)
+		return false;
+
+	m_cur_index = index;
+
+	return true;
+}
+
+bool player::wait_for_completion()
+{
+	if (m_avplay)
+	{
+		::wait_for_completion(m_avplay);
+		::logger("play completed.\n");
+		return true;
+	}
+	return false;
+}

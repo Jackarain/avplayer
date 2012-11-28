@@ -18,6 +18,7 @@
 #define UINT64_C(c)     c ## ULL
 
 #include <avplay.h>
+#include <SDL/SDL.h>
 
 #include "sdl_render.h"
 
@@ -80,5 +81,10 @@ EXPORT_API void sdl_destory_render(void *ctx)
 
 bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 {
-	logger("%s called\n",__func__);
+	SDL_Surface * sfc = (SDL_Surface*)ctx;
+
+	SDL_LockSurface(sfc);
+	this->m_yuv = SDL_CreateYUVOverlay(w,h,SDL_IYUV_OVERLAY,sfc);
+	SDL_UnlockSurface(sfc);
+	logger("%s is called %p \n",__func__, sfc);
 }

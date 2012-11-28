@@ -5,7 +5,8 @@
 #include <boost/concept_check.hpp>
 namespace fs=boost::filesystem;
 
-#include <SDL.h>
+#include <SDL/SDL.h>
+#include <X11/Xlib.h>
 
 #include <avplay.h>
 #include "player.h"
@@ -46,7 +47,10 @@ int main(int argc, char* argv[])
 
 	player ply;
 
-	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO);
+	XInitThreads();
+
+	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_EVENTTHREAD);
+
 
 	// 判断打开的媒体类型, 根据媒体文件类型选择不同的方式打开.
 	fs::path filename(argv[1]);
@@ -78,7 +82,9 @@ int main(int argc, char* argv[])
 	}
 
 	//开始播放
+	ply.play();
 
+	ply.wait_for_completion();
 	
 
 	return 0;
