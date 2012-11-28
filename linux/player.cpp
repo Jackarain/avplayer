@@ -223,12 +223,12 @@ void player::init_video(vo_context* vo)
 	vo->user_data = SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
 
 	vo->init_video = sdl_init_video;
-	m_draw_frame = sdl_render_one_frame;
+	//m_draw_frame = sdl_render_one_frame;
 	vo->re_size = sdl_re_size;
 	vo->aspect_ratio = sdl_aspect_ratio;
 	vo->use_overlay = sdl_use_overlay;
 	vo->destory_video = sdl_destory_render;
-	vo->render_one_frame = &draw_frame;
+	vo->render_one_frame = sdl_render_one_frame;//()  &draw_frame;
 
 	::logger("init video render to sdl.\n");
 }
@@ -241,13 +241,6 @@ void player::init_audio(ao_context* ao)
 	ao->mute_set = sdl_mute_set;
 	ao->destory_audio = sdl_destory_audio;
 }
-
-
-int player::draw_frame(void* ctx, AVFrame* data, int pix_fmt, double pts)
-{
-
-}
-
 
 bool player::play(double fact, int index)
 {

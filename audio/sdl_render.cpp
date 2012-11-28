@@ -92,7 +92,7 @@ void sdl_audio_render::sdl_audio_callback(void* userdata, Uint8* stream, int len
 void sdl_audio_render::audio_callback(Uint8* stream, int len)
 {
 	ssize_t readed=0;
-	logger("sdl ask for %d length of data %p\n",len,stream);
+// 	logger("sdl ask for %d length of data %p",len,stream);
 
 	while(readed < len){
 

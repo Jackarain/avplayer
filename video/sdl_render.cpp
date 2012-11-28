@@ -89,3 +89,24 @@ bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 	logger("%s is called %p \n",__func__, sfc);
 	return m_yuv;
 }
+
+bool sdl_render::render_one_frame(AVFrame* data, int pix_fmt)
+{
+	logger("render_one_frame called\n");
+	return 1;
+}
+
+void sdl_render::re_size(int width, int height)
+{
+
+}
+
+void sdl_render::aspect_ratio(int srcw, int srch, bool enable_aspect)
+{
+
+}
+
+void sdl_render::destory_render()
+{
+
+}

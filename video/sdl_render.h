@@ -29,16 +29,16 @@ public:
 	virtual bool init_render(void* ctx, int w, int h, int pix_fmt);
 
 	// 渲染一帧.
-	virtual bool render_one_frame(AVFrame* data, int pix_fmt){}
+	virtual bool render_one_frame(AVFrame* data, int pix_fmt);
 
 	// 调整大小.
-	virtual void re_size(int width, int height){}
+	virtual void re_size(int width, int height);
 
 	// 设置宽高比.
-	virtual void aspect_ratio(int srcw, int srch, bool enable_aspect){}
+	virtual void aspect_ratio(int srcw, int srch, bool enable_aspect);
 
 	// 撤销render.
-	virtual void destory_render(){}
+	virtual void destory_render();
 private:
     SDL_Overlay* m_yuv;
 };
