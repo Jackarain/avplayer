@@ -7,11 +7,12 @@
 
 #ifndef __VIDEO_OUT_H__
 #define __VIDEO_OUT_H__
-
+#ifdef _MSC_VER
 #ifdef VIDEO_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
+#endif
 #endif
 
 #ifdef  __cplusplus
@@ -45,6 +46,14 @@ EXPORT_API void y4m_re_size(void *ctx, int width, int height);
 EXPORT_API void y4m_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect);
 EXPORT_API int y4m_use_overlay(void *ctx);
 EXPORT_API void y4m_destory_render(void *ctx);
+
+
+EXPORT_API int sdl_init_video(void *ctx, int w, int h, int pix_fmt);
+EXPORT_API int sdl_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
+EXPORT_API void sdl_re_size(void *ctx, int width, int height);
+EXPORT_API void sdl_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect);
+EXPORT_API int sdl_use_overlay(void *ctx);
+EXPORT_API void sdl_destory_render(void *ctx);
 
 #ifdef  __cplusplus
 }

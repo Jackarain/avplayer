@@ -1,3 +1,9 @@
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+//#include <libavcodec/audioconvert.h>
+
 #include "avplay.h"
 #include <stdlib.h>
 #include <math.h>

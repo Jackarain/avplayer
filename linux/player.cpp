@@ -1,5 +1,4 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
     Copyright (C) 2012  microcai <microcai@fedoraproject.org>
 
     This program is free software; you can redistribute it and/or modify
@@ -16,15 +15,24 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+#define UINT64_C(c)     c ## ULL
+
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+
 
 #include <stdio.h>
 #include <cstdio>
+#include <stdint.h>
 
 #include <boost/filesystem.hpp>
 namespace fs=boost::filesystem;
 
 #include "player.h"
 #include "source/source.h"
+#include "video/video_out.h"
 
 void player::init_file_source(source_context* sc)
 {
@@ -38,8 +46,8 @@ void player::init_file_source(source_context* sc)
 
 int player::open(const char* movie, int media_type, int render_type)
 {	// 如果未关闭原来的媒体, 则先关闭.
-	if (m_avplay || m_source)
-		close();
+	if (m_avplay || m_source);
+		//close();
 
 	// 未创建窗口, 无法播放, 返回失败.
 	if (!HasWindow())
@@ -80,7 +88,7 @@ int player::open(const char* movie, int media_type, int render_type)
 			// 初始化文件媒体源.
 			init_file_source(m_source);
 		}
-
+#if 0
 		if (media_type == MEDIA_TYPE_BT)
 		{
 			// 先读取bt种子数据, 然后作为附加数据保存到媒体源.
@@ -135,7 +143,7 @@ int player::open(const char* movie, int media_type, int render_type)
 			// 插入到媒体列表.
 			m_media_list.insert(std::make_pair(filename.string(), filename.string()));
 		}
-
+#endif
 		// 初始化avplay.
 		if (initialize(m_avplay, m_source) != 0)
 		{
@@ -209,4 +217,27 @@ int player::open(const char* movie, int media_type, int render_type)
 	return -1;
 }
 
+void player::init_video(vo_context* vo)
+{
+	vo->init_video = sdl_init_video;
+	m_draw_frame = sdl_render_one_frame;
+	vo->re_size = sdl_re_size;
+	vo->aspect_ratio = sdl_aspect_ratio;
+	vo->use_overlay = sdl_use_overlay;
+	vo->destory_video = sdl_destory_render;
+	vo->render_one_frame = &draw_frame;
+
+	::logger("init video render to sdl.\n");
+}
+
+void player::init_audio(ao_context* ao)
+{
+
+}
+
+
+int player::draw_frame(void* ctx, AVFrame* data, int pix_fmt, double pts)
+{
+
+}
 

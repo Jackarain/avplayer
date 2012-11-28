@@ -17,10 +17,10 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(libav/)
 include_directories(source/)
 include_directories(audio/)
-include_directories(video/)
 
 add_subdirectory(libav)
 add_subdirectory(source)
+add_subdirectory(video)
 
 if(UNIX)
 	add_subdirectory(linux)

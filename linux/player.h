@@ -1,5 +1,4 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
     Copyright (C) 2012  microcai <microcai@fedoraproject.org>
 
     This program is free software; you can redistribute it and/or modify
@@ -26,13 +25,19 @@
 
 class player
 {
-	bool HasWindow();
+	bool HasWindow(){return true;};
 
 	// 播放器相关的函数.
 	void init_file_source(source_context *sc);
 	void init_torrent_source(source_context *sc);
 	void init_audio(ao_context *ao);
 	void init_video(vo_context *vo);
+
+	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt, double pts);
+
+	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
+	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
+
 public:
 	int open(const char *movie, int media_type, int render_type);
     void close();

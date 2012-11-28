@@ -22,18 +22,20 @@
 #	define EXPORT_API
 #endif
 
+#include <libavformat/avio.h>
 #include <pthread.h>
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-#include <libswscale/swscale.h>
-//#include <libavcodec/audioconvert.h>
 #include <assert.h>
 #include "defs.h"
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
+
+struct AVFormatContext;
+struct ReSampleContext;
+struct AVCodecContext;
+struct AVStream;
+
 
 /* 播放器状态. */
 typedef enum play_status

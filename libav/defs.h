@@ -8,6 +8,8 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+#include <stdint.h>
+
 // #include "libavcodec/avcodec.h"
 struct AVFrame;
 /* 媒体数据源接口. */

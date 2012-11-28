@@ -18,6 +18,8 @@ else()
 	message(FATAL_ERROR "need sdl" )
 endif()
 
-add_executable(avplayer player.cpp main.cpp $<TARGET_OBJECTS:libav> $<TARGET_OBJECTS:libavsource>)
+add_executable(avplayer player.cpp main.cpp
+	$<TARGET_OBJECTS:libav> $<TARGET_OBJECTS:libavsource>
+	$<TARGET_OBJECTS:libavvideo>)
 
 target_link_libraries(avplayer -lavcodec -lavformat -lswscale)
