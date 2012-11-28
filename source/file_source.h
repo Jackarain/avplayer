@@ -12,6 +12,8 @@
 # pragma once
 #endif
 
+#include <string>
+
 #include "av_source.h"
 
 struct open_file_data

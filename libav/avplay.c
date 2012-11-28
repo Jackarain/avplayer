@@ -1,3 +1,9 @@
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+//#include <libavcodec/audioconvert.h>
+
 #include "avplay.h"
 #include <stdlib.h>
 #include <math.h>
@@ -176,10 +182,8 @@ static
 void queue_end(av_queue *q)
 {
 	queue_flush(q);
-	if (q->m_mutex)
-		pthread_mutex_destroy(&q->m_mutex);
-	if (q->m_cond)
-		pthread_cond_destroy(&q->m_cond);
+	pthread_cond_destroy(&q->m_cond);
+	pthread_mutex_destroy(&q->m_mutex);
 }
 
 #define PRIV_OUT_QUEUE \
@@ -434,7 +438,7 @@ int open_decoder(AVCodecContext *ctx)
    return ret;
 }
 
-source_context* alloc_media_source(int type, char *data, int len, int64_t size)
+source_context* alloc_media_source(int type, const char *data, int len, int64_t size)
 {
 	struct source_context *ptr = malloc(sizeof(source_context));
 
@@ -614,7 +618,7 @@ int initialize(avplay *play, source_context *sc)
 		}
 		play->m_avio_ctx->write_flag = 0;
 
-		ret = av_probe_input_buffer(play->m_avio_ctx, &iformat, "", NULL, 0, NULL);
+		ret = av_probe_input_buffer(play->m_avio_ctx, &iformat, "", NULL, 0, 0);
 		if (ret < 0)
 		{
 			printf("av_probe_input_buffer call failed!\n");
@@ -729,7 +733,7 @@ FAILED_FLG:
 	return -1;
 }
 
-int start(avplay *play, double fact, int index)
+int av_start(avplay *play, double fact, int index)
 {
 	pthread_attr_t attr;
 	int ret;
@@ -873,7 +877,7 @@ void wait_for_threads(avplay *play)
 	play->m_play_status = stoped;
 }
 
-void stop(avplay *play)
+void av_stop(avplay *play)
 {
 	play->m_abort = TRUE;
 	if (play->m_source_ctx)
@@ -904,12 +908,11 @@ void stop(avplay *play)
 		avcodec_close(play->m_video_ctx);
 	if (play->m_format_ctx)
 		avformat_close_input(&play->m_format_ctx);
-	if (play->m_audio_convert_ctx)
-		av_audio_convert_free(play->m_audio_convert_ctx);
+// 	if (play->m_audio_convert_ctx)
+// 		av_audio_convert_free(play->m_audio_convert_ctx);
 	if (play->m_resample_ctx)
 		audio_resample_close(play->m_resample_ctx);
-	if (play->m_buf_size_mtx)
-		pthread_mutex_destroy(&play->m_buf_size_mtx);
+	pthread_mutex_destroy(&play->m_buf_size_mtx);
 	if (play->m_ao_ctx)
 	{
 		free_audio_render(play->m_ao_ctx);
@@ -928,7 +931,7 @@ void stop(avplay *play)
 	avformat_network_deinit();
 }
 
-void pause(avplay *play)
+void av_pause(avplay *play)
 {
 	/* 一直等待为渲染状态时才控制为暂停, 原因是这样可以在暂停时继续渲染而不至于黑屏. */
 	while (!play->m_rendering)
@@ -937,13 +940,13 @@ void pause(avplay *play)
 	play->m_play_status = paused;
 }
 
-void resume(avplay *play)
+void av_resume(avplay *play)
 {
 	/* 更改播放状态. */
 	play->m_play_status = playing;
 }
 
-void seek(avplay *play, double fact)
+void av_seek(avplay *play, double fact)
 {
 	double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
 
@@ -983,7 +986,7 @@ void seek(avplay *play, double fact)
 	}
 }
 
-void volume(avplay *play, double l, double r)
+void av_volume(avplay *play, double l, double r)
 {
 	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
 }
@@ -1011,7 +1014,7 @@ void destory(avplay *play)
 		/* 关闭数据源. */
 		if (play->m_source_ctx && play->m_source_ctx->io_dev)
 			play->m_source_ctx->close(play->m_source_ctx);
-		stop(play);
+		av_stop(play);
 	}
 
 	free(play);
@@ -1029,27 +1032,27 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	/* 重采样到AV_SAMPLE_FMT_S16格式. */
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
 	{
-		if (!play->m_audio_convert_ctx)
-			play->m_audio_convert_ctx = av_audio_convert_alloc(
-			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
-			NULL, 0);
-		if (play->m_audio_convert_ctx)
-		{
-			const void *ibuf[6] = { src->data[0] };
-			void *obuf[6] = { dst->data[0] };
-			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
-			int ostride[6] = { 2 };
-			int len = src->linesize[0] / istride[0];
-			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
-				istride, len) < 0)
-			{
-				assert(0);
-			}
-			dst->linesize[0] = src->linesize[0] = len * 2;
-			memcpy(src->data[0], dst->data[0], src->linesize[0]);
-			/* FIXME: existing code assume that data_size equals framesize*channels*2
-			   remove this legacy cruft */
-		}
+// 		if (!play->m_audio_convert_ctx)
+// 			play->m_audio_convert_ctx = av_audio_convert_alloc(
+// 			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
+// 			NULL, 0);
+// 		if (play->m_audio_convert_ctx)
+// 		{
+// 			const void *ibuf[6] = { src->data[0] };
+// 			void *obuf[6] = { dst->data[0] };
+// 			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
+// 			int ostride[6] = { 2 };
+// 			int len = src->linesize[0] / istride[0];
+// 			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
+// 				istride, len) < 0)
+// 			{
+// 				assert(0);
+// 			}
+// 			dst->linesize[0] = src->linesize[0] = len * 2;
+// 			memcpy(src->data[0], dst->data[0], src->linesize[0]);
+// 			/* FIXME: existing code assume that data_size equals framesize*channels*2
+// 			   remove this legacy cruft */
+// 		}
 	}
 
 	/* 重采样到双声道. */
@@ -1215,7 +1218,7 @@ void* read_pkt_thrd(void *param)
 	// 起始时间不等于0, 则先seek至指定时间.
 	if (fabs(play->m_start_time) > 1.0e-6)
 	{
-		seek(play, play->m_start_time);
+		av_seek(play, play->m_start_time);
 // 		double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
 // 		int64_t seek_pos = play->m_start_time * duration;
 // 		if (duration <= 0.0f)
@@ -1252,7 +1255,7 @@ void* read_pkt_thrd(void *param)
 
 		/* 如果seek未完成又来了新的seek请求. */
 		if (play->m_seeking > NOSEEKING_FLAG)
-			seek(play, (double)play->m_seeking / 1000.0f);
+			av_seek(play, (double)play->m_seeking / 1000.0f);
 
 		if (play->m_seek_req)
 		{

@@ -10,30 +10,32 @@
 #define AVPLAY_H_
 
 #ifdef _MSC_VER
-#include <windows.h>
-#define inline
-#define __CRT__NO_INLINE
-#ifdef API_EXPORTS
-#define EXPORT_API __declspec(dllexport)
+#	include <windows.h>
+#	define inline
+#	define __CRT__NO_INLINE
+#	ifdef API_EXPORTS
+#		define EXPORT_API __declspec(dllexport)
+#	else
+#		define EXPORT_API __declspec(dllimport)
+#	endif
 #else
-#define EXPORT_API __declspec(dllimport)
-#endif
-#else
-#define EXPORT_API
+#	define EXPORT_API
 #endif
 
-#include "pthread.h"
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libavutil/avutil.h"
-#include "libswscale/swscale.h"
-#include "libavcodec/audioconvert.h"
+#include <libavformat/avio.h>
+#include <pthread.h>
 #include <assert.h>
 #include "defs.h"
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
+
+struct AVFormatContext;
+struct ReSampleContext;
+struct AVCodecContext;
+struct AVStream;
+
 
 /* 播放器状态. */
 typedef enum play_status
@@ -53,7 +55,7 @@ typedef enum play_status
 #define VIDEO_RENDER_SOFT		3
 
 /* 队列.	*/
-typedef struct av_queue
+typedef struct _av_queue
 {
 	void *m_first_pkt, *m_last_pkt;
 	int m_size; /* 队列大小.	*/
@@ -64,7 +66,7 @@ typedef struct av_queue
 } av_queue;
 
 /* 数据源结构分配和释放. */
-EXPORT_API source_context* alloc_media_source(int type, char *addition, int addition_len, int64_t size);
+EXPORT_API source_context* alloc_media_source(int type, const char *addition, int addition_len, int64_t size);
 EXPORT_API void free_media_source(source_context *ctx);
 
 /* 音频结构分配和释放. */
@@ -98,7 +100,7 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
-	AVAudioConvert *m_audio_convert_ctx;
+// 	AVAudioConvert *m_audio_convert_ctx;
 	ReSampleContext *m_resample_ctx;
 
 	/* 音频和视频的AVStream、AVCodecContext指针和index.	*/
@@ -244,7 +246,7 @@ EXPORT_API void configure(avplay *play, void *param, int type);
  * @param index Specifies the index of the file to play.
  * @param Returns 0 if successful, or an error value otherwise. 
  */
-EXPORT_API int start(avplay *play, double fact, int index);
+EXPORT_API int av_start(avplay *play, double fact, int index);
 
 /*
  * Wait for playback to complete.
@@ -258,21 +260,21 @@ EXPORT_API void wait_for_completion(avplay *play);
  * @param play pointer to the player. 
  * @This function does not return a value.
  */
-EXPORT_API void stop(avplay *play);
+EXPORT_API void av_stop(avplay *play);
 
 /*
  * The Pause method pauses the current player.
  * @param play pointer to the player. 
  * @This function does not return a value.
  */
-EXPORT_API void pause(avplay *play);
+EXPORT_API void av_pause(avplay *play);
 
 /*
  * The Resume function starts the player from the current position, after a Pause function call. 
  * @param play pointer to the player.
  * @This function does not return a value.
  */
-EXPORT_API void resume(avplay *play);
+EXPORT_API void av_resume(avplay *play);
 
 /*
  * Moves the current seek percent.
@@ -280,7 +282,7 @@ EXPORT_API void resume(avplay *play);
  * @param fact at time, percent of duration.
  * @This function does not return a value.
  */
-EXPORT_API void seek(avplay *play, double fact);
+EXPORT_API void av_seek(avplay *play, double fact);
 
 /* Set audio volume.
  * @param play pointer to the player.
@@ -288,7 +290,7 @@ EXPORT_API void seek(avplay *play, double fact);
  * @param r is right channel.
  * @This function does not return a value.
  */
-EXPORT_API void volume(avplay *play, double l, double r);
+EXPORT_API void av_volume(avplay *play, double l, double r);
 
 /* Sets mute.
  * @param play pointer to the player.

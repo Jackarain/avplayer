@@ -288,4 +288,3 @@ GLvoid opengl_render::KillGLWindow(GLvoid)            // Properly Kill The Windo
 		m_hdc = NULL;                                   // Set DC To NULL
 	}
 }
-
