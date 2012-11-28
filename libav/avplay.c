@@ -1552,8 +1552,7 @@ void* video_dec_thrd(void *param)
 
 			while (pkt2.size > 0 && !play->m_abort)
 			{
-				ret = avcodec_decode_video2(play->m_video_ctx, avframe,
-						&got_picture, &pkt2);
+				ret = avcodec_decode_video2(play->m_video_ctx, avframe, &got_picture, &pkt2);
 				if (ret < 0)
 				{
 					printf("Video error while decoding one frame!!!\n");
@@ -1585,17 +1584,15 @@ void* video_dec_thrd(void *param)
 				/*
 				 * 计算pts值.
 				 */
-				pts1 = (avcopy.best_effort_timestamp - a_start_time)
-						* av_q2d(play->m_video_st->time_base);
+				pts1 = (avcopy.best_effort_timestamp - a_start_time) * av_q2d(play->m_video_st->time_base);
 				if (pts1 == AV_NOPTS_VALUE)
 					pts1 = 0;
 				pts = pts1;
 
 				/* 如果以音频同步为主, 则在此判断是否进行丢包. */
-				if (((play->m_av_sync_type == AV_SYNC_AUDIO_MASTER
-						&& play->m_audio_st)
-						|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK)
-						&& (play->m_audio_st))
+				if ((play->m_audio_st) &&
+					((play->m_av_sync_type == AV_SYNC_AUDIO_MASTER && play->m_audio_st)
+					|| play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK))
 				{
 					pthread_mutex_lock(&play->m_video_dq.m_mutex);
 					/*
@@ -1621,8 +1618,7 @@ void* video_dec_thrd(void *param)
 							play->m_frame_last_dropped_pos = pkt.pos;
 							play->m_frame_last_dropped_pts = pts;
 							play->m_drop_frame_num++;
-							printf("\nDROP: %3d drop a frame of pts is: %.3f\n",
-								play->m_drop_frame_num, pts);
+							printf("\nDROP: %3d drop a frame of pts is: %.3f\n", play->m_drop_frame_num, pts);
 							ret = 0;
 						}
 					}
