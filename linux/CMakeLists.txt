@@ -20,6 +20,6 @@ endif()
 
 add_executable(avplayer player.cpp main.cpp
 	$<TARGET_OBJECTS:libav> $<TARGET_OBJECTS:libavsource>
-	$<TARGET_OBJECTS:libavvideo>)
+	$<TARGET_OBJECTS:libavvideo> $<TARGET_OBJECTS:libavaudio>)
 
 target_link_libraries(avplayer -lavcodec -lavformat -lswscale)

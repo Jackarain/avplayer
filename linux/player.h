@@ -41,6 +41,8 @@ class player
 public:
 	int open(const char *movie, int media_type);
 	bool play(double fact = 0.0f, int index = 0);
+		// 等待播放直到完成.
+	bool wait_for_completion();
     void close();
 private:
     avplay* m_avplay;

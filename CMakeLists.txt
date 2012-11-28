@@ -19,8 +19,9 @@ include_directories(source/)
 include_directories(audio/)
 
 add_subdirectory(libav)
-add_subdirectory(source)
 add_subdirectory(video)
+add_subdirectory(audio)
+add_subdirectory(source)
 
 if(UNIX)
 	add_subdirectory(linux)

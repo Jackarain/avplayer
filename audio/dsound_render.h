@@ -23,7 +23,7 @@ public:
 
 public:
    // 初始化音频输出.
-   virtual bool init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format);
+   virtual bool init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format);
 
    // 播放音频数据.
    virtual int play_audio(uint8_t* data, uint32_t size);

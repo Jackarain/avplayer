@@ -59,7 +59,7 @@ int dsound_render::af_fmt2bits(int format)
    return -1;
 }
 
-bool dsound_render::init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format)
+bool dsound_render::init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format)
 {
    m_channels = channels;
    m_bitrate = sample_rate;
