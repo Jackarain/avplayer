@@ -496,7 +496,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			if (m_avplay && (m_avplay->m_play_status == playing
 				|| m_avplay->m_play_status == completed)
 				&& (fact >= 0.0f && fact <= 1.0f))
-				::seek(m_avplay, fact);
+				::av_seek(m_avplay, fact);
 		}
 		break;
 // 	case WM_PAINT:
@@ -975,7 +975,7 @@ BOOL player_impl::stop()
 {
 	if (m_avplay)
 	{
-		::stop(m_avplay);
+		::av_stop(m_avplay);
 		m_cur_index = -1;
 		::logger("stop play.\n");
 		return TRUE;
@@ -1023,7 +1023,7 @@ void player_impl::seek_to(double fact)
 {
 	if (m_avplay)
 	{
-		::seek(m_avplay, fact);
+		::av_seek(m_avplay, fact);
 		::logger("seek to %.2f.\n", fact);
 	}
 }
@@ -1032,7 +1032,7 @@ void player_impl::volume(double l, double r)
 {
 	if (m_avplay)
 	{
-		::volume(m_avplay, l, r);
+		::av_volume(m_avplay, l, r);
 		::logger("set volume to left: %.2f, right: %.2f.\n", l, r);
 	}
 }

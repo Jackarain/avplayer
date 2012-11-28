@@ -22,8 +22,13 @@
 #	define EXPORT_API
 #endif
 
-#include <libavformat/avio.h>
 #include <pthread.h>
+#include <libavformat/avio.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+#include <libavcodec/audioconvert.h>
 #include <assert.h>
 #include "defs.h"
 
@@ -100,7 +105,7 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
-// 	AVAudioConvert *m_audio_convert_ctx;
+	AVAudioConvert *m_audio_convert_ctx;
 	ReSampleContext *m_resample_ctx;
 
 	/* 音频和视频的AVStream、AVCodecContext指针和index.	*/
