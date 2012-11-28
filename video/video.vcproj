@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\libav\ffmpeg\include;..\libav\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include;..\libav"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEO_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\libav\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\libav\ffmpeg\include;..\libav\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include;..\libav"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -139,7 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="winmm.lib opengl32.lib glu32.lib ddraw.lib dxguid.lib d3d9.lib swscale.lib avutil.lib avcodec.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\libav\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -256,12 +256,6 @@
 				RelativePath=".\y4m_render.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="资源文件"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 	</Files>
 	<Globals>

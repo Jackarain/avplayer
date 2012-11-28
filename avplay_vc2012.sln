@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "video", "video\video.vcxproj", "{55B82538-3E6C-4B7F-B5D8-9CF635FC57CD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "audio", "audio\audio.vcxproj", "{BC5E9C1A-C689-4298-A8EA-2856457DAC28}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcxproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libav", "libav\libav.vcxproj", "{457C2989-509D-4132-B08A-1695342BB9DB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtorrent", "libtorrent\include\libtorrent.vcxproj", "{0795F713-7B86-4250-8B4E-4F4663AF6956}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avcore", "win32\avcore\avcore.vcxproj", "{E77594CF-3826-48B6-8F8E-802E6F606EE5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avplayer", "win32\avplayer\avplayer.vcxproj", "{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55B82538-3E6C-4B7F-B5D8-9CF635FC57CD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{55B82538-3E6C-4B7F-B5D8-9CF635FC57CD}.Debug|Win32.Build.0 = Debug|Win32
+		{55B82538-3E6C-4B7F-B5D8-9CF635FC57CD}.Release|Win32.ActiveCfg = Release|Win32
+		{55B82538-3E6C-4B7F-B5D8-9CF635FC57CD}.Release|Win32.Build.0 = Release|Win32
+		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Debug|Win32.Build.0 = Debug|Win32
+		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Release|Win32.ActiveCfg = Release|Win32
+		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Release|Win32.Build.0 = Release|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.Build.0 = Debug|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.ActiveCfg = Release|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.Build.0 = Release|Win32
+		{457C2989-509D-4132-B08A-1695342BB9DB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{457C2989-509D-4132-B08A-1695342BB9DB}.Debug|Win32.Build.0 = Debug|Win32
+		{457C2989-509D-4132-B08A-1695342BB9DB}.Release|Win32.ActiveCfg = Release|Win32
+		{457C2989-509D-4132-B08A-1695342BB9DB}.Release|Win32.Build.0 = Release|Win32
+		{0795F713-7B86-4250-8B4E-4F4663AF6956}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0795F713-7B86-4250-8B4E-4F4663AF6956}.Debug|Win32.Build.0 = Debug|Win32
+		{0795F713-7B86-4250-8B4E-4F4663AF6956}.Release|Win32.ActiveCfg = Release|Win32
+		{0795F713-7B86-4250-8B4E-4F4663AF6956}.Release|Win32.Build.0 = Release|Win32
+		{E77594CF-3826-48B6-8F8E-802E6F606EE5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E77594CF-3826-48B6-8F8E-802E6F606EE5}.Debug|Win32.Build.0 = Debug|Win32
+		{E77594CF-3826-48B6-8F8E-802E6F606EE5}.Release|Win32.ActiveCfg = Release|Win32
+		{E77594CF-3826-48B6-8F8E-802E6F606EE5}.Release|Win32.Build.0 = Release|Win32
+		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Debug|Win32.Build.0 = Debug|Win32
+		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Release|Win32.ActiveCfg = Release|Win32
+		{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

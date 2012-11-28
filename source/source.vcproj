@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\libav\include;..\libav\ffmpeg\include;..\openssl\include;..\libtorrent\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\openssl\include;..\libtorrent\include;..\third_party\include;..\libav"
 				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS;USE_TORRENT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libpthreadGC2.a libeay32.lib ssleay32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\libav\ffmpeg\lib;..\openssl\libs"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib;..\third_party\openssl\libs"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\libav\include;..\libav\ffmpeg\include;..\openssl\include;..\libtorrent\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\openssl\include;..\libtorrent\include;..\third_party\include;..\libav"
 				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -139,7 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libpthreadGC2.a libeay32.lib ssleay32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\libav\ffmpeg\lib;..\openssl\libs"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib;..\third_party\openssl\libs"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -211,16 +211,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="资源文件"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
-		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
