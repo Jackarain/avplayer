@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\ffmpeg\include;.\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;__CRT__NO_INLINE;API_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib winmm.lib libpthreadGC2.a avutil.lib avformat.lib avcodec.lib swscale.lib swresample.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\ffmpeg\include;.\include"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;__CRT__NO_INLINE;API_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -139,7 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib winmm.lib libpthreadGC2.a swscale.lib swresample.lib avutil.lib avformat.lib avcodec.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=".\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -195,16 +195,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="资源文件"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
-		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

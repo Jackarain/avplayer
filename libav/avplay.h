@@ -22,8 +22,13 @@
 #	define EXPORT_API
 #endif
 
-#include <libavformat/avio.h>
 #include <pthread.h>
+#include <libavformat/avio.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+#include <libavcodec/audioconvert.h>
 #include <assert.h>
 #include "defs.h"
 

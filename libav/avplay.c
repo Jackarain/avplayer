@@ -1,9 +1,3 @@
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-#include <libswscale/swscale.h>
-//#include <libavcodec/audioconvert.h>
-
 #include "avplay.h"
 #include <stdlib.h>
 #include <math.h>
@@ -908,8 +902,8 @@ void av_stop(avplay *play)
 		avcodec_close(play->m_video_ctx);
 	if (play->m_format_ctx)
 		avformat_close_input(&play->m_format_ctx);
-// 	if (play->m_audio_convert_ctx)
-// 		av_audio_convert_free(play->m_audio_convert_ctx);
+	if (play->m_audio_convert_ctx)
+		av_audio_convert_free(play->m_audio_convert_ctx);
 	if (play->m_resample_ctx)
 		audio_resample_close(play->m_resample_ctx);
 	pthread_mutex_destroy(&play->m_buf_size_mtx);
@@ -1032,27 +1026,27 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	/* 重采样到AV_SAMPLE_FMT_S16格式. */
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
 	{
- 		if (!play->m_audio_convert_ctx)
- 			play->m_audio_convert_ctx = av_audio_convert_alloc(
- 			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
- 			NULL, 0);
- 		if (play->m_audio_convert_ctx)
- 		{
- 			const void *ibuf[6] = { src->data[0] };
- 			void *obuf[6] = { dst->data[0] };
- 			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
- 			int ostride[6] = { 2 };
- 			int len = src->linesize[0] / istride[0];
- 			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
- 				istride, len) < 0)
- 			{
- 				assert(0);
- 			}
- 			dst->linesize[0] = src->linesize[0] = len * 2;
- 			memcpy(src->data[0], dst->data[0], src->linesize[0]);
- 			/* FIXME: existing code assume that data_size equals framesize*channels*2
- 			   remove this legacy cruft */
- 		}
+		if (!play->m_audio_convert_ctx)
+			play->m_audio_convert_ctx = av_audio_convert_alloc(
+			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
+			NULL, 0);
+		if (play->m_audio_convert_ctx)
+		{
+			const void *ibuf[6] = { src->data[0] };
+			void *obuf[6] = { dst->data[0] };
+			int istride[6] = { av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt) };
+			int ostride[6] = { 2 };
+			int len = src->linesize[0] / istride[0];
+			if (av_audio_convert(play->m_audio_convert_ctx, obuf, ostride, ibuf,
+				istride, len) < 0)
+			{
+				assert(0);
+			}
+			dst->linesize[0] = src->linesize[0] = len * 2;
+			memcpy(src->data[0], dst->data[0], src->linesize[0]);
+			/* FIXME: existing code assume that data_size equals framesize*channels*2
+			   remove this legacy cruft */
+		}
 	}
 
 	/* 重采样到双声道. */

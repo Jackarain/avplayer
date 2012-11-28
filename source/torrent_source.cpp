@@ -8,8 +8,8 @@
 #include "libtorrent/fingerprint.hpp"
 
 #ifdef WIN32
-#pragma comment(lib, "../openssl/libs/libeay32.lib");
-#pragma comment(lib, "../openssl/libs/ssleay32.lib");
+// #pragma comment(lib, "../openssl/libs/libeay32.lib");
+// #pragma comment(lib, "../openssl/libs/ssleay32.lib");
 #endif // WIN32
 
 
