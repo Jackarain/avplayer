@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-project(avplayer CXX)
+project(avplayer)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
-
-include(pch.cmake)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -24,8 +22,9 @@ if(Boost_FOUND)
 		link_libraries("-static-libgcc -static-libstdc++")
 	endif()
 endif()
-# 
-# if(CRYPTOPP_FOUND)
-# 	include_directories(${CRYPTOPP_INCLUDE_DIRS})
-# 	link_libraries(${CRYPTOPP_LIBRARIES})
-# endif()
+
+add_subdirectory(libav)
+
+if(WIN32)
+	add_subdirectory(win32)
+endif()

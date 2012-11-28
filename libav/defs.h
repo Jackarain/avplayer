@@ -8,7 +8,7 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
-#include "libavcodec/avcodec.h"
+// #include "libavcodec/avcodec.h"
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0

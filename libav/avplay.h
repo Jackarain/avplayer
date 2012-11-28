@@ -10,24 +10,24 @@
 #define AVPLAY_H_
 
 #ifdef _MSC_VER
-#include <windows.h>
-#define inline
-#define __CRT__NO_INLINE
-#ifdef API_EXPORTS
-#define EXPORT_API __declspec(dllexport)
+#	include <windows.h>
+#	define inline
+#	define __CRT__NO_INLINE
+#	ifdef API_EXPORTS
+#		define EXPORT_API __declspec(dllexport)
+#	else
+#		define EXPORT_API __declspec(dllimport)
+#	endif
 #else
-#define EXPORT_API __declspec(dllimport)
-#endif
-#else
-#define EXPORT_API
+#	define EXPORT_API
 #endif
 
-#include "pthread.h"
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libavutil/avutil.h"
-#include "libswscale/swscale.h"
-#include "libavcodec/audioconvert.h"
+#include <pthread.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+//#include <libavcodec/audioconvert.h>
 #include <assert.h>
 #include "defs.h"
 
@@ -53,7 +53,7 @@ typedef enum play_status
 #define VIDEO_RENDER_SOFT		3
 
 /* 队列.	*/
-typedef struct av_queue
+typedef struct _av_queue
 {
 	void *m_first_pkt, *m_last_pkt;
 	int m_size; /* 队列大小.	*/
@@ -98,7 +98,7 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
-	AVAudioConvert *m_audio_convert_ctx;
+// 	AVAudioConvert *m_audio_convert_ctx;
 	ReSampleContext *m_resample_ctx;
 
 	/* 音频和视频的AVStream、AVCodecContext指针和index.	*/
