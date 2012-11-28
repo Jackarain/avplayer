@@ -939,7 +939,7 @@ BOOL player_impl::play(double fact/* = 0.0f*/, int index /*= 0*/)
 		return FALSE;
 
 	// 如果是文件数据, 则直接播放.
-	if (::start(m_avplay, fact, index) != 0)
+	if (::av_start(m_avplay, fact, index) != 0)
 		return FALSE;
 
 	m_cur_index = index;
@@ -951,7 +951,7 @@ BOOL player_impl::pause()
 {
 	if (m_avplay && m_avplay->m_play_status == playing)
 	{
-		::pause(m_avplay);
+		::av_pause(m_avplay);
 		::logger("set to pause.\n");
 		return TRUE;
 	}
@@ -963,7 +963,7 @@ BOOL player_impl::resume()
 {
 	if (m_avplay && m_avplay->m_play_status == paused)
 	{
-		::resume(m_avplay);
+		::av_resume(m_avplay);
 		::logger("set to resume.\n");
 		return TRUE;
 	}
