@@ -30,6 +30,8 @@
 #include <libswscale/swscale.h>
 #if LIBAVCODEC_VERSION_MINOR == 59
 #include <libavutil/audioconvert.h>
+struct _AVAudioConvert;
+typedef struct _AVAudioConvert AVAudioConvert;
 #else
 #include <libavcodec/audioconvert.h>
 #endif
@@ -44,8 +46,7 @@ struct AVFormatContext;
 struct ReSampleContext;
 struct AVCodecContext;
 struct AVStream;
-struct _AVAudioConvert;
-typedef struct _AVAudioConvert AVAudioConvert;
+
 
 /* 播放器状态. */
 typedef enum play_status

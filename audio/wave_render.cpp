@@ -31,7 +31,7 @@ void __stdcall wave_render::waveOutProc(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwIn
    this_ptr->m_buf_read = (this_ptr->m_buf_read + 1) % BUFFER_COUNT;
 }
 
-bool wave_render::init_audio(void* ctx, DWORD channels, DWORD bits_per_sample, DWORD sample_rate, int format)
+bool wave_render::init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format)
 {
    WAVEFORMATEXTENSIBLE wformat = { 0 };
    MMRESULT result;
