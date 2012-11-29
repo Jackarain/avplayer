@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
+#include <libavutil/time.h>
 #include "avplay.h"
 
 /* 定义bool值 */
@@ -33,11 +34,35 @@ enum sync_type
 #define AV_NOSYNC_THRESHOLD	10.0f
 #define AUDIO_DIFF_AVG_NB		20
 
-#define SEEKING_FLAG				-1
+#define SEEKING_FLAG			-1
 #define NOSEEKING_FLAG			0
 
 #ifndef _MSC_VER
-#define Sleep(x) usleep(x*1000)
+#include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include <errno.h>
+
+void Sleep(int msec)
+{
+	struct timespec rev,rem;
+	rev.tv_sec =msec/1000;
+	rev.tv_nsec = msec * 1000000;
+	
+	int ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
+	while(ret <0 && errno == EINTR){
+		rev = rem;
+		ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
+	}
+}
+
+int64_t av_gettime()
+{
+	struct timespec cltime;
+	clock_gettime(CLOCK_MONOTONIC,&cltime);
+	return cltime.tv_sec * 1000000 + cltime.tv_nsec / 1000;
+}
+
 #else
 #define av_gettime() (timeGetTime() * 1000.0f)
 #endif
