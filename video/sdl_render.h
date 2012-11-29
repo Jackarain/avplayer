@@ -41,6 +41,7 @@ public:
 	virtual void destory_render();
 private:
     SDL_Overlay* m_yuv;
+    SDL_Surface* sfc;
 };
 
 #endif // SDL_RENDER_H
