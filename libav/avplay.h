@@ -29,9 +29,6 @@
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
-#ifndef USE_SWR
-#include <libavcodec/audioconvert.h>
-#endif
 #include <assert.h>
 #include "defs.h"
 
@@ -115,9 +112,6 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
-#ifndef USE_SWR
- 	AVAudioConvert *m_audio_convert_ctx;
-#endif
 	struct SwrContext *m_swr_ctx;
 	ReSampleContext *m_resample_ctx;
 
