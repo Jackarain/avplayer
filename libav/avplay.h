@@ -28,7 +28,7 @@
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
-#include <libswresample/audioconvert.h>
+#include <libswresample/swresample.h>
 #if LIBAVCODEC_VERSION_MINOR == 59
 #include <libavutil/audioconvert.h>
 struct _AVAudioConvert;
