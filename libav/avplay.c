@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <time.h>
 #include <math.h>
 #include "avplay.h"
 
@@ -38,22 +37,11 @@ enum sync_type
 #define NOSEEKING_FLAG			0
 
 #ifndef _MSC_VER
-#define Sleep(x) usleep(x * 1000)
-#define av_gettime() (monoclicktime())
+#define Sleep(x) usleep(x*1000)
 #else
 #define av_gettime() (timeGetTime() * 1000.0f)
 #endif
 
-//FIXME, just workarround my machine, will fix it later
-#ifndef _MSC_VER
-int64_t monoclicktime()
-{
-	struct timespec curtm;
-	clock_gettime(CLOCK_MONOTONIC,&curtm);
-	//logger("av_gettime called\n");
-	return curtm.tv_sec * 1000000 + curtm.tv_nsec / 1000;
-}
-#endif
 
 /* INT64最大最小取值范围. */
 #ifndef INT64_MIN
