@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 
-// #include "libavcodec/avcodec.h"
 struct AVFrame;
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
