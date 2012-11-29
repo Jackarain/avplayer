@@ -43,6 +43,7 @@ private:
 	void audio_callback(Uint8 *stream, int len);
 private:
 	int adfd[2];
+	boost::mutex		m_mutex;
 // 		boost::mutex adqueue_mutex;
 // 		boost::condition_variable	adqueue_mutex_cond;
 // 		std::queue<std::pair<uint8_t*,uint32_t> > adqueue;

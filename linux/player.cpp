@@ -198,7 +198,7 @@ int player::open(const char* movie, int media_type)
 		enable_calc_frame_rate(m_avplay);
 		enable_calc_bit_rate(m_avplay);
 		//FIXME, don't know why audio sync cause frame drop
-		m_avplay->m_av_sync_type = AV_SYNC_VIDEO_MASTER;
+		//m_avplay->m_av_sync_type = AV_SYNC_VIDEO_MASTER;
 
 		return 0;
 

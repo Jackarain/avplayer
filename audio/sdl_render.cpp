@@ -16,7 +16,7 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #define UINT64_C(c)     c ## ULL
-
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -91,12 +91,14 @@ void sdl_audio_render::sdl_audio_callback(void* userdata, Uint8* stream, int len
 
 void sdl_audio_render::audio_callback(Uint8* stream, int len)
 {
+// 	boost::mutex::scoped_lock l(m_mutex);
+
 	ssize_t readed=0;
 // 	logger("sdl ask for %d length of data %p",len,stream);
 
 	while(readed < len){
 
-		ssize_t ret = 	read(adfd[1],stream,len - readed);
+		ssize_t ret = 	read(adfd[0],stream,len - readed);
 		if(ret >= 0){
 			readed += ret;
 		}else{
@@ -108,8 +110,10 @@ void sdl_audio_render::audio_callback(Uint8* stream, int len)
 
 int sdl_audio_render::play_audio(uint8_t* data, uint32_t size)
 {
+// 	boost::mutex::scoped_lock l(m_mutex);
+
 	// push to stack
-	ssize_t ret =  write(adfd[0],data,size);
+	ssize_t ret =  write(adfd[1],data,size);
 	if(ret != size){
 		logger("write audio error\b");
 		exit(1);
@@ -129,8 +133,8 @@ void sdl_audio_render::destory_audio()
 
 bool sdl_audio_render::init_audio(void* ctx, int channels, int bits_per_sample, int sample_rate, int format)
 {
-	socketpair(AF_UNIX,SOCK_CLOEXEC|SOCK_STREAM,0,adfd);
-	logger("socket created for audio %d %d\n",adfd[0],adfd[1]);
+	pipe(adfd);
+	logger("pipe created for audio %d %d\n",adfd[0],adfd[1]);
 	SDL_AudioSpec fmt[1];// = new SDL_AudioSpec;
 
     /* Set 16-bit stereo audio at 22Khz */
@@ -138,11 +142,12 @@ bool sdl_audio_render::init_audio(void* ctx, int channels, int bits_per_sample, 
     fmt->freq = sample_rate;
     fmt->format = AUDIO_S16;
     fmt->channels = channels;
-    fmt->samples = 1024;    /* A good value for games */
+    fmt->samples = 1024;
     fmt->callback = sdl_audio_callback;
     fmt->userdata = this;
 
 	bool ret = SDL_OpenAudio(fmt,0)>=0;
 	SDL_PauseAudio(0);
+// 	m_mutex.lock();
 	return ret;
 }
