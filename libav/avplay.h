@@ -54,6 +54,13 @@ typedef enum play_status
 	inited, playing, paused, completed, stoped
 } play_status;
 
+enum sync_type
+{
+	AV_SYNC_AUDIO_MASTER, /* 默认选择. */
+	AV_SYNC_VIDEO_MASTER, /* 同步到视频时间戳. */
+	AV_SYNC_EXTERNAL_CLOCK, /* 同步到外部时钟. */
+};
+
 /* 用于config_render参数表示所配置的render.  */
 #define MEDIA_SOURCE			0
 #define AUDIO_RENDER			1

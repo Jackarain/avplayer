@@ -11,13 +11,6 @@ enum bool_type
 };
 #endif
 
-enum sync_type
-{
-	AV_SYNC_AUDIO_MASTER, /* 默认选择. */
-	AV_SYNC_VIDEO_MASTER, /* 同步到视频时间戳. */
-	AV_SYNC_EXTERNAL_CLOCK, /* 同步到外部时钟. */
-};
-
 /* 队列类型.	*/
 #define QUEUE_PACKET				0
 #define QUEUE_AVFRAME			1
