@@ -18,6 +18,9 @@ include_directories(libav/)
 include_directories(source/)
 include_directories(audio/)
 
+
+add_definitions(-DUSE_SWR)
+
 add_subdirectory(libav)
 add_subdirectory(video)
 add_subdirectory(audio)
