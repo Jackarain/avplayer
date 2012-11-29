@@ -53,17 +53,15 @@ int main(int argc, char* argv[])
 
 
 	// 判断打开的媒体类型, 根据媒体文件类型选择不同的方式打开.
-	fs::path filename(argv[1]);
-	std::string ext = filename.extension().string();
-	if (ext == ".torrent")
+	std::string filename(argv[1]);
+	if (fs::path(filename).extension() == ".torrent")
 	{
 		if(ply.open(filename.c_str(), MEDIA_TYPE_BT)<0)
 			return -1;
 	}
 	else
 	{
-		std::string str = filename.string();
-		std::string is_url = str.substr(0, 7);
+		std::string is_url = filename.substr(0, 7);
 		if (is_url == "http://")
 		{
 			if (ply.open(filename.c_str(), MEDIA_TYPE_HTTP)<0)
@@ -92,7 +90,7 @@ int main(int argc, char* argv[])
 			//ply.stop();
 			break;
 		}
-		if(event.type =- SDL_KEYDOWN){
+		if(event.type == SDL_KEYDOWN){
 			if(event.key.keysym.sym == SDLK_RIGHT){
 				ply.fwd();
 			}

@@ -88,6 +88,21 @@ int player::open(const char* movie, int media_type)
 			// 初始化文件媒体源.
 			init_file_source(m_source);
 		}
+
+		if (media_type == MEDIA_TYPE_HTTP)
+		{
+
+			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename.c_str(), filename.length()+1, 0);
+			if (!m_source)
+			{
+				::logger("allocate media source failed, type is http.\n");
+				break;
+			}
+
+			// 插入到媒体列表.
+			m_media_list.insert(std::make_pair(filename, filename));
+		}
+
 #if 0
 		if (media_type == MEDIA_TYPE_BT)
 		{
@@ -118,19 +133,6 @@ int player::open(const char* movie, int media_type)
 			init_torrent_source(m_source);
 		}
 
-		if (media_type == MEDIA_TYPE_HTTP)
-		{
-			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename.c_str(), filename.string().length()+1, 0);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is http.\n");
-				break;
-			}
-
-			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename.string(), filename.string()));
-		}
-
 		if (media_type == MEDIA_TYPE_RTSP)
 		{
 			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename.c_str(), filename.string().length()+1, 0);
@@ -144,26 +146,6 @@ int player::open(const char* movie, int media_type)
 			m_media_list.insert(std::make_pair(filename.string(), filename.string()));
 		}
 #endif
-		// 初始化avplay.
-		if (initialize(m_avplay, m_source) != 0)
-		{
-			::logger("initialize avplay failed!\n");
-			break;
-		}
-
-		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
-		if (media_type == MEDIA_TYPE_BT)
-		{
-			int i = 0;
-			media_info *media = m_avplay->m_source_ctx->media;
-			for (; i < m_avplay->m_source_ctx->media_size; i++)
-			{
-				std::string name;
-				name = media->name;
-				m_media_list.insert(std::make_pair(filename, name));
-			}
-		}
-
 		// 分配音频和视频的渲染器.
 		m_audio = alloc_audio_render();
 		if (!m_audio)
@@ -178,10 +160,34 @@ int player::open(const char* movie, int media_type)
 			::logger("allocate video render failed!\n");
 			break;
 		}
-
 		// 初始化音频和视频渲染器.
 		init_audio(m_audio);
 		init_video(m_video);
+
+		// 初始化avplay.
+		if (initialize(m_avplay, m_source) != 0)
+		{
+			::logger("initialize avplay failed!\n");
+			break;
+		}
+
+// 	logger("asdfasdasfasdfasdfhkjf\n");	
+
+
+		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
+		if (media_type == MEDIA_TYPE_BT)
+		{
+			int i = 0;
+			media_info *media = m_avplay->m_source_ctx->media;
+			for (; i < m_avplay->m_source_ctx->media_size; i++)
+			{
+				std::string name;
+				name = media->name;
+				m_media_list.insert(std::make_pair(filename, name));
+			}
+		}
+
+
 
 		// 配置音频视频渲染器.
 		configure(m_avplay, m_video, VIDEO_RENDER);
@@ -197,8 +203,6 @@ int player::open(const char* movie, int media_type)
 		// 打开视频实时码率和帧率计算.
 		enable_calc_frame_rate(m_avplay);
 		enable_calc_bit_rate(m_avplay);
-		//FIXME, don't know why audio sync cause frame drop
-		//m_avplay->m_av_sync_type = AV_SYNC_VIDEO_MASTER;
 
 		return 0;
 
@@ -242,6 +246,7 @@ void player::init_audio(ao_context* ao)
 	ao->audio_control = sdl_audio_control;
 	ao->mute_set = sdl_mute_set;
 	ao->destory_audio = sdl_destory_audio;
+	logger("ao->destory_audio = %p\n",ao->destory_audio);
 }
 
 bool player::play(double fact, int index)
