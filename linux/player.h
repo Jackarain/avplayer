@@ -24,7 +24,12 @@
 #include <avplay.h>
 
 class player
-{
+{	
+public:
+	// 播放控制
+	void fwd(); //快进
+	
+private:
 	bool HasWindow(){return true;};
 
 	// 播放器相关的函数.

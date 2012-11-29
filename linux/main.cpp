@@ -85,8 +85,18 @@ int main(int argc, char* argv[])
 	ply.play();
 
 	while(true){
-		SDL_Event event[1];
-		SDL_WaitEvent(event);
+		SDL_Event event;
+		SDL_WaitEvent(&event);
+
+		if(event.type == SDL_QUIT){
+			//ply.stop();
+			break;
+		}
+		if(event.type =- SDL_KEYDOWN){
+			if(event.key.keysym.sym == SDLK_RIGHT){
+				ply.fwd();
+			}
+		}
 	}
 	
 	//ply.wait_for_completion();
