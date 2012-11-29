@@ -13,37 +13,37 @@ extern "C" {
 EXPORT_API int d3d_init_video(void *ctx, int w, int h, int pix_fmt)
 {
 	vo_context *vo = (vo_context*)ctx;
-   d3d_render *d3d = NULL;
+	d3d_render *d3d = NULL;
 	vo->video_dev = (void*)(d3d = new d3d_render);
-   return d3d->init_render(vo->user_data, w, h, pix_fmt) ? 0 : -1;
+	return d3d->init_render(vo->user_data, w, h, pix_fmt) ? 0 : -1;
 }
 
 EXPORT_API int d3d_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	d3d_render *d3d = (d3d_render*)vo->video_dev;
-   return d3d->render_one_frame(data, pix_fmt) ? 0 : -1;
+	return d3d->render_one_frame(data, pix_fmt) ? 0 : -1;
 }
 
 EXPORT_API void d3d_re_size(void *ctx, int width, int height)
 {
 	vo_context *vo = (vo_context*)ctx;
 	d3d_render *d3d = (d3d_render*)vo->video_dev;
-   d3d->re_size(width, height);
+	d3d->re_size(width, height);
 }
 
 EXPORT_API void d3d_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect)
 {
 	vo_context *vo = (vo_context*)ctx;
 	d3d_render *d3d = (d3d_render*)vo->video_dev;
-   d3d->aspect_ratio(srcw, srch, enable_aspect);
+	d3d->aspect_ratio(srcw, srch, enable_aspect);
 }
 
 EXPORT_API int d3d_use_overlay(void *ctx)
 {
 	vo_context *vo = (vo_context*)ctx;
 	d3d_render *d3d = (d3d_render*)vo->video_dev;
-   return d3d->use_overlay() ? 0 : -1;
+	return d3d->use_overlay() ? 0 : -1;
 }
 
 EXPORT_API void d3d_destory_render(void *ctx)
