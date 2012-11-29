@@ -1000,7 +1000,7 @@ BOOL player_impl::close()
 {
 	if (m_avplay)
 	{
-		::destory(m_avplay);
+		::av_destory(m_avplay);
 		m_avplay = NULL;	// 清空指针, 避免下一次重新open时出错.
 		m_source = NULL;	// m_source 在 read_pkt_thrd 线程退出时, 会自动释放, 这里只需要简单清空即可.
 		m_cur_index = -1;
@@ -1133,7 +1133,7 @@ BOOL player_impl::full_screen(BOOL fullscreen)
 
 double player_impl::curr_play_time()
 {
-	return ::curr_play_time(m_avplay);
+	return ::av_curr_play_time(m_avplay);
 }
 
 double player_impl::duration()
@@ -1242,7 +1242,7 @@ void player_impl::toggle_mute()
 	if (m_avplay)
 	{
 		m_mute = !m_mute;
-		::mute_set(m_avplay, m_mute);
+		::av_mute_set(m_avplay, m_mute);
 	}
 }
 
@@ -1251,6 +1251,6 @@ void player_impl::mute_set(bool s)
 	if (m_avplay)
 	{
 		m_mute = s;
-		::mute_set(m_avplay, s);
+		::av_mute_set(m_avplay, s);
 	}
 }

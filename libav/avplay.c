@@ -1,6 +1,6 @@
-#include "avplay.h"
 #include <stdlib.h>
 #include <math.h>
+#include "avplay.h"
 
 /* 定义bool值 */
 #ifndef _MSC_VER
@@ -9,13 +9,6 @@ enum bool_type
 	FALSE, TRUE
 };
 #endif
-
-enum sync_type
-{
-	AV_SYNC_AUDIO_MASTER, /* 默认选择. */
-	AV_SYNC_VIDEO_MASTER, /* 同步到视频时间戳. */
-	AV_SYNC_EXTERNAL_CLOCK, /* 同步到外部时钟. */
-};
 
 /* 队列类型.	*/
 #define QUEUE_PACKET				0
@@ -33,11 +26,35 @@ enum sync_type
 #define AV_NOSYNC_THRESHOLD	10.0f
 #define AUDIO_DIFF_AVG_NB		20
 
-#define SEEKING_FLAG				-1
+#define SEEKING_FLAG			-1
 #define NOSEEKING_FLAG			0
 
 #ifndef _MSC_VER
-#define Sleep(x) usleep(x * 1000)
+#include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include <errno.h>
+
+void Sleep(int msec)
+{
+	struct timespec rev,rem;
+	rev.tv_sec =msec/1000;
+	rev.tv_nsec = msec * 1000000;
+	
+	int ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
+	while(ret <0 && errno == EINTR){
+		rev = rem;
+		ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
+	}
+}
+
+int64_t av_gettime()
+{
+	struct timespec cltime;
+	clock_gettime(CLOCK_MONOTONIC,&cltime);
+	return cltime.tv_sec * 1000000 + cltime.tv_nsec / 1000;
+}
+
 #else
 #define av_gettime() (timeGetTime() * 1000.0f)
 #endif
@@ -985,22 +1002,22 @@ void av_volume(avplay *play, double l, double r)
 	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
 }
 
-void mute_set(avplay *play, int s)
+void av_mute_set(avplay *play, int s)
 {
 	play->m_ao_ctx->mute_set(play->m_ao_ctx, s);
 }
 
-double curr_play_time(avplay *play)
+double av_curr_play_time(avplay *play)
 {
 	return master_clock(play);
 }
 
-double duration(avplay *play)
+double av_duration(avplay *play)
 {
 	return (double)play->m_format_ctx->duration / AV_TIME_BASE;
 }
 
-void destory(avplay *play)
+void av_destory(avplay *play)
 {
 	/* 如果正在播放, 则关闭播放. */
 	if (play->m_play_status != stoped && play->m_play_status != inited)
@@ -2014,7 +2031,7 @@ void* video_render_thrd(void *param)
 
 				if (inited == 1 && play->m_vo_ctx)
 				{
-					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
+					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
 					if (delay != 0)
 						Sleep(4);
 				}
@@ -2027,7 +2044,7 @@ void* video_render_thrd(void *param)
 			/* 如果处于暂停状态, 则直接渲染窗口, 以免黑屏. */
 			while (play->m_play_status == paused && inited == 1 && play->m_vo_ctx && !play->m_abort)
 			{
-				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
+				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
 				Sleep(16);
 			}
 

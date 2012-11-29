@@ -81,8 +81,7 @@ EXPORT_API void sdl_destory_render(void *ctx)
 
 bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 {
-	SDL_Surface * sfc = (SDL_Surface*)ctx;
-
+	sfc = SDL_SetVideoMode(w,h,32,0);
 	SDL_LockSurface(sfc);
 	this->m_yuv = SDL_CreateYUVOverlay(w,h,SDL_IYUV_OVERLAY,sfc);
 	SDL_UnlockSurface(sfc);
@@ -92,8 +91,24 @@ bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
 bool sdl_render::render_one_frame(AVFrame* data, int pix_fmt)
 {
-	logger("render_one_frame called\n");
-	return 1;
+	SDL_Rect rect;
+
+	SDL_LockYUVOverlay(m_yuv);
+
+	m_yuv->pixels = data->data;
+	//memcpy(m_yuv->pixels[0],data->data[0],data->linesize[0]*m_yuv->h);
+// // 	memcpy(m_yuv->pixels[1],data->data[1],data->linesize[1]*m_yuv->h);
+	//memcpy(m_yuv->pixels[2],data->data[2],data->linesize[2]*m_yuv->h);
+	
+	SDL_UnlockYUVOverlay(m_yuv);
+	rect.x = 0;
+	rect.y = 0;
+	rect.w =  m_yuv->w;
+	rect.h = m_yuv->h;
+	SDL_DisplayYUVOverlay(m_yuv, &rect);
+// 	logger("render_one_frame called\n");
+	
+	return true;
 }
 
 void sdl_render::re_size(int width, int height)

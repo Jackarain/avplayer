@@ -7,11 +7,14 @@
 
 #ifndef __AUDIO_OUT_H__
 #define __AUDIO_OUT_H__
-
-#ifdef AUDIO_EXPORTS
-#define EXPORT_API __declspec(dllexport)
+#ifdef _MSC_VER
+#	ifdef AUDIO_EXPORTS
+#		define EXPORT_API __declspec(dllexport)
+#	else
+#		define EXPORT_API __declspec(dllimport)
+#	endif
 #else
-#define EXPORT_API __declspec(dllimport)
+#	define EXPORT_API
 #endif
 
 #ifdef  __cplusplus
