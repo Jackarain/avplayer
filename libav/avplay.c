@@ -1026,6 +1026,34 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	/* 重采样到AV_SAMPLE_FMT_S16格式. */
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)
 	{
+		if (!play->m_swr_ctx)
+		{
+			uint64_t channel_layout = av_get_default_channel_layout(play->m_audio_ctx->channels);
+			play->m_swr_ctx = swr_alloc_set_opts(NULL, src->channel_layout, AV_SAMPLE_FMT_S16,
+				src->sample_rate, src->channel_layout, play->m_audio_ctx->sample_fmt, src->sample_rate, 0, NULL);
+
+// 			uint64_t channel_layout = AV_CH_LAYOUT_STEREO;
+// 			play->m_swr_ctx = swr_alloc_set_opts(NULL, src->channel_layout, AV_SAMPLE_FMT_S16,
+// 				src->sample_rate
+// 
+// 				is->audio_tgt.channel_layout, is->audio_tgt.fmt, is->audio_tgt.freq,
+// 				dec_channel_layout,           is->frame->format, is->frame->sample_rate,
+// 				0, NULL);
+		}
+
+		if (play->m_swr_ctx)
+		{
+			int ret, out_count, in_count;
+			out_count = dst->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+			in_count = src->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
+			// ret = ret * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+			swr_init(play->m_swr_ctx);
+			ret = swr_convert(play->m_swr_ctx, dst->data, out_count, src->data, src->nb_samples);
+			if (ret < 0)
+				assert(0);
+		}
+		
+
 		if (!play->m_audio_convert_ctx)
 			play->m_audio_convert_ctx = av_audio_convert_alloc(
 			AV_SAMPLE_FMT_S16, 1, play->m_audio_ctx->sample_fmt, 1,
@@ -1441,17 +1469,50 @@ void* audio_dec_thrd(void *param)
 			while (!play->m_abort)
 			{
 				int audio_out_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-				ret = avcodec_decode_audio3(play->m_audio_ctx,
-					(int16_t*)((uint8_t*)audio_buf + out_size), &audio_out_size, &pkt2);
+				int got_frame = 0;
+ 				ret = avcodec_decode_audio4(play->m_audio_ctx, &avframe, &got_frame, &pkt2);
+// 				ret = avcodec_decode_audio3(play->m_audio_ctx,
+// 					(int16_t*)((uint8_t*)audio_buf + out_size), &audio_out_size, &pkt2);
 				if (ret < 0)
 				{
 					printf("Audio error while decoding one frame!!!\n");
 					break;
 				}
-				out_size += audio_out_size;
+				// out_size += audio_out_size;
 				pkt2.size -= ret;
 				pkt2.data += ret;
 
+// 				if (pkt2.size <= 0 || got_frame)
+// 					break;
+				if (!got_frame)
+					continue;
+
+				if (avframe.linesize[0] != 0)
+				{
+					audio_copy(play, &avcopy, &avframe);
+					/* 将计算的pts复制到avcopy.pts.	*/
+					memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
+
+					/* 计算下一个audio的pts值.	*/
+					n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
+
+					play->m_audio_clock += ((double) avcopy.linesize[0]
+					/ (double) (n * play->m_audio_ctx->sample_rate));
+
+					/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
+					if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
+						play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
+					{
+						/* 暂无实现.	*/
+					}
+
+					/* 防止内存过大.	*/
+					chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
+
+					/* 丢到播放队列中.	*/
+					put_queue(&play->m_audio_dq, &avcopy);
+				}
+				
 				if (pkt2.size <= 0)
 					break;
 			}
