@@ -270,5 +270,5 @@ bool player::wait_for_completion()
 
 void player::fwd()
 {	
-	av_seek(m_avplay,curr_play_time(m_avplay) / duration(m_avplay) + 0.05);
+	av_seek(m_avplay,av_curr_play_time(m_avplay) / av_duration(m_avplay) + 0.05);
 }

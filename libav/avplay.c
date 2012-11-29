@@ -985,22 +985,22 @@ void av_volume(avplay *play, double l, double r)
 	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
 }
 
-void mute_set(avplay *play, int s)
+void av_mute_set(avplay *play, int s)
 {
 	play->m_ao_ctx->mute_set(play->m_ao_ctx, s);
 }
 
-double curr_play_time(avplay *play)
+double av_curr_play_time(avplay *play)
 {
 	return master_clock(play);
 }
 
-double duration(avplay *play)
+double av_duration(avplay *play)
 {
 	return (double)play->m_format_ctx->duration / AV_TIME_BASE;
 }
 
-void destory(avplay *play)
+void av_destory(avplay *play)
 {
 	/* 如果正在播放, 则关闭播放. */
 	if (play->m_play_status != stoped && play->m_play_status != inited)
@@ -1953,7 +1953,7 @@ void* video_render_thrd(void *param)
 
 				if (inited == 1 && play->m_vo_ctx)
 				{
-					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
+					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
 					if (delay != 0)
 						Sleep(4);
 				}
@@ -1966,7 +1966,7 @@ void* video_render_thrd(void *param)
 			/* 如果处于暂停状态, 则直接渲染窗口, 以免黑屏. */
 			while (play->m_play_status == paused && inited == 1 && play->m_vo_ctx && !play->m_abort)
 			{
-				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, curr_play_time(play));
+				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
 				Sleep(16);
 			}
 

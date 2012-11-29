@@ -308,28 +308,28 @@ EXPORT_API void av_volume(avplay *play, double l, double r);
  * @param vol is mute.
  * @This function does not return a value.
  */
-EXPORT_API void mute_set(avplay *play, int s);
+EXPORT_API void av_mute_set(avplay *play, int s);
 
 /*
  * The current playback time position
  * @param play pointer to the player.
  * @return current play time position, a negative on failure.
  */
-EXPORT_API double curr_play_time(avplay *play);
+EXPORT_API double av_curr_play_time(avplay *play);
 
 /*
  * The Duration function return the playing duration of the media, in second units.
  * @param play pointer to the player.
  * @return the playing duration of the media, in second units.
  */
-EXPORT_API double duration(avplay *play);
+EXPORT_API double av_duration(avplay *play);
 
 /*
  * Destroys an player. 
  * @param play pointer to the player.
  * @This function does not return a value.
  */
-EXPORT_API void destory(avplay *play);
+EXPORT_API void av_destory(avplay *play);
 
 /*
  * Allows the calculation of the real-time frame rate.
