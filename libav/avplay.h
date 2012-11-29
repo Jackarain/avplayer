@@ -28,12 +28,8 @@
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
-#include <libswresample/audioconvert.h>
-#if LIBAVCODEC_VERSION_MINOR == 59
-#include <libavutil/audioconvert.h>
-struct _AVAudioConvert;
-typedef struct _AVAudioConvert AVAudioConvert;
-#else
+#include <libswresample/swresample.h>
+#ifndef USE_SWR
 #include <libavcodec/audioconvert.h>
 #endif
 #include <assert.h>
@@ -119,7 +115,9 @@ typedef struct avplay
 
 	/* 重采样音频指针.	*/
 	struct SwsContext *m_swsctx;
+#ifndef USE_SWR
  	AVAudioConvert *m_audio_convert_ctx;
+#endif
 	struct SwrContext *m_swr_ctx;
 	ReSampleContext *m_resample_ctx;
 

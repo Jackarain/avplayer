@@ -1,3 +1,6 @@
+
+#define USE_SWR
+
 #include <stdlib.h>
 #include <math.h>
 #include "avplay.h"
@@ -919,8 +922,10 @@ void av_stop(avplay *play)
 		avcodec_close(play->m_video_ctx);
 	if (play->m_format_ctx)
 		avformat_close_input(&play->m_format_ctx);
+#ifndef USE_SWR
 	if (play->m_audio_convert_ctx)
 		av_audio_convert_free(play->m_audio_convert_ctx);
+#endif
 	if (play->m_resample_ctx)
 		audio_resample_close(play->m_resample_ctx);
 	pthread_mutex_destroy(&play->m_buf_size_mtx);
@@ -1048,8 +1053,6 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
 	assert(dst->data[0]);
 	avcodec_fill_audio_frame(dst, out_channels, AV_SAMPLE_FMT_S16, dst->data[0], dst_buf_size, 0);
-
-#define USE_SWR
 
 	/* 重采样到AV_SAMPLE_FMT_S16格式. */
 	if (play->m_audio_ctx->sample_fmt != AV_SAMPLE_FMT_S16)

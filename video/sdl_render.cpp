@@ -93,6 +93,8 @@ bool sdl_render::render_one_frame(AVFrame* data, int pix_fmt)
 {
 	SDL_Rect rect;
 
+	uint8_t** px = m_yuv->pixels;
+
 	SDL_LockYUVOverlay(m_yuv);
 
 	m_yuv->pixels = data->data;
@@ -106,8 +108,7 @@ bool sdl_render::render_one_frame(AVFrame* data, int pix_fmt)
 	rect.w =  m_yuv->w;
 	rect.h = m_yuv->h;
 	SDL_DisplayYUVOverlay(m_yuv, &rect);
-// 	logger("render_one_frame called\n");
-	
+	m_yuv->pixels =	px;
 	return true;
 }
 

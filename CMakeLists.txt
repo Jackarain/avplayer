@@ -4,7 +4,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-#SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_STATIC_RUNTIME    ON)
@@ -17,6 +17,9 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(libav/)
 include_directories(source/)
 include_directories(audio/)
+
+
+add_definitions(-DUSE_SWR)
 
 add_subdirectory(libav)
 add_subdirectory(video)
