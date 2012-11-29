@@ -92,6 +92,12 @@ int main(int argc, char* argv[])
 			//ply.stop();
 			break;
 		}
+		if(event.type =- SDL_KEYDOWN){
+			if(event.key.keysym.sym == SDLK_RIGHT){
+				ply.fwd();
+				
+			}
+		}
 	}
 	
 	//ply.wait_for_completion();

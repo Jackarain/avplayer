@@ -267,3 +267,8 @@ bool player::wait_for_completion()
 	}
 	return false;
 }
+
+void player::fwd()
+{	
+	av_seek(m_avplay,curr_play_time(m_avplay) / duration(m_avplay) + 0.05);
+}
