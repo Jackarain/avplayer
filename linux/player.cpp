@@ -246,7 +246,7 @@ void player::init_audio(ao_context* ao)
 	ao->audio_control = sdl_audio_control;
 	ao->mute_set = sdl_mute_set;
 	ao->destory_audio = sdl_destory_audio;
-	logger("ao->destory_audio = %p\n",ao->destory_audio);
+	logger("using audio output sdl.\n");
 }
 
 bool player::play(double fact, int index)

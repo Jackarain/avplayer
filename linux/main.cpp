@@ -82,6 +82,8 @@ int main(int argc, char* argv[])
 	//开始播放
 	ply.play();
 
+	SDL_WM_SetCaption((std::string("正在播放") + filename).c_str(),"");
+
 	while(true){
 		SDL_Event event;
 		SDL_WaitEvent(&event);
