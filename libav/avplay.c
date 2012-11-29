@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <math.h>
-#include <libavutil/time.h>
 #include "avplay.h"
 
 /* 定义bool值 */
