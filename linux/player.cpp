@@ -53,7 +53,7 @@ int player::open(const char* movie, int media_type)
 	if (!HasWindow())
 		return -1;
 
-	fs::path filename(movie);
+	std::string filename(movie);
 
 	uint64_t file_lentgh = 0;
 	if (media_type == MEDIA_TYPE_FILE || media_type == MEDIA_TYPE_BT)
@@ -74,7 +74,7 @@ int player::open(const char* movie, int media_type)
 		if (media_type == MEDIA_TYPE_FILE)
 		{
 			//size_t len = strlen(filename);
-			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename.string().c_str(), filename.string().length()+1, file_lentgh);
+			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename.c_str(), filename.length()+1, file_lentgh);
 			
 			if (!m_source)
 			{
@@ -83,7 +83,7 @@ int player::open(const char* movie, int media_type)
 			}
 
 			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename.string(), filename.string()));
+			m_media_list.insert(std::make_pair(filename, filename));
 
 			// 初始化文件媒体源.
 			init_file_source(m_source);
@@ -160,7 +160,7 @@ int player::open(const char* movie, int media_type)
 			{
 				std::string name;
 				name = media->name;
-				m_media_list.insert(std::make_pair(filename.string(), name));
+				m_media_list.insert(std::make_pair(filename, name));
 			}
 		}
 
