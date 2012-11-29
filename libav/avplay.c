@@ -1042,10 +1042,10 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	*dst = *src;
 	dst->data[0] = NULL;
 	dst->type = 0;
-	out_channels = (FFMIN(play->m_audio_ctx->channels, 2));
+	out_channels = play->m_audio_ctx->channels;/* (FFMIN(play->m_audio_ctx->channels, 2)); */
 	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
 	dst_buf_size = nb_sample * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
-	dst->data[0] = (uint8_t*) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE * 4/*dst_buf_size*/);
+	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
 	assert(dst->data[0]);
 	avcodec_fill_audio_frame(dst, out_channels, AV_SAMPLE_FMT_S16, dst->data[0], dst_buf_size, 0);
 
@@ -1059,7 +1059,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		{
 			uint64_t in_channel_layout = av_get_default_channel_layout(play->m_audio_ctx->channels);
 			uint64_t out_channel_layout = av_get_default_channel_layout(out_channels);
-			play->m_swr_ctx = swr_alloc_set_opts(NULL, out_channel_layout, AV_SAMPLE_FMT_S16,
+			play->m_swr_ctx = swr_alloc_set_opts(NULL, in_channel_layout, AV_SAMPLE_FMT_S16,
 				play->m_audio_ctx->sample_rate, in_channel_layout,
 				play->m_audio_ctx->sample_fmt, play->m_audio_ctx->sample_rate, 0, NULL);
 			swr_init(play->m_swr_ctx);
@@ -1072,7 +1072,8 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 			ret = swr_convert(play->m_swr_ctx, dst->data, out_count, src->data, nb_sample);
 			if (ret < 0)
 				assert(0);
-			dst->linesize[0] = ret * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
+			src->linesize[0] = dst->linesize[0] = ret * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
+			memcpy(src->data[0], dst->data[0], src->linesize[0]);
 		}
 #else
 		if (!play->m_audio_convert_ctx)
@@ -1097,7 +1098,6 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 #endif
 	}
 
-#ifndef USE_SWR
 	/* 重采样到双声道. */
 	if (play->m_audio_ctx->channels > 2)
 	{
@@ -1122,7 +1122,6 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		dst->linesize[0] = dst->linesize[0];
 		memcpy(dst->data[0], src->data[0], dst->linesize[0]);
 	}
-#endif
 }
 
 static
