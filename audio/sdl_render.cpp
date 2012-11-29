@@ -91,8 +91,6 @@ void sdl_audio_render::sdl_audio_callback(void* userdata, Uint8* stream, int len
 
 void sdl_audio_render::audio_callback(Uint8* stream, int len)
 {
-// 	boost::mutex::scoped_lock l(m_mutex);
-
 	ssize_t readed=0;
 // 	logger("sdl ask for %d length of data %p",len,stream);
 
@@ -110,8 +108,6 @@ void sdl_audio_render::audio_callback(Uint8* stream, int len)
 
 int sdl_audio_render::play_audio(uint8_t* data, uint32_t size)
 {
-// 	boost::mutex::scoped_lock l(m_mutex);
-
 	// push to stack
 	ssize_t ret =  write(adfd[1],data,size);
 	if(ret != size){
@@ -148,6 +144,5 @@ bool sdl_audio_render::init_audio(void* ctx, int channels, int bits_per_sample, 
 
 	bool ret = SDL_OpenAudio(fmt,0)>=0;
 	SDL_PauseAudio(0);
-// 	m_mutex.lock();
 	return ret;
 }
