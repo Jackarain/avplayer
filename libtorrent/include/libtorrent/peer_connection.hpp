@@ -174,14 +174,6 @@ namespace libtorrent
 			, policy::peer* peerinfo
 			, bool outgoing = true);
 
-		// with this constructor we have been contacted and we still don't
-		// know which torrent the connection belongs to
-		peer_connection(
-			aux::session_impl& ses
-			, boost::shared_ptr<socket_type> s
-			, tcp::endpoint const& remote
-			, policy::peer* peerinfo);
-
 		// this function is called after it has been constructed and properly
 		// reference counted. It is safe to call self() in this function
 		// and schedule events with references to itself (that is not safe to
@@ -514,7 +506,9 @@ namespace libtorrent
 		// sends a cancel message if appropriate
 		// refills the request queue, and possibly ignoring pieces requested
 		// by peers in the ignore list (to avoid recursion)
-		void cancel_request(piece_block const& b);
+		// if force is true, the blocks is also freed from the piece
+		// picker, allowing another peer to request it immediately
+		void cancel_request(piece_block const& b, bool force = false);
 		void send_block_requests();
 
 		int bandwidth_throttle(int channel) const

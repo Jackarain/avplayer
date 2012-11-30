@@ -2,11 +2,9 @@
 // subject to the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
+#include <boost/python.hpp>
 #include <list>
 #include <string>
-#include "Python.h"
-#include <cctype>
-#include <boost/python.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/settings.hpp> // for bencode_map_entry
 #include <libtorrent/torrent.hpp>
@@ -528,6 +526,7 @@ void bind_session()
             "add_dht_router", &add_dht_router
           , (arg("router"), "port")
         )
+        .def("set_dht_settings", allow_threads(&session::set_dht_settings))
         .def("start_dht", allow_threads(start_dht0))
         .def("stop_dht", allow_threads(&session::stop_dht))
 #ifndef TORRENT_NO_DEPRECATE

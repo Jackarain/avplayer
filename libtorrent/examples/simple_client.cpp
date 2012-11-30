@@ -55,21 +55,19 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	add_torrent_params p;
-	p.save_path = ".";
+	p.save_path = "./";
 	p.ti = new torrent_info(argv[1], ec);
 	if (ec)
 	{
 		fprintf(stderr, "%s\n", ec.message().c_str());
 		return 1;
 	}
-	torrent_handle h = s.add_torrent(p, ec);
+	s.add_torrent(p, ec);
 	if (ec)
 	{
 		fprintf(stderr, "%s\n", ec.message().c_str());
 		return 1;
 	}
-
-	h.set_sequential_download(true);
 
 	// wait for the user to end
 	char a;

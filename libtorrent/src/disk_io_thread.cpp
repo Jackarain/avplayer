@@ -1781,7 +1781,8 @@ namespace libtorrent
 					setiopolicy_np(IOPOL_TYPE_DISK, IOPOL_SCOPE_THREAD
 						, m_settings.low_prio_disk ? IOPOL_THROTTLE : IOPOL_DEFAULT);
 #elif defined IOPRIO_WHO_PROCESS
-					syscall(ioprio_set, IOPRIO_WHO_PROCESS, getpid());
+					syscall(ioprio_set, IOPRIO_WHO_PROCESS, getpid(), IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE
+						, m_settings.get_bool(settings_pack::low_prio_disk) ? 7: 0));
 #endif
 					if (m_settings.cache_size == -1)
 					{
@@ -2119,7 +2120,7 @@ namespace libtorrent
 							, l, m_settings.write_cache_line_size
 							, m_settings.disk_cache_algorithm == session_settings::avoid_readback);
 
-						if (p->num_blocks == 0) idx.erase(p);
+						if (p->num_blocks == 0 && p->next_block_to_hash == 0) idx.erase(p);
 						test_error(j);
 						TORRENT_ASSERT(!j.storage->error());
 					}

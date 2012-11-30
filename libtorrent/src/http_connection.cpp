@@ -93,7 +93,6 @@ http_connection::http_connection(io_service& ios, connection_queue& cc
 
 http_connection::~http_connection()
 {
-	TORRENT_ASSERT(m_connection_ticket == -1);
 #ifdef TORRENT_USE_OPENSSL
 	if (m_own_ssl_context) delete m_ssl_ctx;
 #endif
@@ -379,13 +378,23 @@ void http_connection::start(std::string const& hostname, std::string const& port
 
 void http_connection::on_connect_timeout()
 {
-	TORRENT_ASSERT(m_connection_ticket > -1);
+	if (m_connection_ticket > -1) m_cc.done(m_connection_ticket);
+	m_connection_ticket = -1;
+
 	// keep ourselves alive even if the callback function
 	// deletes this object
 	boost::shared_ptr<http_connection> me(shared_from_this());
 
-	error_code ec;
-	m_sock.close(ec);
+	if (!m_endpoints.empty())
+	{
+		error_code ec;
+		m_sock.close(ec);
+	} 
+	else
+	{ 
+		callback(asio::error::timed_out);
+		close();
+	}
 }
 
 void http_connection::on_timeout(boost::weak_ptr<http_connection> p
@@ -541,12 +550,6 @@ void http_connection::queue_connect()
 
 void http_connection::connect(int ticket, tcp::endpoint target_address)
 {
-	if (ticket == -1)
-	{
-		close();
-		return;
-	}
-
 	m_connection_ticket = ticket;
 	if (m_proxy.proxy_hostnames
 		&& (m_proxy.type == proxy_settings::socks5
@@ -618,28 +621,7 @@ void http_connection::callback(error_code e, char const* data, int size)
 	std::vector<char> buf;
 	if (data && m_bottled && m_parser.header_finished())
 	{
-		if (m_parser.chunked_encoding())
-		{
-			// go through all chunks and compact them
-			// since we're bottled, and the buffer is our after all
-			// it's OK to mutate it
-			char* write_ptr = (char*)data;
-			// the offsets in the array are from the start of the
-			// buffer, not start of the body, so subtract the size
-			// of the HTTP header from them
-			int offset = m_parser.body_start();
-			std::vector<std::pair<size_type, size_type> > const& chunks = m_parser.chunks();
-			for (std::vector<std::pair<size_type, size_type> >::const_iterator i = chunks.begin()
-				, end(chunks.end()); i != end; ++i)
-			{
-				TORRENT_ASSERT(i->second - i->first < INT_MAX);
-				int len = int(i->second - i->first);
-				if (i->first - offset + len > size) len = size - int(i->first) + offset;
-				memmove(write_ptr, data + i->first - offset, len);
-				write_ptr += len;
-			}
-			size = write_ptr - data;
-		}
+		size = m_parser.collapse_chunk_headers((char*)data, size);
 
 		std::string const& encoding = m_parser.header("content-encoding");
 		if ((encoding == "gzip" || encoding == "x-gzip") && size > 0 && data)

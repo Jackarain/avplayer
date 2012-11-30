@@ -263,8 +263,9 @@ namespace libtorrent
 		PRINT_OFFSETOF(torrent, m_storage_constructor)
 		PRINT_OFFSETOF(torrent, m_added_time)
 		PRINT_OFFSETOF(torrent, m_completed_time)
-		PRINT_OFFSETOF(torrent, m_last_seen_complete)
 		PRINT_OFFSETOF(torrent, m_last_saved_resume)
+		PRINT_OFFSETOF(torrent, m_last_seen_complete)
+		PRINT_OFFSETOF(torrent, m_swarm_last_seen_complete)
 #ifndef TORRENT_DISABLE_ENCRYPTION
 		PRINT_OFFSETOF(torrent, m_obfuscated_hash)
 #endif
@@ -284,7 +285,6 @@ namespace libtorrent
 		PRINT_OFFSETOF(torrent, m_last_working_tracker)
 //		PRINT_OFFSETOF(torrent, m_finished_time:24)
 //		PRINT_OFFSETOF(torrent, m_sequential_download:1)
-//		PRINT_OFFSETOF(torrent, m_user_defined_download:1)
 //		PRINT_OFFSETOF(torrent, m_got_tracker_response:1)
 //		PRINT_OFFSETOF(torrent, m_connections_initialized:1)
 //		PRINT_OFFSETOF(torrent, m_super_seeding:1)
@@ -365,8 +365,9 @@ namespace libtorrent
 		, m_storage_constructor(p.storage)
 		, m_added_time(time(0))
 		, m_completed_time(0)
-		, m_last_seen_complete(0)
 		, m_last_saved_resume(time(0))
+		, m_last_seen_complete(0)
+		, m_swarm_last_seen_complete(0)
 		, m_ratio(0.f)
 		, m_available_free_upload(0)
 		, m_average_piece_time(0)
@@ -384,7 +385,7 @@ namespace libtorrent
 		, m_last_working_tracker(-1)
 		, m_finished_time(0)
 		, m_sequential_download(false)
-		, m_user_defined_download(false)	// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		, m_user_defined_download(false)	// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		, m_got_tracker_response(false)
 		, m_connections_initialized(false)
 		, m_super_seeding(false)
@@ -582,7 +583,7 @@ namespace libtorrent
 			prioritize_udp_trackers();
 	}
 
-#if 1
+#if 0
 	
 	// NON BOTTLED VERSION. SUPPORTS PROGRESS REPORTING
 
@@ -618,6 +619,11 @@ namespace libtorrent
 		}
 
 		if (!ec) return;
+
+		// if this was received with chunked encoding, we need to strip out
+		// the chunk headers
+		size = parser.collapse_chunk_headers((char*)&m_torrent_file_buf[0], m_torrent_file_buf.size());
+		m_torrent_file_buf.resize(size);
 
 		std::string const& encoding = parser.header("content-encoding");
 		if ((encoding == "gzip" || encoding == "x-gzip") && m_torrent_file_buf.size())
@@ -725,7 +731,7 @@ namespace libtorrent
 
 		m_override_resume_data = true;
 		init();
-		announce_with_tracker();
+		start_announcing();
 	}
 #else
 
@@ -764,16 +770,58 @@ namespace libtorrent
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 		int num_torrents = m_ses.m_torrents.size();
 #endif
-		m_ses.m_torrents.erase(m_torrent_file->info_hash());
+
+		// we're about to erase the session's reference to this
+		// torrent, create another reference
+		boost::shared_ptr<torrent> me(shared_from_this());
+
+		m_ses.remove_torrent_impl(me, 0);
+
 		m_torrent_file = tf;
-		m_ses.m_torrents.insert(std::make_pair(m_torrent_file->info_hash(), shared_from_this()));
+
+		// now, we might already have this torrent in the session.
+		session_impl::torrent_map::iterator i = m_ses.m_torrents.find(m_torrent_file->info_hash());
+		if (i != m_ses.m_torrents.end())
+		{
+			if (!m_uuid.empty() && i->second->uuid().empty())
+				i->second->set_uuid(m_uuid);
+			if (!m_url.empty() && i->second->url().empty())
+				i->second->set_url(m_url);
+			if (!m_source_feed_url.empty() && i->second->source_feed_url().empty())
+				i->second->set_source_feed_url(m_source_feed_url);
+
+			// insert this torrent in the uuid index
+			if (!m_uuid.empty() || !m_url.empty())
+			{
+				m_ses.m_uuids.insert(std::make_pair(m_uuid.empty()
+					? m_url : m_uuid, i->second));
+			}
+			set_error(error_code(errors::duplicate_torrent, get_libtorrent_category()), "");
+			abort();
+			return;
+		}
+
+		m_ses.m_torrents.insert(std::make_pair(m_torrent_file->info_hash(), me));
+		if (!m_uuid.empty()) m_ses.m_uuids.insert(std::make_pair(m_uuid, me));
 
 		TORRENT_ASSERT(num_torrents == m_ses.m_torrents.size());
 
-		// TODO: if the user added any trackers while downloading the
-		// .torrent file, they are overwritten. Merge them into the
-		// new tracker list
-		m_trackers = m_torrent_file->trackers();
+		// if the user added any trackers while downloading the
+		// .torrent file, serge them into the new tracker list
+		std::vector<announce_entry> new_trackers = m_torrent_file->trackers();
+		for (std::vector<announce_entry>::iterator i = m_trackers.begin()
+			, end(m_trackers.end()); i != end; ++i)
+		{
+			// if we already have this tracker, ignore it
+			if (std::find_if(new_trackers.begin(), new_trackers.end()
+				, boost::bind(&announce_entry::url, _1) == i->url) != new_trackers.end())
+				continue;
+
+			// insert the tracker ordered by tier
+			new_trackers.insert(std::find_if(new_trackers.begin(), new_trackers.end()
+				, boost::bind(&announce_entry::tier, _1) >= i->tier), *i);
+		}
+		m_trackers.swap(new_trackers);
 
 #ifndef TORRENT_DISABLE_ENCRYPTION
 		hasher h;
@@ -788,11 +836,13 @@ namespace libtorrent
 				get_handle()));
 		}
 
+		state_updated();
+
 		set_state(torrent_status::downloading);
 
 		m_override_resume_data = true;
 		init();
-		announce_with_tracker();
+		start_announcing();
 	}
 
 #endif
@@ -819,6 +869,7 @@ namespace libtorrent
 					+ m_resume_data.size(), m_resume_entry, ec, &pos) != 0)
 				{
 					std::vector<char>().swap(m_resume_data);
+					lazy_entry().swap(m_resume_entry);
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
 					(*m_ses.m_logger) << time_now_string() << " fastresume data for "
 						<< torrent_file().name() << " rejected: " << ec.message()
@@ -857,7 +908,7 @@ namespace libtorrent
 		boost::shared_ptr<http_connection> conn(
 			new http_connection(m_ses.m_io_service, m_ses.m_half_open
 				, boost::bind(&torrent::on_torrent_download, shared_from_this()
-					, _1, _2, _3, _4), false));
+					, _1, _2, _3, _4)));
 		conn->get(m_url, seconds(30), 0, 0, 5, m_ses.m_settings.user_agent);
 		set_state(torrent_status::downloading_metadata);
 	}
@@ -968,7 +1019,7 @@ namespace libtorrent
 		}
 	}
 
-	// jackarain: ·ÖÆ¬Êý¾Ý¶ÁÈ¡µÄ¾ßÌåÊµÏÖ.
+	// jackarain: ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½Ä¾ï¿½ï¿½ï¿½Êµï¿½ï¿½.
 	void torrent::read_piece(int piece, read_data_fun rdf)
 	{
 		TORRENT_ASSERT(piece >= 0 && piece < m_torrent_file->num_pieces());
@@ -1182,7 +1233,7 @@ namespace libtorrent
 		}
 	}
 
-	// jackarain: Êý¾Ý¶ÁÈ¡ºóµÄ»Øµ÷.
+	// jackarain: ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½ï¿½ï¿½Ä»Øµï¿½.
 	void torrent::on_disk_read_complete(int ret, disk_io_job const& j,
 		peer_request r, boost::shared_ptr<read_piece_struct> rp, read_data_fun rdf)
 	{
@@ -2131,14 +2182,15 @@ namespace libtorrent
 		m_net_interfaces.clear();
 
 		char* str = strdup(net_interfaces.c_str());
+		char* ptr = str;
 
-		while (str)
+		while (ptr)
 		{
-			char* space = strchr(str, ',');
+			char* space = strchr(ptr, ',');
 			if (space) *space++ = 0;
 			error_code ec;
-			address a(address::from_string(str, ec));
-			str = space;
+			address a(address::from_string(ptr, ec));
+			ptr = space;
 			if (ec) continue;
 			m_net_interfaces.push_back(tcp::endpoint(a, 0));
 		}
@@ -3716,7 +3768,7 @@ namespace libtorrent
 			}
 			while (i != m_time_critical_pieces.begin() && i->deadline < boost::prior(i)->deadline)
 			{
-				std::iter_swap(i, boost::next(i));
+				std::iter_swap(i, boost::prior(i));
 				--i;
 			}
 			return;
@@ -5179,7 +5231,7 @@ namespace libtorrent
 		ret["num_downloaders"] = m_downloaders;
 
 		ret["sequential_download"] = m_sequential_download;
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		ret["user_defined_download"] = m_user_defined_download;
 
 		ret["seed_mode"] = m_seed_mode;
@@ -5669,7 +5721,7 @@ namespace libtorrent
 		m_ses.setup_socket_buffers(*s);
 
 		boost::intrusive_ptr<peer_connection> c(new bt_peer_connection(
-			m_ses, shared_from_this(), s, a, peerinfo));
+			m_ses, s, a, peerinfo, shared_from_this(), true));
 
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 		c->m_in_constructor = false;
@@ -5898,9 +5950,9 @@ namespace libtorrent
 			for (std::set<peer_connection*>::iterator i = m_connections.begin()
 				, end(m_connections.end()); i != end; ++i)
 			{
-				peer_connection* p = *i;
-				if (!p->is_connecting()) continue;
-				p->disconnect(errors::too_many_connections);
+				peer_connection* peer = *i;
+				if (!peer->is_connecting()) continue;
+				peer->disconnect(errors::too_many_connections);
 				break;
 			}
 		}
@@ -6559,7 +6611,7 @@ namespace libtorrent
 		state_updated();
 	}
 
-	// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+	// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 	void torrent::set_user_defined_download(bool ud)
 	{
 		TORRENT_ASSERT(m_ses.is_network_thread());
@@ -7506,11 +7558,15 @@ namespace libtorrent
 			}
 		}
 		
+		m_swarm_last_seen_complete = m_last_seen_complete;
 		for (peer_iterator i = m_connections.begin();
 			i != m_connections.end();)
 		{
 			peer_connection* p = *i;
 			++i;
+
+			// look for the peer that saw a seed most recently
+			m_swarm_last_seen_complete = (std::max)(p->last_seen_complete(), m_swarm_last_seen_complete);
 
 			if (!p->ignore_stats())
 				m_stat += p->statistics();
@@ -8341,8 +8397,7 @@ namespace libtorrent
 		st->down_bandwidth_queue = 0;
 		st->priority = m_priority;
 
-		st->num_peers = (int)std::count_if(m_connections.begin(), m_connections.end()
-			, !boost::bind(&peer_connection::is_connecting, _1));
+		st->num_peers = int(m_connections.size()) - m_num_connecting;
 
 		st->list_peers = m_policy.num_peers();
 		st->list_seeds = m_policy.num_seeds();
@@ -8366,7 +8421,7 @@ namespace libtorrent
 		st->paused = is_torrent_paused();
 		st->auto_managed = m_auto_managed;
 		st->sequential_download = m_sequential_download;
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		st->user_defined_download = m_user_defined_download;
 		st->is_seeding = is_seed();
 		st->is_finished = is_finished();
@@ -8508,20 +8563,7 @@ namespace libtorrent
 			st->distributed_copies = -1.f;
 		}
 
-		if (flags & torrent_handle::query_last_seen_complete)
-		{
-			time_t last = last_seen_complete();
-			for (std::set<peer_connection*>::const_iterator i = m_connections.begin()
-				, end(m_connections.end()); i != end; ++i)
-			{
-				last = (std::max)(last, (*i)->last_seen_complete());
-			}
-			st->last_seen_complete = last;
-		}
-		else
-		{
-			st->last_seen_complete = 0;
-		}
+		st->last_seen_complete = m_swarm_last_seen_complete;
 	}
 
 	void torrent::add_redundant_bytes(int b, torrent::wasted_reason_t reason)

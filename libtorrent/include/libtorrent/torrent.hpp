@@ -191,10 +191,10 @@ namespace libtorrent
 			bool fail;
 		};
 		void read_piece(int piece);
-		// jackarain: ·ÖÆ¬Êý¾Ý¶ÁÈ¡µÄ¾ßÌåÊµÏÖ.
+		// jackarain: ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½Ä¾ï¿½ï¿½ï¿½Êµï¿½ï¿½.
 		void read_piece(int piece, read_data_fun rdf);
 		void on_disk_read_complete(int ret, disk_io_job const& j, peer_request r, read_piece_struct* rp);
-		// jackarain: ·ÖÆ¬Êý¾Ý¶ÁÈ¡Íê³ÉÊ±»Øµ÷.
+		// jackarain: ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Øµï¿½.
 		void on_disk_read_complete(int ret, disk_io_job const& j,
 			peer_request r, boost::shared_ptr<read_piece_struct> rp, read_data_fun rdf);
 
@@ -222,8 +222,8 @@ namespace libtorrent
 		void set_sequential_download(bool sd);
 		bool is_sequential_download() const
 		{ return m_sequential_download; }
-
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+	
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		void set_user_defined_download(bool ud);
 		bool is_user_defined_download() const
 		{ return m_user_defined_download; }
@@ -549,7 +549,10 @@ namespace libtorrent
 		{
 			if (has_picker())
 			{
-				m_picker->inc_refcount(bits);
+				if (bits.all_set())
+					m_picker->inc_refcount_all();
+				else
+					m_picker->inc_refcount(bits);
 			}
 #ifdef TORRENT_DEBUG
 			else
@@ -564,6 +567,23 @@ namespace libtorrent
 			if (has_picker())
 			{
 				m_picker->inc_refcount_all();
+			}
+#ifdef TORRENT_DEBUG
+			else
+			{
+				TORRENT_ASSERT(is_seed());
+			}
+#endif
+		}
+
+		void peer_lost(bitfield const& bits)
+		{
+			if (has_picker())
+			{
+				if (bits.all_set())
+					m_picker->dec_refcount_all();
+				else
+					m_picker->dec_refcount(bits);
 			}
 #ifdef TORRENT_DEBUG
 			else
@@ -1067,8 +1087,14 @@ namespace libtorrent
 		// completed, m_completed_time is 0
 		time_t m_added_time;
 		time_t m_completed_time;
-		time_t m_last_seen_complete;
 		time_t m_last_saved_resume;
+
+		// this was the last time _we_ saw a seed in this swarm
+		time_t m_last_seen_complete;
+
+		// this is the time last any of our peers saw a seed
+		// in this swarm
+		time_t m_swarm_last_seen_complete;
 
 #ifndef TORRENT_DISABLE_ENCRYPTION
 		// this is SHA1("req2" + info-hash), used for
@@ -1147,7 +1173,7 @@ namespace libtorrent
 		// its value until the piece picker is created
 		bool m_sequential_download:1;
 
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		bool m_user_defined_download:1;
 
 		// is false by default and set to
