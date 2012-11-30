@@ -38,7 +38,7 @@ EXPORT_API int file_init_source(void *ctx)
 	file_source *fs = NULL;
 	sc->io_dev = (void*)(fs = new file_source());
 
-	// new open_file_data 由file_source内部管理内存.
+	// new open_file_data 鐢眆ile_source鍐呴儴绠＄悊鍐呭瓨.
 	open_file_data *od = new open_file_data;
 	od->filename = std::string(sc->media->name);
 	od->is_multithread = false;
@@ -86,14 +86,14 @@ EXPORT_API int bt_init_source(void *ctx)
 	torrent_source *ts = new torrent_source();
 	open_torrent_data *otd = new open_torrent_data;
 
-	// 保存torrent种子数据.
+	// 淇濆瓨torrent绉嶅瓙鏁版嵁.
 	otd->is_file = false;
 	char* dst = new char[sc->torrent_len];
 	otd->torrent_data.reset(dst);
 	memcpy(dst, sc->torrent_data, sc->torrent_len);
 	otd->data_size = sc->torrent_len;
 
-	// 得到当前路径, 并以utf8编码.
+	// 寰楀埌褰撳墠璺緞, 骞朵互utf8缂栫爜.
 	std::wstring path;
 	std::string ansi;
 	setlocale(LC_ALL, "chs");
