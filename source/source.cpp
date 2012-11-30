@@ -94,21 +94,28 @@ EXPORT_API int bt_init_source(void *ctx)
 	otd->data_size = sc->torrent_len;
 
 	// 得到当前路径, 并以utf8编码.
-	std::wstring path;
+	// windows平台才需要，Linux下就是utf8,无需转化.
 	std::string ansi;
+#ifdef _WIN32
+	std::wstring path;
 	setlocale(LC_ALL, "chs");
+#endif
 	if (!sc->save_path)
 	{
 		ansi = boost::filesystem::current_path().string();
+#ifdef _WIN32
 		ansi_wide(ansi, path);
 		libtorrent::wchar_utf8(path, ansi);
+#endif
 		otd->save_path = ansi;
 	}
 	else
 	{
 		ansi = sc->save_path;
+#ifdef _WIN32
 		ansi_wide(ansi, path);
 		libtorrent::wchar_utf8(path, ansi);
+#endif
 		otd->save_path = ansi;
 	}
 	sc->io_dev = (void*)ts;
