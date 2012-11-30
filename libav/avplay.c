@@ -921,7 +921,7 @@ void av_stop(avplay *play)
 	if (play->m_format_ctx)
 		avformat_close_input(&play->m_format_ctx);
 	if (play->m_swr_ctx)
-		swr_free(play->m_swr_ctx);
+		swr_free(&play->m_swr_ctx);
 	if (play->m_resample_ctx)
 		audio_resample_close(play->m_resample_ctx);
 	pthread_mutex_destroy(&play->m_buf_size_mtx);
