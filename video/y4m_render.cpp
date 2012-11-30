@@ -50,7 +50,7 @@ bool y4m_render::init_render(void* ctx, int w, int h, int pix_fmt)
 bool y4m_render::init_render(void* ctx, int w, int h, int pix_fmt, float fps)
 {
 	char filename[1024] = { 0 };
-	sprintf(filename, "%x.y4m", ctx);	// 随便构建的文件名.
+	sprintf(filename, "%x.y4m", (size_t)ctx);	// 随便构建的文件名.
 	m_yuv_out = create_y4m(filename, w, h, fps);
 	m_image = (char*)malloc(w * h * 3 / 2);
 	m_image_height = h;
