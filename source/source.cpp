@@ -8,7 +8,7 @@
 #include <boost/any.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-
+#include <fstream>
 #include "torrent_source.h"
 #include "libtorrent/interface.hpp"
 

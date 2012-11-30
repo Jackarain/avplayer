@@ -1,7 +1,7 @@
 #include "ins.h"
 
 #ifdef USE_TORRENT
-
+#include <fstream>
 #include <boost/filesystem.hpp>
 #include "torrent_source.h"
 #include "libtorrent/escape_string.hpp"
