@@ -146,7 +146,7 @@ namespace libtorrent
 			speed_affinity = 32,
 			// ignore the prefer_whole_pieces parameter
 			ignore_whole_pieces = 64,
-			// jackarain: ×Ô¶¨ÒåÏÂÔØ·½Ê½.
+			// jackarain: ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 			user_defined_download = 128
 		};
 
@@ -496,6 +496,8 @@ namespace libtorrent
 #else
 		BOOST_STATIC_ASSERT(sizeof(piece_pos) == sizeof(char) * 8);
 #endif
+
+		void break_one_seed();
 
 		void update_pieces() const;
 

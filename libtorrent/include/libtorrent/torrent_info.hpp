@@ -415,7 +415,6 @@ namespace libtorrent
 		void copy_on_write();
 		bool parse_torrent_file(lazy_entry const& libtorrent, error_code& ec, int flags);
 
-		boost::shared_array<char> m_info_section;
 		// the index to the first leaf. This is where the hash for the
 		// first piece is stored
 		boost::uint32_t m_merkle_first_leaf;
@@ -440,7 +439,7 @@ namespace libtorrent
 		// this is a copy of the info section from the torrent.
 		// it use maintained in this flat format in order to
 		// make it available through the metadata extension
-		// boost::shared_array<char> m_info_section;
+		boost::shared_array<char> m_info_section;
 
 		// this is a pointer into the m_info_section buffer
 		// pointing to the first byte of the first sha-1 hash

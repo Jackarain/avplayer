@@ -68,6 +68,11 @@ using namespace boost::tuples;
 
 namespace libtorrent {
 	TORRENT_EXPORT std::string sanitize_path(std::string const& p);
+	namespace dht
+	{
+		TORRENT_EXPORT libtorrent::dht::node_id generate_id_impl(
+			address const& ip_, boost::uint32_t r);
+	}
 }
 
 sha1_hash to_hash(char const* s)
@@ -1714,9 +1719,38 @@ int test_main()
 	}
 	TEST_CHECK(hits > int(temp.size()) / 2);
 
+	using namespace libtorrent::dht;
+
+	char const* ips[] = {
+		"124.31.75.21",
+		"21.75.31.124",
+		"65.23.51.170",
+		"84.124.73.14",
+		"43.213.53.83",
+	};
+
+	int rs[] = { 1,86,22,65,90 };
+
+	boost::uint8_t prefixes[][4] =
+	{
+		{0xf7, 0x66, 0xf9, 0xf5},
+		{0x7e, 0xe0, 0x47, 0x79 },
+		{0x76, 0xa6, 0x26, 0xff },
+		{0xbe, 0xb4, 0xe6, 0x19 },
+		{0xac, 0xe5, 0x61, 0x3a },
+	};
+
+	for (int i = 0; i < 5; ++i)
+	{
+		address a = address_v4::from_string(ips[i]);
+		node_id id = generate_id_impl(a, rs[i]);
+		for (int j = 0; j < 4; ++j)
+			TEST_CHECK(id[j] == prefixes[i][j]);
+		TEST_CHECK(id[19] == rs[i]);
+		fprintf(stderr, "IP address: %s r: %d node ID: %s\n", ips[i]
+			, rs[i], to_hex(id.to_string()).c_str());
+	}
 #endif
-
-
 
 	// test peer_id/sha1_hash type
 
@@ -1797,6 +1831,7 @@ int test_main()
 	test1.set_bit(1);
 	test1.set_bit(9);
 	TEST_CHECK(test1.count() == 3);
+	TEST_CHECK(test1.all_set() == false);
 	test1.clear_bit(2);
 	TEST_CHECK(test1.count() == 2);
 	int distance = std::distance(test1.begin(), test1.end());
@@ -1818,6 +1853,9 @@ int test_main()
 	test1.set_bit(1);
 	test1.resize(1);
 	TEST_CHECK(test1.count() == 1);
+
+	test1.resize(100, true);
+	TEST_CHECK(test1.all_set() == true);
 	return 0;
 }
 
