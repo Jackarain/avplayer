@@ -52,6 +52,7 @@ set(sources
 	storage
 	thread
 	time
+	timestamp_history
 	torrent
 	torrent_handle
 	torrent_info
@@ -59,6 +60,8 @@ set(sources
 	http_tracker_connection
 	utf8
 	udp_tracker_connection
+	utp_socket_manager
+	utp_stream
 	udp_socket
 	upnp
 	logger
@@ -94,7 +97,7 @@ set(kademlia_sources
 
 set(includes include)
 
-option(shared "build libtorrent as a shared library" ON)
+option(shared "build libtorrent as a shared library" OFF)
 option(tcmalloc "link against google performance tools tcmalloc" OFF)
 option(pool-allocators "Uses a pool allocator for disk and piece buffers" ON)
 option(encryption "link against openssl and enable encryption" ON)
@@ -147,11 +150,7 @@ endif (dht)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fvisibility-inlines-hidden")
 
-if (shared)
-	add_library(torrent-rasterbar SHARED ${sources2})
-else (shared)
-	add_library(torrent-rasterbar STATIC ${sources2})
-endif (shared)
+add_library(torrent-rasterbar STATIC ${sources2})
 
 FIND_PACKAGE( Boost 1.34 COMPONENTS filesystem)
 if (NOT Boost_VERSION LESS 103500)
