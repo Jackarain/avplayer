@@ -108,9 +108,6 @@ private:
 	int m_half_open_limit;
 	bool m_abort;
 
-	// the number of outstanding timers
-	int m_num_timers;
-
 	deadline_timer m_timer;
 
 	mutable mutex_t m_mutex;

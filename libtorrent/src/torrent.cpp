@@ -384,7 +384,7 @@ namespace libtorrent
 		, m_last_working_tracker(-1)
 		, m_finished_time(0)
 		, m_sequential_download(false)
-		, m_user_defined_download(false)	// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		, m_user_defined_download(false)	// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		, m_got_tracker_response(false)
 		, m_connections_initialized(false)
 		, m_super_seeding(false)
@@ -968,7 +968,7 @@ namespace libtorrent
 		}
 	}
 
-	// jackarain: ·ÖÆ¬Êý¾Ý¶ÁÈ¡µÄ¾ßÌåÊµÏÖ.
+	// jackarain: ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½Ä¾ï¿½ï¿½ï¿½Êµï¿½ï¿½.
 	void torrent::read_piece(int piece, read_data_fun rdf)
 	{
 		TORRENT_ASSERT(piece >= 0 && piece < m_torrent_file->num_pieces());
@@ -1182,7 +1182,7 @@ namespace libtorrent
 		}
 	}
 
-	// jackarain: Êý¾Ý¶ÁÈ¡ºóµÄ»Øµ÷.
+	// jackarain: ï¿½ï¿½ï¿½Ý¶ï¿½È¡ï¿½ï¿½ï¿½Ä»Øµï¿½.
 	void torrent::on_disk_read_complete(int ret, disk_io_job const& j,
 		peer_request r, boost::shared_ptr<read_piece_struct> rp, read_data_fun rdf)
 	{
@@ -5179,7 +5179,7 @@ namespace libtorrent
 		ret["num_downloaders"] = m_downloaders;
 
 		ret["sequential_download"] = m_sequential_download;
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		ret["user_defined_download"] = m_user_defined_download;
 
 		ret["seed_mode"] = m_seed_mode;
@@ -5669,7 +5669,7 @@ namespace libtorrent
 		m_ses.setup_socket_buffers(*s);
 
 		boost::intrusive_ptr<peer_connection> c(new bt_peer_connection(
-			m_ses, shared_from_this(), s, a, peerinfo));
+			m_ses, s, a, peerinfo, shared_from_this(), true));
 
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 		c->m_in_constructor = false;
@@ -6559,7 +6559,7 @@ namespace libtorrent
 		state_updated();
 	}
 
-	// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+	// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 	void torrent::set_user_defined_download(bool ud)
 	{
 		TORRENT_ASSERT(m_ses.is_network_thread());
@@ -8366,7 +8366,7 @@ namespace libtorrent
 		st->paused = is_torrent_paused();
 		st->auto_managed = m_auto_managed;
 		st->sequential_download = m_sequential_download;
-		// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		st->user_defined_download = m_user_defined_download;
 		st->is_seeding = is_seed();
 		st->is_finished = is_finished();
