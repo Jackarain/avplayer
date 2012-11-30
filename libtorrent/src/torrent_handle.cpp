@@ -81,7 +81,7 @@ namespace libtorrent
 		, paused(false)
 		, auto_managed(false)
 		, sequential_download(false)
-		, user_defined_download(false)	// jackarain: ÓÃ»§×Ô¶¨ÒåÏÂÔØ·½Ê½.
+		, user_defined_download(false)	// jackarain: ï¿½Ã»ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø·ï¿½Ê½.
 		, is_seeding(false)
 		, is_finished(false)
 		, has_metadata(false)
@@ -482,13 +482,13 @@ namespace libtorrent
 	void torrent_handle::queue_position_up() const
 	{
 		INVARIANT_CHECK;
-		TORRENT_ASYNC_CALL(queue_down);
+		TORRENT_ASYNC_CALL(queue_up);
 	}
 
 	void torrent_handle::queue_position_down() const
 	{
 		INVARIANT_CHECK;
-		TORRENT_ASYNC_CALL(queue_up);
+		TORRENT_ASYNC_CALL(queue_down);
 	}
 
 	void torrent_handle::queue_position_top() const
@@ -546,6 +546,7 @@ namespace libtorrent
 		TORRENT_ASYNC_CALL1(set_sequential_download, sd);
 	}
 
+	//jackarain
 	void torrent_handle::set_user_defined_download(bool ud) const
 	{
 		INVARIANT_CHECK;
@@ -818,7 +819,7 @@ namespace libtorrent
 		TORRENT_ASYNC_CALL1(read_piece, piece);
 	}
 
-	// jackarain: ¶ÁÈ¡·ÖÆ¬Êý¾Ý½Ó¿ÚÊµÏÖ.
+	// jackarain: ï¿½ï¿½È¡ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Ý½Ó¿ï¿½Êµï¿½ï¿½.
 	void torrent_handle::read_piece(int piece, read_data_fun rdf) const
 	{
 		INVARIANT_CHECK;
