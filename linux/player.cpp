@@ -181,9 +181,6 @@ int player::open(const char* movie, int media_type)
 			break;
 		}
 
-// 	logger("asdfasdasfasdfasdfhkjf\n");	
-
-
 		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
 		if (media_type == MEDIA_TYPE_BT)
 		{
@@ -196,8 +193,6 @@ int player::open(const char* movie, int media_type)
 				m_media_list.insert(std::make_pair(filename, name));
 			}
 		}
-
-
 
 		// 配置音频视频渲染器.
 		configure(m_avplay, m_video, VIDEO_RENDER);
