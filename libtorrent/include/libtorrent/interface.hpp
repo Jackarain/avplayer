@@ -43,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent
 {
-	// Ò»¸ö¼òµ¥µÄÀ©Õ¹¶ÁÈ¡²Ù×÷µÄ·â×°, Ïß³Ì²Ù×÷°²È«.
+	// ä¸€ä¸ªç®€å•çš„æ‰©å±•è¯»å–æ“ä½œçš„å°è£…, çº¿ç¨‹æ“ä½œå®‰å…¨.
 	class TORRENT_EXPORT extern_read_op : public boost::noncopyable
 	{
 	public:
@@ -176,7 +176,7 @@ public:
 #if defined(_DEBUG) && defined(WIN32)
 		unsigned int time = GetTickCount();
 #endif
-		// ¼ÆËãÆ«ÒÆËùÔÚµÄÆ¬.
+		// è®¡ç®—åç§»æ‰€åœ¨çš„ç‰‡.
 		int index = offset / info.piece_length();
 		BOOST_ASSERT(index >= 0 && index < info.num_pieces());
 		if (index >= info.num_pieces() || index < 0)
@@ -189,7 +189,7 @@ public:
 				status.state != torrent_status::seeding)
 				return ret;
 
-			// ÉèÖÃÏÂÔØÎ»ÖÃ.
+			// è®¾ç½®ä¸‹è½½ä½ç½®.
 			std::vector<int> pieces;
 
 			pieces = m_handle.piece_priorities();
@@ -199,26 +199,26 @@ public:
 
 			if (status.pieces.get_bit(index))
 			{
-				// ±£´æ²ÎÊıĞÅÏ¢.
+				// ä¿å­˜å‚æ•°ä¿¡æ¯.
 				m_current_buffer = data;
 				m_read_offset = offset;
 				m_read_size = &read_size;
 				m_request_size = size;
 
-				// Ìá½»ÇëÇó.
+				// æäº¤è¯·æ±‚.
 				m_handle.read_piece(index, boost::bind(&extern_read_op::on_read, this, _1, _2, _3));
 
-				// µÈ´ıÇëÇó·µ»Ø.
+				// ç­‰å¾…è¯·æ±‚è¿”å›.
 				m_notify.wait(lock);
 
-				// ¶ÁÈ¡×Ö½ÚÊı.
+				// è¯»å–å­—èŠ‚æ•°.
 				if (read_size != 0)
 					ret = true;
 			}
 		}
 		else
 		{
-			// Ö±½Ó¶ÁÈ¡ÎÄ¼ş.
+			// ç›´æ¥è¯»å–æ–‡ä»¶.
 			if (m_file_path.string() == "" || !m_file.is_open())
 			{
 				boost::filesystem::path path = m_handle.save_path();
@@ -227,7 +227,7 @@ public:
 				m_file_path = path / name;
 				name = convert_to_native(m_file_path.string());
 
-				// ´ò¿ªÎÄ¼ş, Ö±½Ó´ÓÎÄ¼ş¶ÁÈ¡Êı¾İ.
+				// æ‰“å¼€æ–‡ä»¶, ç›´æ¥ä»æ–‡ä»¶è¯»å–æ•°æ®.
 				if (!m_file.is_open())
 				{
 					m_file.open(name.c_str(), std::ios::in | std::ios::binary);
@@ -276,7 +276,7 @@ public:
 
 			sprintf(ptr, "\n\n");
 
-			// ÏÔÊ¾µ±Ç°ÕıÔÚÏÂÔØµÄ·ÖÆ¬ĞÅÏ¢.
+			// æ˜¾ç¤ºå½“å‰æ­£åœ¨ä¸‹è½½çš„åˆ†ç‰‡ä¿¡æ¯.
 			std::string out;
 			char str[500];
 			std::vector<cached_piece_info> pieces;
@@ -340,18 +340,18 @@ protected:
 	   boost::mutex::scoped_lock lock(m_notify_mutex);
 	   if (size != 0)
 	   {
-		   // ¼ÆËãÆ«ÒÆµãºÍÊı¾İ´óĞ¡.
+		   // è®¡ç®—åç§»ç‚¹å’Œæ•°æ®å¤§å°.
 		   size_type cp_offset = m_read_offset - offset;
 		   size_type cp_size = size - cp_offset >= m_request_size 
 			   ? m_request_size : size - cp_offset;
-		   // ¿½±´²¢Í¨Öª¶ÁÈ¡Êı¾İÍê³É.
+		   // æ‹·è´å¹¶é€šçŸ¥è¯»å–æ•°æ®å®Œæˆ.
 		   memcpy(m_current_buffer, data + cp_offset, cp_size);
 		   *m_read_size = cp_size;
 		   m_notify.notify_one();
 	   }
 	   else
 	   {
-		   // ´íÎóÒ²ĞèÒªÍ¨Öª, ·ñÔò¿ÉÄÜ·¢ÉúËÀËø.
+		   // é”™è¯¯ä¹Ÿéœ€è¦é€šçŸ¥, å¦åˆ™å¯èƒ½å‘ç”Ÿæ­»é”.
 		   *m_read_size = 0;
 		   m_notify.notify_one();
 	   }
