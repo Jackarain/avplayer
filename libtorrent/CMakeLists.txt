@@ -60,10 +60,10 @@ set(sources
 	http_tracker_connection
 	utf8
 	udp_tracker_connection
-	utp_socket_manager
-	utp_stream
 	udp_socket
 	upnp
+	utp_socket_manager
+	utp_stream
 	logger
 	file_pool
 	lsd
@@ -152,15 +152,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fvisibility-inlines-hidden")
 
 add_library(torrent-rasterbar STATIC ${sources2})
 
-FIND_PACKAGE( Boost 1.34 COMPONENTS filesystem)
 if (NOT Boost_VERSION LESS 103500)
-	FIND_PACKAGE( Boost 1.35 COMPONENTS filesystem system)
+	FIND_PACKAGE( Boost 1.35 COMPONENTS system)
 endif (NOT Boost_VERSION LESS 103500)
 include_directories(${Boost_INCLUDE_DIR})
 target_link_libraries(torrent-rasterbar ${Boost_LIBRARIES})
 
 # this works around a bug in asio in boost-1.39
-add_definitions(-DBOOST_ASIO_HASH_MAP_BUCKETS=1021 -DBOOST_ASIO_DYN_LINK)
+add_definitions(-DBOOST_ASIO_HASH_MAP_BUCKETS=1021 -DBOOST_ASIO_DYN_LINK -D__USE_W32_SOCKETS -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0500)
 
 if (WIN32)
 	target_link_libraries(torrent-rasterbar wsock32 ws2_32)
@@ -222,14 +221,13 @@ if (tcmalloc)
 	target_link_libraries(torrent-rasterbar tcmalloc)
 endif (tcmalloc)
 
-target_link_libraries(torrent-rasterbar z)
 include_directories(${includes})
 
 set_target_properties(torrent-rasterbar PROPERTIES
 	SOVERSION 1
 	VERSION 1)
 
-set (VERSION "0.16.0")
+set (VERSION "0.16.1")
 
 get_property (COMPILETIME_OPTIONS_LIST
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY}
@@ -264,8 +262,6 @@ if(build_examples)
 		target_link_libraries(${s} torrent-rasterbar)
 	endforeach(s)
 
-	FIND_PACKAGE( Boost 1.34 COMPONENTS program_options regex)
-	target_link_libraries(client_test ${Boost_LIBRARIES})
 	include_directories(${Boost_INCLUDE_DIR})
 endif(build_examples)
 # === build tests ===

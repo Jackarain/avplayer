@@ -23,7 +23,7 @@ if $(BOOST_ROOT)
 	use-project /boost : $(BOOST_ROOT) ;
 }
 
-VERSION = 0.16.0 ;
+VERSION = 0.16.1 ;
 
 # rule for linking the correct libraries depending
 # on features and target-os
@@ -400,7 +400,7 @@ lib netkit : : <name>net <search>/boot/system/lib <link>shared ;
 lib gcc : : <name>gcc <link>static ;
 
 # when using iconv
-lib libiconv : : <name>iconv <link>shared ;
+lib libiconv : : <name>iconv <link>shared <search>/usr/local/lib ;
 
 local boost-library-search-path =
   <search>/opt/local/lib
@@ -536,6 +536,9 @@ local usage-requirements =
 	<include>./include
 	<include>./include/libtorrent
 	<include>/usr/sfw/include
+# freebsd doesn't seem to include this automatically
+# and iconv.h is installed there
+	<include>/usr/local/include
 	<variant>release:<define>NDEBUG
 	<variant>debug:<define>TORRENT_DEBUG
 	<define>_FILE_OFFSET_BITS=64
@@ -572,7 +575,7 @@ local usage-requirements =
 # make sure asio symbols are properly exported
 # and imported
 	<link>shared:<define>BOOST_ASIO_DYN_LINK
-	<link>static:<define>BOOST_ASIO_SEPARATE_COMPILATION
+	<define>BOOST_ASIO_SEPARATE_COMPILATION
 	<tag>@tag
 	;
 
@@ -593,6 +596,8 @@ lib torrent
 	# to declare the symbol as being exported
 	<link>shared,<boost-link>static:<define>BOOST_ASIO_SOURCE
 	<link>shared,<boost-link>static:<define>BOOST_SYSTEM_SOURCE
+	<link>shared,<boost-link>static:<define>BOOST_ALL_DYN_LINK
+	<link>shared:<define>BOOST_ALL_DYN_LINK
 
 	<dht-support>on:<source>src/kademlia/$(KADEMLIA_SOURCES).cpp
 	<dht-support>logging:<source>src/kademlia/$(KADEMLIA_SOURCES).cpp
@@ -607,6 +612,7 @@ lib torrent
 
 	: # usage requirements
 	$(usage-requirements)
+	<link>shared:<define>TORRENT_LINKING_SHARED
 	;
 
 headers = [ path.glob-tree include/libtorrent : *.hpp ] ;

@@ -1783,7 +1783,7 @@ namespace aux {
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
 		(*m_logger) << time_now_string() << " aborting all tracker requests\n";
 #endif
-		m_tracker_manager.abort_all_requests(true);
+		m_tracker_manager.abort_all_requests();
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
 		(*m_logger) << time_now_string() << " sending event=stopped to trackers\n";
@@ -1838,7 +1838,6 @@ namespace aux {
 #endif
 
 		m_disk_thread.abort();
-		// m_io_service.stop();
 	}
 
 	void session_impl::set_port_filter(port_filter const& f)
