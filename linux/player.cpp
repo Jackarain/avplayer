@@ -44,6 +44,17 @@ void player::init_file_source(source_context* sc)
 	sc->offset = 0;
 }
 
+void player::init_torrent_source(source_context* sc)
+{
+	sc->init_source = bt_init_source;
+	sc->read_data = bt_read_data;
+	sc->bt_media_info = bt_media_info;
+	sc->close = bt_close;
+	sc->destory = bt_destory;
+	sc->offset = 0;
+	sc->save_path = ".";
+}
+
 int player::open(const char* movie, int media_type)
 {	// 如果未关闭原来的媒体, 则先关闭.
 	if (m_avplay || m_source);
@@ -103,7 +114,6 @@ int player::open(const char* movie, int media_type)
 			m_media_list.insert(std::make_pair(filename, filename));
 		}
 
-#if 0
 		if (media_type == MEDIA_TYPE_BT)
 		{
 			// 先读取bt种子数据, 然后作为附加数据保存到媒体源.
@@ -135,7 +145,7 @@ int player::open(const char* movie, int media_type)
 
 		if (media_type == MEDIA_TYPE_RTSP)
 		{
-			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename.c_str(), filename.string().length()+1, 0);
+			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename.c_str(), filename.length()+1, 0);
 			if (!m_source)
 			{
 				::logger("allocate media source failed, type is rtsp.\n");
@@ -143,9 +153,9 @@ int player::open(const char* movie, int media_type)
 			}
 
 			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename.string(), filename.string()));
+			m_media_list.insert(std::make_pair(filename, filename));
 		}
-#endif
+
 		// 分配音频和视频的渲染器.
 		m_audio = alloc_audio_render();
 		if (!m_audio)

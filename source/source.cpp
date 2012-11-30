@@ -8,7 +8,7 @@
 #include <boost/any.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-
+#include <fstream>
 #include "torrent_source.h"
 #include "libtorrent/interface.hpp"
 
@@ -38,7 +38,7 @@ EXPORT_API int file_init_source(void *ctx)
 	file_source *fs = NULL;
 	sc->io_dev = (void*)(fs = new file_source());
 
-	// new open_file_data 由file_source内部管理内存.
+	// new open_file_data 鐢眆ile_source鍐呴儴绠＄悊鍐呭瓨.
 	open_file_data *od = new open_file_data;
 	od->filename = std::string(sc->media->name);
 	od->is_multithread = false;
@@ -86,29 +86,36 @@ EXPORT_API int bt_init_source(void *ctx)
 	torrent_source *ts = new torrent_source();
 	open_torrent_data *otd = new open_torrent_data;
 
-	// 保存torrent种子数据.
+	// 淇濆瓨torrent绉嶅瓙鏁版嵁.
 	otd->is_file = false;
 	char* dst = new char[sc->torrent_len];
 	otd->torrent_data.reset(dst);
 	memcpy(dst, sc->torrent_data, sc->torrent_len);
 	otd->data_size = sc->torrent_len;
 
-	// 得到当前路径, 并以utf8编码.
-	std::wstring path;
+	// 寰楀埌褰撳墠璺緞, 骞朵互utf8缂栫爜.
+	// windows骞冲彴鎵嶉渶瑕侊紝Linux涓嬪氨鏄痷tf8,鏃犻渶杞寲.
 	std::string ansi;
+#ifdef _WIN32
+	std::wstring path;
 	setlocale(LC_ALL, "chs");
+#endif
 	if (!sc->save_path)
 	{
 		ansi = boost::filesystem::current_path().string();
+#ifdef _WIN32
 		ansi_wide(ansi, path);
 		libtorrent::wchar_utf8(path, ansi);
+#endif
 		otd->save_path = ansi;
 	}
 	else
 	{
 		ansi = sc->save_path;
+#ifdef _WIN32
 		ansi_wide(ansi, path);
 		libtorrent::wchar_utf8(path, ansi);
+#endif
 		otd->save_path = ansi;
 	}
 	sc->io_dev = (void*)ts;

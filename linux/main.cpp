@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	// 判断播放参数是否足够.
 	if (argc != 2)
 	{
-		printf("usage: avplayer.exe <video>\n");
+		printf("usage: avplayer <video>\n");
 		return -1;
 	}
 
