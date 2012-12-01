@@ -156,7 +156,7 @@ namespace libtorrent
 		, m_req(req)
 	{}
 
-	boost::shared_ptr<request_callback> tracker_connection::requester()
+	boost::shared_ptr<request_callback> tracker_connection::requester() const
 	{
 		return m_requester.lock();
 	}
@@ -274,9 +274,10 @@ namespace libtorrent
 		con->start();
 	}
 
-	bool tracker_manager::incoming_udp(error_code const& e
+	bool tracker_manager::incoming_packet(error_code const& e
 		, udp::endpoint const& ep, char const* buf, int size)
 	{
+		// m_ses.m_stat.received_tracker_bytes(len + 28);
 		for (tracker_connections_t::iterator i = m_connections.begin();
 			i != m_connections.end();)
 		{
@@ -288,9 +289,10 @@ namespace libtorrent
 		return false;
 	}
 
-	bool tracker_manager::incoming_udp(error_code const& e
+	bool tracker_manager::incoming_packet(error_code const& e
 		, char const* hostname, char const* buf, int size)
 	{
+		// m_ses.m_stat.received_tracker_bytes(len + 28);
 		for (tracker_connections_t::iterator i = m_connections.begin();
 			i != m_connections.end();)
 		{
@@ -323,7 +325,7 @@ namespace libtorrent
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
 			boost::shared_ptr<request_callback> rc = c->requester();
-			if (rc) rc->debug_log("aborting: " + req.url);
+			if (rc) rc->debug_log("aborting: %s", req.url.c_str());
 #endif
 		}
 		l.unlock();

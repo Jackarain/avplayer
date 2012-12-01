@@ -232,14 +232,16 @@ namespace libtorrent { namespace dht
 		
 		// turns on and off individual components' logging
 
-//		rpc_log().enable(false);
-//		node_log().enable(false);
-//		traversal_log().enable(false);
+		rpc_log().enable(false);
+		node_log().enable(false);
+		traversal_log().enable(false);
 //		dht_tracker_log.enable(false);
 
 		TORRENT_LOG(dht_tracker) << "starting DHT tracker with node id: " << m_dht.nid();
 #endif
 	}
+
+	dht_tracker::~dht_tracker() {}
 
 	// defined in node.cpp
 	extern void nop();
@@ -421,17 +423,33 @@ namespace libtorrent { namespace dht
 	}
 
 
-	void dht_tracker::on_unreachable(udp::endpoint const& ep)
-	{
-		m_dht.unreachable(ep);
-	}
-
 	// translate bittorrent kademlia message into the generice kademlia message
 	// used by the library
-	void dht_tracker::on_receive(udp::endpoint const& ep, char const* buf, int bytes_transferred)
+	bool dht_tracker::incoming_packet(error_code const& ec
+		, udp::endpoint const& ep, char const* buf, int size)
 	{
+		if (ec)
+		{
+			if (ec == asio::error::connection_refused
+				|| ec == asio::error::connection_reset
+				|| ec == asio::error::connection_aborted
+#ifdef WIN32
+				|| ec == error_code(ERROR_HOST_UNREACHABLE, get_system_category())
+				|| ec == error_code(ERROR_PORT_UNREACHABLE, get_system_category())
+				|| ec == error_code(ERROR_CONNECTION_REFUSED, get_system_category())
+				|| ec == error_code(ERROR_CONNECTION_ABORTED, get_system_category())
+#endif
+				)
+			{
+				m_dht.unreachable(ep);
+			}
+			return false;
+		}
+
+		if (size <= 20 || *buf != 'd' || buf[size-1] != 'e') return false;
+
 		// account for IP and UDP overhead
-		m_received_bytes += bytes_transferred + (ep.address().is_v6() ? 48 : 28);
+		m_received_bytes += size + (ep.address().is_v6() ? 48 : 28);
 
 		node_ban_entry* match = 0;
 		node_ban_entry* min = m_ban_nodes;
@@ -464,7 +482,7 @@ namespace libtorrent { namespace dht
 					// we've received 20 messages in less than 5 seconds from
 					// this node. Ignore it until it's silent for 5 minutes
 					match->limit = now + minutes(5);
-					return;
+					return true;
 				}
 
 				// we got 50 messages from this peer, but it was in
@@ -482,25 +500,25 @@ namespace libtorrent { namespace dht
 
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
 		++m_total_message_input;
-		m_total_in_bytes += bytes_transferred;
+		m_total_in_bytes += size;
 #endif
 
 		using libtorrent::entry;
 		using libtorrent::bdecode;
 			
-		TORRENT_ASSERT(bytes_transferred > 0);
+		TORRENT_ASSERT(size > 0);
 
 		lazy_entry e;
 		int pos;
-		error_code ec;
-		int ret = lazy_bdecode(buf, buf + bytes_transferred, e, ec, &pos, 10, 500);
+		error_code err;
+		int ret = lazy_bdecode(buf, buf + size, e, err, &pos, 10, 500);
 		if (ret != 0)
 		{
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
 			TORRENT_LOG(dht_tracker) << "<== " << ep << " ERROR: "
-				<< ec.message() << " pos: " << pos;
+				<< err.message() << " pos: " << pos;
 #endif
-			return;
+			return false;
 		}
 
 		libtorrent::dht::msg m(e, ep);
@@ -516,7 +534,7 @@ namespace libtorrent { namespace dht
 //			entry r;
 //			libtorrent::dht::incoming_error(r, "message is not a dictionary");
 //			send_packet(r, ep, 0);
-			return;
+			return false;
 		}
 
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
@@ -525,6 +543,7 @@ namespace libtorrent { namespace dht
 #endif
 
 		m_dht.incoming(m);
+		return true;
 	}
 
 	void add_node_fun(void* userdata, node_entry const& e)

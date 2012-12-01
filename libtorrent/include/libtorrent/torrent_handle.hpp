@@ -66,13 +66,14 @@ namespace libtorrent
 		struct session_impl;
 	}
 
+	// jackarain: 读取数据.
+	typedef boost::function<void (char*, size_type, size_type)> read_data_fun;
+
 	struct torrent_plugin;
 	struct peer_info;
 	struct peer_list_entry;
 	struct torrent_status;
-
-	// jackarain: ���ӵĶ�ȡ�����ص��ӿں�������.
-	typedef boost::function<void (char*, size_type, size_type)> read_data_fun;
+	class torrent;
 
 	TORRENT_EXPORT std::size_t hash_value(torrent_status const& ts);
 
@@ -425,6 +426,8 @@ namespace libtorrent
 
 		bool operator<(const torrent_handle& h) const
 		{ return m_torrent.lock() < h.m_torrent.lock(); }
+
+		boost::shared_ptr<torrent> native_handle() const;
 
 	private:
 

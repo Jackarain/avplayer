@@ -49,6 +49,7 @@ namespace libtorrent
 		, m_num_connecting(0)
 		, m_half_open_limit(0)
 		, m_abort(false)
+		, m_num_timers(0)
 		, m_timer(ios)
 #ifdef TORRENT_DEBUG
 		, m_in_timeout_function(false)
@@ -90,6 +91,7 @@ namespace libtorrent
 				m_queue.push_front(entry());
 				e = &m_queue.front();
 				break;
+			default: return;
 		}
 
 		e->priority = priority;
@@ -154,7 +156,7 @@ namespace libtorrent
 				continue;
 			}
 			TORRENT_TRY {
-				e.on_timeout();
+				e.on_connect(-1);
 			} TORRENT_CATCH(std::exception&) {}
 			tmp.pop_front();
 		}
@@ -205,6 +207,10 @@ namespace libtorrent
 			return;
 		}
 
+		// all entries are connecting, no need to look for new ones
+		if (m_queue.size() == m_num_connecting)
+			return;
+
 		std::list<entry>::iterator i = std::find_if(m_queue.begin()
 			, m_queue.end(), boost::bind(&entry::connecting, _1) == false);
 
@@ -222,6 +228,7 @@ namespace libtorrent
 				error_code ec;
 				m_timer.expires_at(expire, ec);
 				m_timer.async_wait(boost::bind(&connection_queue::on_timeout, this, _1));
+				++m_num_timers;
 			}
 			i->connecting = true;
 			++m_num_connecting;
@@ -237,6 +244,7 @@ namespace libtorrent
 
 			if (m_num_connecting >= m_half_open_limit
 				&& m_half_open_limit > 0) break;
+			if (m_num_connecting == m_queue.size()) break;
 			i = std::find_if(i, m_queue.end(), boost::bind(&entry::connecting, _1) == false);
 		}
 
@@ -269,6 +277,7 @@ namespace libtorrent
 		complete_async("connection_queue::on_timeout");
 #endif
 		mutex_t::scoped_lock l(m_mutex);
+		--m_num_timers;
 
 		INVARIANT_CHECK;
 #ifdef TORRENT_DEBUG
@@ -276,7 +285,12 @@ namespace libtorrent
 #endif
 
 		TORRENT_ASSERT(!e || e == error::operation_aborted);
-		if (e) return;
+
+		// if there was an error, it's most likely operation aborted,
+		// we should just quit. However, in case there are still connections
+		// in connecting state, and there are no other timer invocations
+		// we need to stick around still.
+		if (e && (m_num_connecting == 0 || m_num_timers > 0)) return;
 
 		ptime next_expire = max_time();
 		ptime now = time_now_hires() + milliseconds(100);
@@ -292,7 +306,7 @@ namespace libtorrent
 				--m_num_connecting;
 				continue;
 			}
-			if (i->expires < next_expire)
+			if (i->connecting && i->expires < next_expire)
 				next_expire = i->expires;
 			++i;
 		}
@@ -321,6 +335,7 @@ namespace libtorrent
 			error_code ec;
 			m_timer.expires_at(next_expire, ec);
 			m_timer.async_wait(boost::bind(&connection_queue::on_timeout, this, _1));
+			++m_num_timers;
 		}
 		try_connect(l);
 	}

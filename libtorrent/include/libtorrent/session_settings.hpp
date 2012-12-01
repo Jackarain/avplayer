@@ -757,10 +757,11 @@ namespace libtorrent
 		// we have none of the files and go straight to download
 		bool no_recheck_incomplete_resume;
 
-		// when this is true, libtorrent will take actions to make sure any
+		// when this is true, libtorrent will take actions to make sure no
 		// privacy sensitive information is leaked out from the client. This
 		// mode is assumed to be combined with using a proxy for all your
 		// traffic. With this option, your true IP address will not be exposed
+		// nor anything that can tie your connection to your true IP
 		bool anonymous_mode;
 
 		// the number of milliseconds between internal ticks. Should be no
@@ -825,8 +826,10 @@ namespace libtorrent
 		// initial timeout for uTP SYN packets
 		int utp_connect_timeout;
 
+#ifndef TORRENT_NO_DEPRECATE
 		// number of milliseconds of delaying ACKing packets the most
 		int utp_delayed_ack;
+#endif
 
 		// set to true if the uTP socket buffer size is allowed to increase
 		// dynamically based on the NIC MTU setting. This is true by default
@@ -947,6 +950,7 @@ namespace libtorrent
 			, max_torrent_search_reply(20)
 			, restrict_routing_ips(true)
 			, restrict_search_ips(true)
+			, extended_routing_table(true)
 		{}
 		
 		// the maximum number of peers to send in a
@@ -988,6 +992,11 @@ namespace libtorrent
 		// applies the same IP restrictions on nodes
 		// received during a DHT search (traversal algorithm)
 		bool restrict_search_ips;
+
+		// if this is set, the first few buckets in the routing
+		// table are enlarged, to make room for more nodes in order
+		// to lower the look-up times
+		bool extended_routing_table;
 	};
 #endif
 

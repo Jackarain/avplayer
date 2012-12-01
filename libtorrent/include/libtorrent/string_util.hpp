@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008, Arvid Norberg
+Copyright (c) 2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,25 +30,29 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_ALLOCA
+#ifndef TORRENT_STRING_UTIL_HPP_INCLUDED
+#define TORRENT_STRING_UTIL_HPP_INCLUDED
 
-#include "libtorrent/config.hpp"
+namespace libtorrent
+{
+	TORRENT_EXTRA_EXPORT bool is_alpha(char c);
+	TORRENT_EXPORT bool is_digit(char c);
+	TORRENT_EXTRA_EXPORT bool is_print(char c);
+	TORRENT_EXTRA_EXPORT bool is_space(char c);
+	TORRENT_EXTRA_EXPORT char to_lower(char c);
 
-#if defined TORRENT_WINDOWS || defined TORRENT_MINGW
+	TORRENT_EXTRA_EXPORT int split_string(char const** tags, int buf_size, char* in);
+	TORRENT_EXTRA_EXPORT bool string_begins_no_case(char const* s1, char const* s2);
+	TORRENT_EXTRA_EXPORT bool string_equal_no_case(char const* s1, char const* s2);
 
-#include <malloc.h>
-#define TORRENT_ALLOCA(t, n) static_cast<t*>(_alloca(sizeof(t) * (n)))
+	TORRENT_EXTRA_EXPORT void url_random(char* begin, char* end);
 
-#elif defined TORRENT_BSD
+	// strdup is not part of the C standard. Some systems
+	// don't have it and it won't be available when building
+	// in strict ansi mode
+	char* allocate_string_copy(char const* str);
 
-#include <stdlib.h>
-#define TORRENT_ALLOCA(t, n) static_cast<t*>(alloca(sizeof(t) * (n)))
-
-#else
-
-#include <alloca.h>
-#define TORRENT_ALLOCA(t, n) static_cast<t*>(alloca(sizeof(t) * (n)))
+}
 
 #endif
 
-#endif
