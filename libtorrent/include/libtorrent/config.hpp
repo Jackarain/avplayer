@@ -49,9 +49,22 @@ POSSIBILITY OF SUCH DAMAGE.
 	build, to automatically apply these defines
 #endif
 
+#if !defined _MSC_VER || _MSC_VER >= 1600
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS 1
+#endif
+#include <stdint.h> // for INT64_MAX
+#else
+#if !defined INT64_MAX
+#define INT64_MAX 0x7fffffffffffffffLL
+#endif
+#endif
+
 #ifndef _MSC_VER
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS 1
+#endif
+#include <inttypes.h> // for PRId64 et.al.
 #endif
 
 #ifndef PRId64
@@ -59,10 +72,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #if defined _MSC_VER || defined __MINGW32__
 #define PRId64 "I64d"
 #define PRIu64 "I64u"
+#define PRIx64 "I64x"
 #define PRIu32 "u"
 #else
 #define PRId64 "lld"
 #define PRIu64 "llu"
+#define PRIx64 "llx"
 #define PRIu32 "u"
 #endif
 #endif
@@ -129,9 +144,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma warning(disable:4251)
 // '_vsnprintf': This function or variable may be unsafe
 #pragma warning(disable:4996)
-// 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup
-#pragma warning(disable: 4996)
-#define strdup _strdup
 
 #define TORRENT_DEPRECATED_PREFIX __declspec(deprecated)
 
@@ -248,6 +260,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_HURD
 #define TORRENT_USE_IFADDRS 1
 #define TORRENT_USE_IFCONF 1
+
+// ==== eCS(OS/2) ===
+#elif defined __OS2__
+#define TORRENT_OS2
+#define TORRENT_HAS_FALLOCATE 0
+#define TORRENT_USE_IFCONF 1
+#define TORRENT_USE_SYSCTL 1
+#define TORRENT_USE_MLOCK 0
+#define TORRENT_USE_IPV6 0
+#define TORRENT_ICONV_ARG (const char**)
+#define TORRENT_USE_WRITEV 0
+#define TORRENT_USE_READV 0
 
 #else
 #warning unknown OS, assuming BSD
@@ -430,10 +454,6 @@ inline int snprintf(char* buf, int len, char const* fmt, ...)
 #define TORRENT_USE_I2P 1
 #endif
 
-#ifndef TORRENT_HAS_STRDUP
-#define TORRENT_HAS_STRDUP 1
-#endif
-
 #if !defined TORRENT_IOV_MAX
 #ifdef IOV_MAX
 #define TORRENT_IOV_MAX IOV_MAX
@@ -485,17 +505,6 @@ inline int snprintf(char* buf, int len, char const* fmt, ...)
 #define TORRENT_USE_BOOST_DATE_TIME 1
 #endif
 
-#endif
-
-#if !TORRENT_HAS_STRDUP
-inline char* strdup(char const* str)
-{
-	if (str == 0) return 0;
-	char* tmp = (char*)malloc(strlen(str) + 1);
-	if (tmp == 0) return 0;
-	strcpy(tmp, str);
-	return tmp;
-}
 #endif
 
 // for non-exception builds

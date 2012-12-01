@@ -67,6 +67,22 @@ public:
 	int limit() const;
 	void close();
 	int size() const { return m_queue.size(); }
+	int num_connecting() const { return m_num_connecting; }
+#if defined TORRENT_ASIO_DEBUGGING
+	float next_timeout() const { return total_milliseconds(m_timer.expires_at() - time_now_hires()) / 1000.f; }
+	float max_timeout() const
+	{
+		ptime max_timeout = min_time();
+		for (std::list<entry>::const_iterator i = m_queue.begin()
+			, end(m_queue.end()); i != end; ++i)
+		{
+			if (!i->connecting) continue;
+			if (i->expires > max_timeout) max_timeout = i->expires;
+		}
+		if (max_timeout == min_time()) return 0.f;
+		return total_milliseconds(max_timeout - time_now_hires()) / 1000.f;
+	}
+#endif
 
 #ifdef TORRENT_DEBUG
 	void check_invariant() const;
@@ -107,6 +123,9 @@ private:
 	int m_num_connecting;
 	int m_half_open_limit;
 	bool m_abort;
+
+	// the number of outstanding timers
+	int m_num_timers;
 
 	deadline_timer m_timer;
 

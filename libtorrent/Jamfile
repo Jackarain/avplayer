@@ -23,7 +23,7 @@ if $(BOOST_ROOT)
 	use-project /boost : $(BOOST_ROOT) ;
 }
 
-VERSION = 0.16.1 ;
+VERSION = 0.16.4 ;
 
 # rule for linking the correct libraries depending
 # on features and target-os
@@ -63,7 +63,9 @@ rule linking ( properties * )
 		}
 	}
 
+	# dbghelp doesn't appear to exist in mingw
 	if <target-os>windows in $(properties)
+		&& ! <toolset>gcc in $(properties)
 		&& ( <asserts>on in $(properties)
 			|| <variant>debug in $(properties)
 			|| <asio-debugging>on in $(properties) )
@@ -173,12 +175,26 @@ rule linking ( properties * )
 		else
 		{
 			result += <library>/boost/system//boost_system/<link>shared ;
+
+			# when building a shared library with openssl, for some reason we really need
+			# boost date time (at least on windows). Hopefully a future version of asio
+			# will allow disabling this dependency
+			if <encryption>openssl in $(properties)
+			{
+				result += <library>/boost/date_time//boost_date_time/<link>shared ;
+			}
 		}
 		result += <include>$(BOOST_ROOT) <define>BOOST_ALL_NO_LIB ;
+
 	}
 	else
 	{
 		result += <library>boost_system ;
+
+		if <boost-link>shared in $(properties) && <encryption>openssl in $(properties)
+		{
+			result += <library>boost_date_time ;
+		}
 
 		# on mac the boost headers are installed in
 		# a directory that isn't automatically accessable
@@ -289,8 +305,15 @@ feature.compose <ipv6>off : <define>TORRENT_USE_IPV6=0 ;
 
 feature need-librt : no yes : composite propagated link-incompatible ;
 
+feature boost-date-time : off on : composite propagated link-incompatible ;
+feature.compose <boost-date-time>off : <define>TORRENT_NO_BOOST_DATE_TIME ;
+
 feature fiemap : off on : composite propagated ;
 feature.compose <fiemap>on : <define>HAVE_LINUX_FIEMAP_H ;
+
+feature i2p : on off : composite propagated ;
+feature.compose <i2p>on : <define>TORRENT_USE_I2P=1 ;
+feature.compose <i2p>off : <define>TORRENT_USE_I2P=0 ;
 
 feature iconv : auto on off : composite propagated ;
 feature.compose <iconv>on : <define>TORRENT_USE_ICONV=1 ;
@@ -411,10 +434,12 @@ local boost-library-search-path =
   ;
 
 lib boost_system : : <target-os>darwin <name>boost_system-mt $(boost-library-search-path) ;
-
 lib boost_system : : <target-os>solaris <name>boost_system $(boost-library-search-path) ;
-
 lib boost_system : : <name>boost_system ;
+
+lib boost_date_time : : <target-os>darwin <name>boost_date_time-mt $(boost-library-search-path) ;
+lib boost_date_time : : <target-os>solaris <name>boost_date_time $(boost-library-search-path) ;
+lib boost_date_time : : <name>boost_date_time ;
 
 # openssl on linux/bsd/macos etc.
 lib gcrypt : : <name>gcrypt <link>shared <search>/opt/local/lib ;
@@ -457,6 +482,7 @@ SOURCES =
 	file_storage
 	lazy_bdecode
 	escape_string
+	string_util
 	file
 	gzip
 	http_connection
@@ -587,16 +613,14 @@ lib torrent
 	src/$(SOURCES).cpp
 
 	: # requirements
-	<define>BOOST_THREAD_USE_LIB
 	<threading>multi
 	<link>shared:<define>TORRENT_BUILDING_SHARED
 
 	# on windows, when linking statically against asio
 	# but producing a DLL, everything inside the DLL needs
 	# to declare the symbol as being exported
-	<link>shared,<boost-link>static:<define>BOOST_ASIO_SOURCE
-	<link>shared,<boost-link>static:<define>BOOST_SYSTEM_SOURCE
-	<link>shared,<boost-link>static:<define>BOOST_ALL_DYN_LINK
+	<link>shared:<define>BOOST_ASIO_SOURCE
+	<link>shared:<define>BOOST_SYSTEM_SOURCE
 	<link>shared:<define>BOOST_ALL_DYN_LINK
 
 	<dht-support>on:<source>src/kademlia/$(KADEMLIA_SOURCES).cpp
@@ -618,8 +642,7 @@ lib torrent
 headers = [ path.glob-tree include/libtorrent : *.hpp ] ;
 
 package.install install
- : <install-header-subdir>libtorrent
-   <install-source-root>libtorrent
+ : <install-source-root>libtorrent
    <install-no-version-symlinks>on
  :
  : torrent

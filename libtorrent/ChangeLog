@@ -1,3 +1,47 @@
+	* improve web seed hash failure case
+	* improve DHT lookup times
+	* uTP path MTU discovery improvements
+	* optimized the torrent creator optimizer to scale significantly better with more files
+	* fix uTP edge case where udp socket buffer fills up
+	* fix nagle implementation in uTP
+
+	* fix UDP trackers trying all endpoints behind the hostname
+
+0.16.4 release
+
+	* raise the default number of torrents allowed to announce to trackers to 1600
+	* improve uTP slow start behavior
+	* fixed UDP socket error causing it to fail on Win7
+	* update use of boost.system to not use deprecated functions
+	* fix GIL issue in python bindings. Deprecated extension support in python
+	* fixed bug where setting upload slots to -1 would not mean infinite
+	* extend the UDP tracker protocol to include the request string from the tracker URL
+	* fix mingw build for linux crosscompiler
+
+0.16.3 release
+
+	* fix python binding backwards compatibility in replace_trackers
+	* fix possible starvation in metadata extension
+	* fix crash when creating torrents and optimizing file order with pad files
+	* disable support for large MTUs in uTP until it is more reliable
+	* expose post_torrent_updates and state_update_alert to python bindings
+	* fix incorrect SSL error messages
+	* fix windows build of shared library with openssl
+	* fix race condition causing shutdown hang
+
+0.16.2 release
+
+	* fix permissions issue on linux with noatime enabled for non-owned files
+	* use random peer IDs in anonymous mode
+	* fix move_storage bugs
+	* fix unnecessary dependency on boost.date_time when building boost.asio as separate compilation
+	* always use SO_REUSEADDR and deprecate the flag to turn it on
+	* add python bindings for SSL support
+	* minor uTP tweaks
+	* fix end-game mode issue when some files are selected to not be downloaded
+	* improve uTP slow start
+	* make uTP less aggressive resetting cwnd when idle
+
 0.16.1 release
 
 	* fixed crash when providing corrupt resume data
@@ -15,7 +59,7 @@
 	* change default of rate_limit_utp to true
 	* fixed DLL export issue on windows (when building a shared library linking statically against boost)
 	* fixed FreeBSD build
-	* fixed web seed performance issue whith pieces > 1 MiB
+	* fixed web seed performance issue with pieces > 1 MiB
 	* fixed unchoke logic when using web seeds
 	* fixed compatibility with older versions of boost (down to boost 1.40)
 
