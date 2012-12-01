@@ -222,7 +222,7 @@ public:
 			if (m_file_path.string() == "" || !m_file.is_open())
 			{
 				boost::filesystem::path path = m_handle.save_path();
-				file_storage stor = info.files();
+				const file_storage& stor = info.files();
 				std::string name = stor.name();
 				m_file_path = path / name;
 				name = convert_to_native(m_file_path.string());
