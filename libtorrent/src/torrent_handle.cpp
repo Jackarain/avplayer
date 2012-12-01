@@ -235,7 +235,7 @@ namespace libtorrent
 	session_impl& ses = t->session(); \
 	type r; \
 	mutex::scoped_lock l(ses.mut); \
-	ses.m_io_service.post(boost::bind(&fun_ret<type>, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t)))); \
+	ses.m_io_service.post(boost::bind(&fun_ret<type >, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t)))); \
 	t.reset(); \
 	do { ses.cond.wait(l); } while(!done)
 
@@ -246,7 +246,7 @@ namespace libtorrent
 	session_impl& ses = t->session(); \
 	type r; \
 	mutex::scoped_lock l(ses.mut); \
-	ses.m_io_service.post(boost::bind(&fun_ret<type>, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t, a1)))); \
+	ses.m_io_service.post(boost::bind(&fun_ret<type >, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t, a1)))); \
 	t.reset(); \
 	do { ses.cond.wait(l); } while(!done)
 
@@ -257,7 +257,7 @@ namespace libtorrent
 	session_impl& ses = t->session(); \
 	type r; \
 	mutex::scoped_lock l(ses.mut); \
-	ses.m_io_service.post(boost::bind(&fun_ret<type>, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t, a1, a2)))); \
+	ses.m_io_service.post(boost::bind(&fun_ret<type >, &r, &done, &ses.cond, &ses.mut, boost::function<type(void)>(boost::bind(&torrent:: x, t, a1, a2)))); \
 	t.reset(); \
 	do { ses.cond.wait(l); } while(!done)
 
@@ -294,7 +294,7 @@ namespace libtorrent
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(max_uploads >= 2 || max_uploads == -1);
-		TORRENT_ASYNC_CALL1(set_max_uploads, max_uploads);
+		TORRENT_ASYNC_CALL2(set_max_uploads, max_uploads, true);
 	}
 
 	void torrent_handle::use_interface(const char* net_interface) const
@@ -314,14 +314,14 @@ namespace libtorrent
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(max_connections >= 2 || max_connections == -1);
-		TORRENT_ASYNC_CALL1(set_max_connections, max_connections);
+		TORRENT_ASYNC_CALL2(set_max_connections, max_connections, true);
 	}
 
 	void torrent_handle::set_upload_limit(int limit) const
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(limit >= -1);
-		TORRENT_ASYNC_CALL1(set_upload_limit, limit);
+		TORRENT_ASYNC_CALL2(set_upload_limit, limit, true);
 	}
 
 	int torrent_handle::upload_limit() const
@@ -335,7 +335,7 @@ namespace libtorrent
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(limit >= -1);
-		TORRENT_ASYNC_CALL1(set_download_limit, limit);
+		TORRENT_ASYNC_CALL2(set_download_limit, limit, true);
 	}
 
 	int torrent_handle::download_limit() const
@@ -984,6 +984,11 @@ namespace libtorrent
 		TORRENT_ASYNC_CALL1(reset_piece_deadline, index);
 	}
 
+	boost::shared_ptr<torrent> torrent_handle::native_handle() const
+	{
+		return m_torrent.lock();
+	}
+
 	std::size_t hash_value(torrent_status const& ts)
 	{
 		return hash_value(ts.handle);
@@ -993,5 +998,6 @@ namespace libtorrent
 	{
 		return std::size_t(th.m_torrent.lock().get());
 	}
+
 }
 

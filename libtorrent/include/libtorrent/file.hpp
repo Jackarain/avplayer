@@ -59,7 +59,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <windows.h>
 #include <winioctl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #else
 // posix part
 #define _FILE_OFFSET_BITS 64
@@ -75,7 +74,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <sys/uio.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h> // for DIR
 
@@ -93,16 +91,18 @@ namespace libtorrent
 		time_t ctime;
 		enum {
 #if defined TORRENT_WINDOWS
-			directory = _S_IFDIR,
-			regular_file = _S_IFREG
+			fifo = 0x1000, // named pipe (fifo)
+			character_special = 0x2000,  // character special
+			directory = 0x4000,  // directory
+			regular_file = 0x8000  // regular
 #else
-			fifo = S_IFIFO,
-			character_special = S_IFCHR,
-			directory = S_IFDIR,
-			block_special = S_IFBLK,
-			regular_file = S_IFREG,
-			link = S_IFLNK,
-			socket = S_IFSOCK
+			fifo = 0010000, // named pipe (fifo)
+			character_special = 0020000,  // character special
+			directory = 0040000,  // directory
+			block_special = 0060000,  // block special
+			regular_file = 0100000,  // regular
+			link = 0120000,  // symbolic link
+			socket = 0140000  // socket
 #endif
 		} modes_t;
 		int mode;
@@ -124,6 +124,8 @@ namespace libtorrent
 	TORRENT_EXPORT size_type file_size(std::string const& f);
 	TORRENT_EXPORT bool is_directory(std::string const& f
 		, error_code& ec);
+	TORRENT_EXPORT void recursive_copy(std::string const& old_path
+		, std::string const& new_path, error_code& ec);
 	TORRENT_EXPORT void copy_file(std::string const& f
 		, std::string const& newf, error_code& ec);
 

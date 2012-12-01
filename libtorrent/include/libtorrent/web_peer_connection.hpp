@@ -103,6 +103,8 @@ namespace libtorrent
 
 		void write_request(peer_request const& r);
 
+		virtual bool received_invalid_data(int index, bool single_peer);
+
 	private:
 
 		bool maybe_harvest_block();
@@ -124,6 +126,7 @@ namespace libtorrent
 		// that are received in more than one HTTP response
 		// TODO: if we make this be a disk_buffer_holder instead
 		// we would save a copy sometimes
+		// use allocate_disk_receive_buffer and release_disk_receive_buffer
 		std::vector<char> m_piece;
 		
 		// the number of bytes received in the current HTTP

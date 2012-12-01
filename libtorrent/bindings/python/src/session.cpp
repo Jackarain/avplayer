@@ -11,6 +11,7 @@
 #include <libtorrent/storage.hpp>
 #include <libtorrent/ip_filter.hpp>
 #include <libtorrent/disk_io_thread.hpp>
+#include <libtorrent/extensions.hpp>
 #include "gil.hpp"
 
 using namespace boost::python;
@@ -21,9 +22,9 @@ namespace
     void listen_on(session& s, int min_, int max_, char const* interface, int flags)
     {
         allow_threading_guard guard;
-		  error_code ec;
+        error_code ec;
         s.listen_on(std::make_pair(min_, max_), ec, interface, flags);
-		  if (ec) throw libtorrent_exception(ec);
+        if (ec) throw libtorrent_exception(ec);
     }
 
     void outgoing_ports(session& s, int _min, int _max)
@@ -42,26 +43,14 @@ namespace
     }
 #endif
 
-    struct invoke_extension_factory
-    {
-        invoke_extension_factory(object const& callback)
-            : cb(callback)
-        {}
+#ifndef TORRENT_NO_DEPRECATE
+    void add_extension(session& s, object const& e) {}
 
-        boost::shared_ptr<torrent_plugin> operator()(torrent* t, void*)
-        {
-           lock_gil lock;
-           return extract<boost::shared_ptr<torrent_plugin> >(cb(ptr(t)))();
-        }
-
-        object cb;
-    };
-
-    void add_extension(session& s, object const& e)
-    {
-        allow_threading_guard guard;
-        s.add_extension(invoke_extension_factory(e));
+    boost::shared_ptr<torrent_plugin> dummy_plugin_wrapper(torrent* t) {
+        return boost::shared_ptr<torrent_plugin>();
     }
+
+#endif
 
 	void session_set_settings(session& ses, dict const& sett_dict)
 	{
@@ -101,9 +90,11 @@ namespace
 
 	dict session_get_settings(session const& ses)
 	{
-		allow_threading_guard guard;
-		 
-		session_settings sett = ses.settings();
+		session_settings sett;
+		{
+			allow_threading_guard guard;
+			sett = ses.settings();
+		}
 		dict sett_dict;
 		bencode_map_entry* map;
 		int len;
@@ -151,7 +142,7 @@ namespace
         , std::vector<char>& rd, std::list<std::string>& string_storage)
     {
         // torrent_info objects are always held by an intrusive_ptr in the python binding
-        if (params.has_key("ti") && !params.get("ti").is_none())
+        if (params.has_key("ti") && params.get("ti") != boost::python::object())
             p.ti = extract<intrusive_ptr<torrent_info> >(params["ti"]);
 
         if (params.has_key("info_hash"))
@@ -264,8 +255,6 @@ namespace
 
     feed_handle add_feed(session& s, dict params)
     {
-        allow_threading_guard guard;
-
         feed_settings feed;
         // this static here is a bit of a hack. It will
         // probably work for the most part
@@ -273,14 +262,17 @@ namespace
         std::list<std::string> string_storage;
         dict_to_feed_settings(params, feed, resume_buf, string_storage);
 
+        allow_threading_guard guard;
         return s.add_feed(feed);
     }
 
     dict get_feed_status(feed_handle const& h)
     {
-        allow_threading_guard guard;
-
-        feed_status s = h.get_feed_status();
+        feed_status s;
+        {
+            allow_threading_guard guard;
+            s = h.get_feed_status();
+        }
         dict ret;
         ret["url"] = s.url;
         ret["title"] = s.title;
@@ -307,14 +299,12 @@ namespace
             item["info_hash"] = i->info_hash.to_string();
             items.append(item);
         }
-		  ret["items"] = items;
+        ret["items"] = items;
         return ret;
     }
 
     void set_feed_settings(feed_handle& h, dict sett)
     {
-        allow_threading_guard guard;
-
         feed_settings feed;
         static std::vector<char> resume_buf;
         std::list<std::string> string_storage;
@@ -324,16 +314,18 @@ namespace
 
     dict get_feed_settings(feed_handle& h)
     {
-        allow_threading_guard guard;
-
-        feed_settings s = h.settings();
+        feed_settings s;
+        {
+            allow_threading_guard guard;
+            s = h.settings();
+        }
         dict ret;
         ret["url"] = s.url;
         ret["auto_download"] = s.auto_download;
         ret["default_ttl"] = s.default_ttl;
         return ret;
     }
-	
+
     void start_natpmp(session& s)
     {
         allow_threading_guard guard;
@@ -354,9 +346,12 @@ namespace
 
     list get_torrents(session& s)
     {
-        allow_threading_guard guard;
         list ret;
-        std::vector<torrent_handle> torrents = s.get_torrents();
+        std::vector<torrent_handle> torrents;
+        {
+           allow_threading_guard guard;
+           torrents = s.get_torrents();
+        }
 
         for (std::vector<torrent_handle>::iterator i = torrents.begin(); i != torrents.end(); ++i)
         {
@@ -513,6 +508,7 @@ void bind_session()
                 arg("fingerprint")=fingerprint("LT",0,1,0,0)
                 , arg("flags")=session::start_default_features | session::add_default_plugins))
         )
+        .def("post_torrent_updates", allow_threads(&session::post_torrent_updates))
         .def(
             "listen_on", &listen_on
           , (arg("min"), "max", arg("interface") = (char const*)0, arg("flags") = 0)
@@ -594,8 +590,8 @@ void bind_session()
         .def("set_alert_mask", allow_threads(&session::set_alert_mask))
         .def("pop_alert", allow_threads(&session::pop_alert))
         .def("wait_for_alert", &wait_for_alert, return_internal_reference<>())
-        .def("add_extension", &add_extension)
 #ifndef TORRENT_NO_DEPRECATE
+        .def("add_extension", &add_extension)
         .def("set_peer_proxy", allow_threads(&session::set_peer_proxy))
         .def("set_tracker_proxy", allow_threads(&session::set_tracker_proxy))
         .def("set_web_seed_proxy", allow_threads(&session::set_web_seed_proxy))
@@ -651,8 +647,15 @@ void bind_session()
         .def("settings", &get_feed_settings)
     ;
 
+#ifndef TORRENT_NO_DEPRECATE
+    def("create_ut_pex_plugin", dummy_plugin_wrapper);
+    def("create_metadata_plugin", dummy_plugin_wrapper);
+    def("create_ut_metadata_plugin", dummy_plugin_wrapper);
+    def("create_smart_ban_plugin", dummy_plugin_wrapper);
+#endif
+
     register_ptr_to_python<std::auto_ptr<alert> >();
 
 	 def("high_performance_seed", high_performance_seed);
-	 def("min_memory_usage", high_performance_seed);
+	 def("min_memory_usage", min_memory_usage);
 }

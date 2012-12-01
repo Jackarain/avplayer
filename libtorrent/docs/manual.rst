@@ -3,7 +3,7 @@ libtorrent API Documentation
 ============================
 
 :Author: Arvid Norberg, arvid@rasterbar.com
-:Version: 0.16.1
+:Version: 0.16.4
 
 .. contents:: Table of contents
   :depth: 1
@@ -394,7 +394,9 @@ async_add_torrent() add_torrent()
 				flag_auto_managed = 0x040.
 				flag_duplicate_is_error = 0x080,
 				flag_merge_resume_trackers = 0x100,
-				flag_update_subscribe = 0x200
+				flag_update_subscribe = 0x200,
+				flag_super_seeding = 0x400,
+				flag_sequential_download = 0x800
 			};
 
 			int version;
@@ -417,6 +419,10 @@ async_add_torrent() add_torrent()
 			std::string uuid;
 			std::string source_feed_url;
 			boost::uint64_t flags;
+			int max_uploads;
+			int max_connections;
+			int upload_limit;
+			int download_limit;
 		};
 
 		torrent_handle add_torrent(add_torrent_params const& params);
@@ -533,7 +539,9 @@ and how it's added. These are the flags::
 		flag_auto_managed = 0x040.
 		flag_duplicate_is_error = 0x080,
 		flag_merge_resume_trackers = 0x100,
-		flag_update_subscribe = 0x200
+		flag_update_subscribe = 0x200,
+		flag_super_seeding = 0x400,
+		flag_sequential_download = 0x800
 	}
 
 ``flag_apply_ip_filter`` determines if the IP filter should apply to this torrent or not. By
@@ -605,6 +613,20 @@ priorities for torrents in share mode, it will make it not work.
 The share mode has one setting, the share ratio target, see ``session_settings::share_mode_target``
 for more info.
 
+``flag_super_seeding`` sets the torrent into super seeding mode. If the torrent
+is not a seed, this flag has no effect. It has the same effect as calling
+``torrent_handle::super_seeding(true)`` on the torrent handle immediately
+after adding it.
+
+``flag_sequential_download`` sets the sequential download state for the torrent.
+It has the same effect as calling ``torrent_handle::sequential_download(true)``
+on the torrent handle immediately after adding it.
+
+``max_uploads``, ``max_connections``, ``upload_limit``, ``download_limit`` correspond
+to the ``set_max_uploads()``, ``set_max_connections()``, ``set_upload_limit()`` and
+``set_download_limit()`` functions on torrent_handle_. These values let you initialize
+these settings when the torrent is added, instead of calling these functions immediately
+following adding it.
 
 remove_torrent()
 ----------------
@@ -1385,6 +1407,7 @@ struct has the following members::
 		int max_torrents;
 		bool restrict_routing_ips;
 		bool restrict_search_ips;
+		bool extended_routing_table;
 	};
 
 ``max_peers_reply`` is the maximum number of peers the node will send in
@@ -1416,6 +1439,10 @@ distance.
 ``restrict_search_ips`` determines if DHT searches should prevent adding nodes
 with IPs with very close CIDR distance. This also defaults to true and helps
 mitigate certain attacks on the DHT.
+
+``extended_routing_table`` makes the first buckets in the DHT routing
+table fit 128, 64, 32 and 16 nodes respectively, as opposed to the
+standard size of 8. All other buckets have size 8 still.
 
 The ``dht_settings`` struct used to contain a ``service_port`` member to control
 which port the DHT would listen on and send messages from. This field is deprecated
@@ -2384,6 +2411,8 @@ Its declaration looks like this::
 		bool operator==(torrent_handle const&) const;
 		bool operator!=(torrent_handle const&) const;
 		bool operator<(torrent_handle const&) const;
+
+		boost::shared_ptr<torrent> native_handle() const;
 	};
 
 The default constructor will initialize the handle to an invalid state. Which
@@ -2631,8 +2660,8 @@ this torrent. You must have completed the download of the specified piece before
 calling this function.
 
 When the read operation is completed, it is passed back through an alert,
-read_piece_alert_. In order to receive this alert, you must enable
-``alert::storage_notification`` in your alert mask (see `set_alert_mask()`_).
+read_piece_alert_. Since this alert is a reponse to an explicit call, it will
+always be posted, regardless of the alert mask.
 
 Note that if you read multiple pieces, the read operations are not guaranteed to
 finish in the same order as you initiated them.
@@ -3376,6 +3405,20 @@ ssl certificate.
 
 If you receive a torrent_need_cert_alert_, you need to call this to provide a valid cert. If you
 don't have a cert you won't be allowed to connect to any peers.
+
+native_handle()
+---------------
+
+	::
+
+		boost::shared_ptr<torrent> native_handle() const;
+
+This function is intended only for use by plugins and the alert dispatch function. Any code
+that runs in libtorrent's network thread may not use the public API of ``torrent_handle``.
+Doing so results in a dead-lock. For such routines, the ``native_handle`` gives access to the
+underlying type representing the torrent. This type does not have a stable API and should
+be relied on as little as possible.
+
 
 torrent_status
 ==============
@@ -4525,7 +4568,6 @@ session_settings
 		int utp_syn_resends;
 		int utp_num_resends;
 		int utp_connect_timeout;
-		int utp_delayed_ack;
 		bool utp_dynamic_sock_buf;
 		int utp_loss_multiplier;
 
@@ -5341,12 +5383,6 @@ before giving up and closing the connection.
 
 ``utp_connect_timeout`` is the number of milliseconds of timeout for the initial SYN
 packet for uTP connections. For each timed out packet (in a row), the timeout is doubled.
-
-``utp_delayed_ack`` is the number of milliseconds to delay ACKs the most. Delaying ACKs
-significantly helps reducing the amount of protocol overhead in the reverse direction
-from downloads. It defaults to 100 milliseconds. If set to 0, delayed ACKs are disabled
-and every incoming payload packet is ACKed. The granularity of this timer is capped by
-the tick interval (as specified by ``tick_interval``).
 
 ``utp_dynamic_sock_buf`` controls if the uTP socket manager is allowed to increase
 the socket buffer if a network interface with a large MTU is used (such as loopback
