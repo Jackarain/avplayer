@@ -150,7 +150,7 @@ endif (dht)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fvisibility-inlines-hidden")
 
-add_library(torrent-rasterbar STATIC ${sources2})
+	add_library(torrent-rasterbar STATIC ${sources2})
 
 if (NOT Boost_VERSION LESS 103500)
 	FIND_PACKAGE( Boost 1.35 COMPONENTS system)

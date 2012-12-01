@@ -71,7 +71,7 @@ namespace libtorrent
 	struct peer_list_entry;
 	struct torrent_status;
 
-	// jackarain: 添加的读取函数回调接口函数定义.
+	// jackarain: 锟斤拷锟接的讹拷取锟斤拷锟斤拷锟截碉拷锟接口猴拷锟斤拷锟斤拷锟斤拷.
 	typedef boost::function<void (char*, size_type, size_type)> read_data_fun;
 
 	TORRENT_EXPORT std::size_t hash_value(torrent_status const& ts);
@@ -167,7 +167,7 @@ namespace libtorrent
 		enum flags_t { overwrite_existing = 1 };
 		void add_piece(int piece, char const* data, int flags = 0) const;
 		void read_piece(int piece) const;
-		// jackarain: 添加数据读取接口.
+		// jackarain: 锟斤拷锟斤拷锟斤拷锟捷讹拷取锟接匡拷.
 		void read_piece(int piece, read_data_fun rdf) const;
 		bool have_piece(int piece) const;
 
@@ -383,9 +383,9 @@ namespace libtorrent
 		int download_limit() const;
 
 		void set_sequential_download(bool sd) const;
-		// jackarain: 设置自定义下载方式, 该方式会自动根据分片
-		// 最高优先级开始位置顺序下载, 修改分片优先级, 将可以
-		// 调整下载点位置.
+		// jackarain: 锟斤拷锟斤拷锟皆讹拷锟斤拷锟斤拷锟截凤拷式, 锟矫凤拷式锟斤拷锟皆讹拷锟斤拷锟捷凤拷片
+		// 锟斤拷锟斤拷锟斤拷锟饺硷拷锟斤拷始位锟斤拷顺锟斤拷锟斤拷锟斤拷, 锟睫改凤拷片锟斤拷锟饺硷拷, 锟斤拷锟斤拷锟斤拷
+		// 锟斤拷锟斤拷锟斤拷锟截碉拷位锟斤拷.
 		void set_user_defined_download(bool ud) const;
 
 		// manually connect a peer
@@ -467,7 +467,7 @@ namespace libtorrent
 		bool paused;
 		bool auto_managed;
 		bool sequential_download;
-		bool user_defined_download;	// jackarain: 用户自定义下载方式.
+		bool user_defined_download;	// jackarain: 锟矫伙拷锟皆讹拷锟斤拷锟斤拷锟截凤拷式.
 		bool is_seeding;
 		bool is_finished;
 		bool has_metadata;
