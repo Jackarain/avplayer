@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/scoped_ptr.hpp>
 #include <boost/static_assert.hpp>
 
+#include <sys/stat.h>
+
 #ifdef TORRENT_WINDOWS
 // windows part
 
@@ -57,16 +59,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include <windows.h>
 #include <winioctl.h>
+#ifndef TORRENT_MINGW
 #include <direct.h> // for _getcwd, _mkdir
+#else
+#include <dirent.h>
+#endif
 #include <sys/types.h>
-#include <sys/stat.h>
 #else
 // posix part
 
 #define _FILE_OFFSET_BITS 64
 #include <unistd.h>
 #include <fcntl.h> // for F_LOG2PHYS
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/statvfs.h>
 #include <errno.h>
@@ -167,7 +171,7 @@ namespace libtorrent
 		std::string f = convert_to_native(inf);
 #endif
 
-#ifdef TORRENT_WINDOWS
+#if defined TORRENT_WINDOWS
 		struct _stati64 ret;
 #if TORRENT_USE_WSTRING
 		if (_wstati64(f.c_str(), &ret) < 0)
@@ -196,7 +200,20 @@ namespace libtorrent
 		s->atime = ret.st_atime;
 		s->mtime = ret.st_mtime;
 		s->ctime = ret.st_ctime;
-		s->mode = ret.st_mode;
+#if defined TORRENT_WINDOWS
+    s->mode = ((ret.st_mode & _S_IFREG) ? file_status::regular_file : 0)
+      | ((ret.st_mode & _S_IFDIR) ? file_status::directory : 0)
+      | ((ret.st_mode & _S_IFCHR) ? file_status::character_special : 0)
+      | ((ret.st_mode & _S_IFIFO) ? file_status::fifo : 0);
+#else
+    s->mode = (S_ISREG(ret.st_mode) ? file_status::regular_file : 0)
+      | (S_ISDIR(ret.st_mode) ? file_status::directory : 0)
+      | (S_ISLNK(ret.st_mode) ? file_status::link : 0)
+      | (S_ISFIFO(ret.st_mode) ? file_status::fifo : 0)
+      | (S_ISCHR(ret.st_mode) ? file_status::character_special : 0)
+      | (S_ISBLK(ret.st_mode) ? file_status::block_special : 0)
+      | (S_ISSOCK(ret.st_mode) ? file_status::socket : 0);
+#endif
 	}
 
 	void rename(std::string const& inf, std::string const& newf, error_code& ec)
@@ -266,6 +283,27 @@ namespace libtorrent
 		if (!e && s.mode & file_status::directory) return true;
 		ec = e;
 		return false;
+	}
+
+	void recursive_copy(std::string const& old_path, std::string const& new_path, error_code& ec)
+	{
+		TORRENT_ASSERT(!ec);
+		if (is_directory(old_path, ec))
+		{
+			create_directory(new_path, ec);
+			if (ec) return;
+			for (directory i(old_path, ec); !i.done(); i.next(ec))
+			{
+				std::string f = i.file();
+				if (f == ".." || f == ".") continue;
+				recursive_copy(combine_path(old_path, f), combine_path(new_path, f), ec);
+				if (ec) return;
+			}
+		}
+		else if (!ec)
+		{
+			copy_file(old_path, new_path, ec);
+		}
 	}
 
 	void copy_file(std::string const& inf, std::string const& newf, error_code& ec)
@@ -346,7 +384,7 @@ namespace libtorrent
 		{
 			while (*p != '/'
 				&& *p != '\0'
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 				&& *p != '\\'
 #endif
 				) ++p;
@@ -388,7 +426,7 @@ namespace libtorrent
 	{
 		if (f.empty()) return false;
 
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 		// match \\ form
 		if (f == "\\\\") return true;
 		int i = 0;
@@ -465,7 +503,7 @@ namespace libtorrent
 		if (f.empty()) return "";
 		char const* first = f.c_str();
 		char const* sep = strrchr(first, '/');
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 		char const* altsep = strrchr(first, '\\');
 		if (sep == 0 || altsep > sep) sep = altsep;
 #endif
@@ -480,7 +518,7 @@ namespace libtorrent
 			{
 				--sep;
 				if (*sep == '/'
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 					|| *sep == '\\'
 #endif
 					)
@@ -499,7 +537,7 @@ namespace libtorrent
 		if (lhs.empty() || lhs == ".") return rhs;
 		if (rhs.empty() || rhs == ".") return lhs;
 
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 #define TORRENT_SEPARATOR "\\"
 		bool need_sep = lhs[lhs.size()-1] != '\\' && lhs[lhs.size()-1] != '/';
 #else
@@ -517,7 +555,7 @@ namespace libtorrent
 
 	std::string current_working_directory()
 	{
-#ifdef TORRENT_WINDOWS
+#if defined TORRENT_WINDOWS && !defined TORRENT_MINGW
 #if TORRENT_USE_WSTRING
 		wchar_t cwd[TORRENT_MAX_PATH];
 		_wgetcwd(cwd, sizeof(cwd) / sizeof(wchar_t));
@@ -529,7 +567,7 @@ namespace libtorrent
 		char cwd[TORRENT_MAX_PATH];
 		if (getcwd(cwd, sizeof(cwd)) == 0) return "/";
 #endif
-#if defined TORRENT_WINDOWS && TORRENT_USE_WSTRING
+#if defined TORRENT_WINDOWS && !defined TORRENT_MINGW && TORRENT_USE_WSTRING
 		return convert_from_wstring(cwd);
 #else
 		return convert_from_native(cwd);
@@ -690,7 +728,7 @@ namespace libtorrent
 	bool is_complete(std::string const& f)
 	{
 		if (f.empty()) return false;
-#ifdef TORRENT_WINDOWS
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 		int i = 0;
 		// match the xx:\ or xx:/ form
 		while (f[i] && is_alpha(f[i])) ++i;
@@ -932,8 +970,11 @@ namespace libtorrent
 
 		if (mode & attribute_executable)
 			permissions |= S_IXGRP | S_IXOTH | S_IXUSR;
-
+#ifdef O_BINARY
+		static const int mode_array[] = {O_RDONLY | O_BINARY, O_WRONLY | O_CREAT | O_BINARY, O_RDWR | O_CREAT | O_BINARY};
+#else
 		static const int mode_array[] = {O_RDONLY, O_WRONLY | O_CREAT, O_RDWR | O_CREAT};
+#endif
 #ifdef O_DIRECT
 		static const int no_buffer_flag[] = {0, O_DIRECT};
 #else
@@ -959,9 +1000,27 @@ namespace libtorrent
 		{
 			mode &= ~no_buffer;
 			m_fd = ::open(path.c_str()
-				, mode & (rw_mask | no_buffer), permissions);
-		}
+				, mode_array[mode & rw_mask]
+#ifdef O_NOATIME
+				| no_atime_flag[(mode & no_atime) >> 4]
+#endif
 
+				, permissions);
+		}
+#endif
+
+#ifdef O_NOATIME
+		// O_NOATIME is not allowed for files we don't own
+		// so, if we get EPERM when we try to open with it
+		// try again without O_NOATIME
+		if (m_fd == -1 && (mode & no_atime) && errno == EPERM)
+		{
+			mode &= ~no_atime;
+			m_fd = ::open(path.c_str()
+				, mode_array[mode & rw_mask]
+				| no_buffer_flag[(mode & no_buffer) >> 2]
+				, permissions);
+		}
 #endif
 		if (m_fd == -1)
 		{

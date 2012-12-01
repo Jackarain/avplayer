@@ -64,6 +64,25 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent { namespace
 {
+	enum
+	{
+		// this is the max number of bytes we'll
+		// queue up in the send buffer. If we exceed this,
+		// we'll wait another second before checking
+		// the send buffer size again. So, this may limit
+		// the rate at which we can server metadata to
+		// 160 kiB/s
+		send_buffer_limit = 0x4000 * 10,
+
+		// this is the max number of requests we'll queue
+		// up. If we get more requests tha this, we'll
+		// start rejecting them, claiming we don't have
+		// metadata. If the torrent is greater than 16 MiB,
+		// we may hit this case (and the client requesting
+		// doesn't throttle its requests)
+		max_incoming_requests = 1024,
+	};
+
 	int div_round_up(int numerator, int denominator)
 	{
 		return (numerator + denominator - 1) / denominator;
@@ -111,7 +130,7 @@ namespace libtorrent { namespace
 		// returns a piece of the metadata that
 		// we should request.
 		// returns -1 if we should hold off the request
-		int metadata_request();
+		int metadata_request(bool has_metadata);
 
 		// this is called from the peer_connection for
 		// each piece of metadata it receives
@@ -326,8 +345,12 @@ namespace libtorrent { namespace
 						write_metadata_packet(2, piece);
 						return true;
 					}
-					// TODO: put the request on the queue in some cases
-					write_metadata_packet(1, piece);
+					if (m_pc.send_buffer_size() < send_buffer_limit)
+						write_metadata_packet(1, piece);
+					else if (m_incoming_requests.size() < max_incoming_requests)
+						m_incoming_requests.push_back(piece);
+					else
+						write_metadata_packet(2, piece);
 				}
 				break;
 			case 1: // data
@@ -353,7 +376,7 @@ namespace libtorrent { namespace
 				break;
 			case 2: // have no data
 				{
-					m_request_limit = (std::min)(time_now() + minutes(1), m_request_limit);
+					m_request_limit = (std::max)(time_now() + minutes(1), m_request_limit);
 					std::vector<int>::iterator i = std::find(m_sent_requests.begin()
 						, m_sent_requests.end(), piece);
 					// unwanted piece?
@@ -371,6 +394,13 @@ namespace libtorrent { namespace
 		virtual void tick()
 		{
 			maybe_send_request();
+			while (!m_incoming_requests.empty()
+				&& m_pc.send_buffer_size() < send_buffer_limit)
+			{
+				int piece = m_incoming_requests.front();
+				m_incoming_requests.erase(m_incoming_requests.begin());
+				write_metadata_packet(1, piece);
+			}
 		}
 
 		void maybe_send_request()
@@ -384,7 +414,7 @@ namespace libtorrent { namespace
 				&& m_sent_requests.size() < 2
 				&& has_metadata())
 			{
-				int piece = m_tp.metadata_request();
+				int piece = m_tp.metadata_request(m_pc.has_metadata());
 				if (piece == -1) return;
 
 				m_sent_requests.push_back(piece);
@@ -394,7 +424,7 @@ namespace libtorrent { namespace
 
 		bool has_metadata() const
 		{
-			return time_now() > m_request_limit;
+			return m_pc.has_metadata() || (time_now() > m_request_limit);
 		}
 
 		void failed_hash_check(ptime const& now)
@@ -433,7 +463,10 @@ namespace libtorrent { namespace
 		return boost::shared_ptr<peer_plugin>(new ut_metadata_peer_plugin(m_torrent, *c, *this));
 	}
 
-	int ut_metadata_plugin::metadata_request()
+	// has_metadata is false if the peer making the request has not announced
+	// that it has metadata. In this case, it shouldn't prevent other peers
+	// from requesting this block by setting a timeout on it.
+	int ut_metadata_plugin::metadata_request(bool has_metadata)
 	{
 		std::vector<metadata_piece>::iterator i = std::min_element(
 			m_requested_metadata.begin(), m_requested_metadata.end());
@@ -453,7 +486,13 @@ namespace libtorrent { namespace
 		if (now - m_requested_metadata[piece].last_request < 3) return -1;
 
 		++m_requested_metadata[piece].num_requests;
-		m_requested_metadata[piece].last_request = now;
+
+		// only set the timeout on this block, only if the peer
+		// has metadata. This is to prevent peers with no metadata
+		// to starve out sending requests to peers with metadata
+		if (has_metadata)
+			m_requested_metadata[piece].last_request = now;
+
 		return piece;
 	}
 

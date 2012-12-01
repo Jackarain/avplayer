@@ -939,7 +939,7 @@ namespace libtorrent
 #endif
 	}
 
-	void peer_connection::received_invalid_data(int index)
+	bool peer_connection::received_invalid_data(int index, bool single_peer)
 	{
 		INVARIANT_CHECK;
 
@@ -952,6 +952,7 @@ namespace libtorrent
 			} TORRENT_CATCH(std::exception&) {}
 		}
 #endif
+		return true;
 	}
 	
 	size_type peer_connection::total_free_upload() const
@@ -1563,6 +1564,9 @@ namespace libtorrent
 		m_have_piece.set_bit(index);
 		++m_num_pieces;
 
+		// if the peer is downloading stuff, it must have metadata		
+		m_has_metadata = true;
+
 		// only update the piece_picker if
 		// we have the metadata and if
 		// we're not a seed (in which case
@@ -1581,9 +1585,6 @@ namespace libtorrent
 			// update bytes downloaded since last timer
 			m_remote_bytes_dled += t->torrent_file().piece_size(index);
 		}
-
-		// if the peer is downloading stuff, it must have metadata		
-		m_has_metadata = true;
 
 		// it's important to not disconnect before we have
 		// updated the piece picker, otherwise we will incorrectly
@@ -2422,6 +2423,8 @@ namespace libtorrent
 				, p.piece, _1));
 		}
 
+		if (is_disconnecting()) return;
+
 #ifdef TORRENT_STATS
 		++m_ses.m_incoming_piece_picks;
 #endif
@@ -2652,6 +2655,9 @@ namespace libtorrent
 
 		m_have_piece.clear_all();
 		m_num_pieces = 0;
+
+		// if the peer is ready to download stuff, it must have metadata		
+		m_has_metadata = true;
 
 		// we're never interested in a peer that doesn't have anything
 		send_not_interested();
@@ -3752,9 +3758,6 @@ namespace libtorrent
 		}
 
 		p.estimated_reciprocation_rate = m_est_reciprocation_rate;
-		int upload_capacity = m_ses.settings().upload_rate_limit;
-		if (upload_capacity == 0)
-			upload_capacity = (std::max)(20000, m_ses.m_peak_up_rate + 10000);
 
 		error_code ec;
 		p.local_endpoint = get_socket()->local_endpoint(ec);
@@ -5251,6 +5254,12 @@ namespace libtorrent
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
 		(*m_ses.m_logger) << time_now_string() << " ON_CONNECT: " << print_endpoint(m_remote) << "\n";
 #endif
+
+		if (ticket == -1)
+		{
+			disconnect(asio::error::operation_aborted);
+			return;		
+		}
 
 		m_connection_ticket = ticket;
 		boost::shared_ptr<torrent> t = m_torrent.lock();

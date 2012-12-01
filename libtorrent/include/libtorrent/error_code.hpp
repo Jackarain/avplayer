@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/system/error_code.hpp>
 #endif
 
-#include <string.h> // strdup
+#include "libtorrent/string_util.hpp" // for allocate_string_copy
 #include <stdlib.h> // free
 
 namespace libtorrent
@@ -364,13 +364,22 @@ namespace libtorrent
 	}
 
 	using boost::system::error_code;
+
+#if BOOST_VERSION < 104400
 	inline boost::system::error_category const& get_system_category()
 	{ return boost::system::get_system_category(); }
+#else
+	inline boost::system::error_category const& get_system_category()
+	{ return boost::system::system_category(); }
+#endif
+
 	inline boost::system::error_category const& get_posix_category()
 #if BOOST_VERSION < 103600
 	{ return boost::system::get_posix_category(); }
-#else
+#elif BOOST_VERSION < 104400
 	{ return boost::system::get_generic_category(); }
+#else
+	{ return boost::system::generic_category(); }
 #endif // BOOST_VERSION < 103600
 #endif // BOOST_VERSION < 103500
 
@@ -378,17 +387,8 @@ namespace libtorrent
 	struct TORRENT_EXPORT libtorrent_exception: std::exception
 	{
 		libtorrent_exception(error_code const& s): m_error(s), m_msg(0) {}
-		virtual const char* what() const throw()
-		{
-			if (!m_msg)
-			{
-				std::string msg = m_error.message();
-				m_msg = strdup(msg.c_str());
-			}
-
-			return m_msg;
-		}
-		virtual ~libtorrent_exception() throw() { free(m_msg); }
+		virtual const char* what() const throw();
+		virtual ~libtorrent_exception() throw();
 		error_code error() const { return m_error; }
 	private:
 		error_code m_error;

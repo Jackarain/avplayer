@@ -217,6 +217,15 @@ namespace libtorrent
 			return m_piece_map[index].index == piece_pos::we_have_index;
 		}
 
+		bool is_downloading(int index) const
+		{
+			TORRENT_ASSERT(index >= 0);
+			TORRENT_ASSERT(index < int(m_piece_map.size()));
+
+			piece_pos const& p = m_piece_map[index];
+			return p.downloading;
+		}
+
 		// sets the priority of a piece.
 		// returns true if the priority was changed from 0 to non-0
 		// or vice versa
@@ -331,6 +340,8 @@ namespace libtorrent
 		std::vector<downloading_piece> const& get_download_queue() const
 		{ return m_downloads; }
 
+		int num_downloading_pieces() const { return int(m_downloads.size()); }
+
 		void* get_downloader(piece_block block) const;
 
 		// the number of filtered pieces we don't have
@@ -340,6 +351,9 @@ namespace libtorrent
 		int num_have_filtered() const { return m_num_have_filtered; }
 
 		int num_have() const { return m_num_have; }
+
+		// the number of pieces we want and don't have
+		int num_want_left() const { return num_pieces() - m_num_have - m_num_filtered; }
 
 #ifdef TORRENT_DEBUG
 		// used in debug mode

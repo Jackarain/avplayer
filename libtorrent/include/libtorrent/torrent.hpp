@@ -270,6 +270,20 @@ namespace libtorrent
 		void force_recheck();
 		void save_resume_data(int flags);
 
+		bool is_active_download() const
+		{
+			return (m_state == torrent_status::downloading
+				|| m_state == torrent_status::downloading_metadata)
+				&& m_allow_peers;
+		}
+
+		bool is_active_finished() const
+		{
+			return (m_state == torrent_status::finished
+				|| m_state == torrent_status::seeding)
+				&& m_allow_peers;
+		}
+
 		bool need_save_resume_data() const
 		{
 			// save resume data every 15 minutes regardless, just to
@@ -741,7 +755,7 @@ namespace libtorrent
 
 		// LOGGING
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		virtual void debug_log(const std::string& line);
+		virtual void debug_log(const char* fmt, ...) const;
 #endif
 
 		// DEBUG
@@ -766,14 +780,14 @@ namespace libtorrent
 		void set_peer_upload_limit(tcp::endpoint ip, int limit);
 		void set_peer_download_limit(tcp::endpoint ip, int limit);
 
-		void set_upload_limit(int limit);
+		void set_upload_limit(int limit, bool state_update = true);
 		int upload_limit() const;
-		void set_download_limit(int limit);
+		void set_download_limit(int limit, bool state_update = true);
 		int download_limit() const;
 
-		void set_max_uploads(int limit);
+		void set_max_uploads(int limit, bool state_update = true);
 		int max_uploads() const { return m_max_uploads; }
-		void set_max_connections(int limit);
+		void set_max_connections(int limit, bool state_update = true);
 		int max_connections() const { return m_max_connections; }
 
 		void move_storage(std::string const& save_path);

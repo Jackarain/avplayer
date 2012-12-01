@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <set>
 #include <list>
+#include <stdarg.h> // for va_start, va_end
 
 #ifndef TORRENT_DISABLE_GEO_IP
 #ifdef WITH_SHIPPED_GEOIP_H
@@ -188,6 +189,7 @@ namespace libtorrent
 			, dht::dht_observer
 			, boost::noncopyable
 			, initialize_timer
+			, udp_socket_observer
 			, boost::enable_shared_from_this<session_impl>
 		{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
@@ -217,7 +219,8 @@ namespace libtorrent
 				, std::string const& logpath
 #endif
 				);
-			~session_impl();
+			virtual ~session_impl();
+			void update_dht_announce_interval();
 			void init();
 			void start_session();
 
@@ -515,6 +518,19 @@ namespace libtorrent
 				--m_disk_queues[channel];
 			}
 
+			void inc_active_downloading() { ++m_num_active_downloading; }
+			void dec_active_downloading()
+			{
+				TORRENT_ASSERT(m_num_active_downloading > 0);
+				--m_num_active_downloading;
+			}
+			void inc_active_finished() { ++m_num_active_finished; }
+			void dec_active_finished()
+			{
+				TORRENT_ASSERT(m_num_active_finished > 0);
+				--m_num_active_finished;
+			}
+
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 			bool in_state_updates(boost::shared_ptr<torrent> t)
 			{
@@ -681,6 +697,13 @@ namespace libtorrent
 			torrent_map m_torrents;
 			std::map<std::string, boost::shared_ptr<torrent> > m_uuids;
 
+			// counters of how many of the active (non-paused) torrents
+			// are finished and downloading. This is used to weigh the
+			// priority of downloading and finished torrents when connecting
+			// more peers.
+			int m_num_active_downloading;
+			int m_num_active_finished;
+
 			typedef std::list<boost::shared_ptr<torrent> > check_queue_t;
 
 			// this has all torrents that wants to be checked in it
@@ -819,6 +842,7 @@ namespace libtorrent
 			void on_disk_queue();
 			void on_tick(error_code const& e);
 
+			void try_connect_more_peers(int num_downloads, int num_downloads_peers);
 			void auto_manage_torrents(std::vector<torrent*>& list
 				, int& dht_limit, int& tracker_limit, int& lsd_limit
 				, int& hard_limit, int type_limit);
@@ -862,13 +886,18 @@ namespace libtorrent
 			// this announce timer is used
 			// by the DHT.
 			deadline_timer m_dht_announce_timer;
+
+			// the number of torrents there were when the
+			// update_dht_announce_interval() was last called.
+			// if the number of torrents changes significantly
+			// compared to this number, the DHT announce interval
+			// is updated again. This especially matters for
+			// small numbers.
+			int m_dht_interval_update_torrents;
 #endif
 
-			void on_receive_udp(error_code const& e
-				, udp::endpoint const& ep, char const* buf, int len);
-
-			void on_receive_udp_hostname(error_code const& e
-				, char const* hostname, char const* buf, int len);
+			bool incoming_packet(error_code const& ec
+				, udp::endpoint const&, char const* buf, int size);
 
 			// see m_external_listen_port. This is the same
 			// but for the udp port used by the DHT.
@@ -918,6 +947,14 @@ namespace libtorrent
 			// within the DHT announce interval (which defaults to
 			// 15 minutes)
 			torrent_map::iterator m_next_dht_torrent;
+
+			// torrents that don't have any peers
+			// when added should be announced to the DHT
+			// as soon as possible. Such torrents are put
+			// in this queue and get announced the next time
+			// the timer fires, instead of the next one in
+			// the round-robin sequence.
+			std::deque<boost::weak_ptr<torrent> > m_dht_torrents;
 #endif
 
 			// this announce timer is used
@@ -930,6 +967,15 @@ namespace libtorrent
 			// connect to a peer next time on_tick is called.
 			// This implements a round robin.
 			torrent_map::iterator m_next_connect_torrent;
+
+			// this is the number of attempts of connecting to
+			// peers we have given to the torrent pointed to
+			// by m_next_connect_torrent. Once this reaches
+			// the number of connection attempts this particular
+			// torrent should have, the counter is reset and
+			// m_next_connect_torrent takes a step forward
+			// to give the next torrent its connection attempts.
+			int m_current_connect_attempts;
 
 			// this is the round-robin cursor for peers that
 			// get to download again after the disk has been
@@ -1159,7 +1205,7 @@ namespace libtorrent
 			void tracker_warning(tracker_request const& req
 				, std::string const& str)
 			{
-				debug_log("*** tracker warning: " + str);
+				debug_log("*** tracker warning: %s", str.c_str());
 			}
 
 			void tracker_response(tracker_request const&
@@ -1190,7 +1236,7 @@ namespace libtorrent
 				}
 				snprintf(tmp, 200, "external ip: %s\n", print_address(external_ip).c_str());
 				s += tmp;
-				debug_log(s);
+				debug_log("%s", s.c_str());
 			}
 
 			void tracker_request_timed_out(
@@ -1203,15 +1249,23 @@ namespace libtorrent
 				, int response_code, error_code const& ec, const std::string& str
 				, int retry_interval)
 			{
-				char msg[256];
-				snprintf(msg, sizeof(msg), "*** tracker error: %d: %s %s"
+				debug_log("*** tracker error: %d: %s %s"
 					, response_code, ec.message().c_str(), str.c_str());
-				debug_log(msg);
 			}
 			
-			void debug_log(const std::string& line)
+			void debug_log(const char* fmt, ...) const
 			{
-				(*m_ses.m_logger) << time_now_string() << " " << line << "\n";
+				if (!m_ses.m_logger) return;
+
+				va_list v;	
+				va_start(v, fmt);
+	
+				char usr[1024];
+				vsnprintf(usr, sizeof(usr), fmt, v);
+				va_end(v);
+				char buf[1280];
+				snprintf(buf, sizeof(buf), "%s: %s\n", time_now_string(), usr);
+				(*m_ses.m_logger) << buf;
 			}
 			session_impl& m_ses;
 		};

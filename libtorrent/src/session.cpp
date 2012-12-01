@@ -514,6 +514,9 @@ namespace libtorrent
 		error_code ec;
 		int ret = lazy_bdecode(&buf[0], &buf[0] + buf.size(), e, ec);
 		TORRENT_ASSERT(ret == 0);
+#ifndef BOOST_NO_EXCEPTIONS
+		if (ret != 0) throw libtorrent_exception(ec);
+#endif
 		TORRENT_SYNC_CALL1(load_state, &e);
 	}
 
@@ -1167,7 +1170,7 @@ namespace libtorrent
 		, active_downloads(3)
 		, active_seeds(5)
 		, active_dht_limit(88) // don't announce more than once every 40 seconds
-		, active_tracker_limit(360) // don't announce to trackers more than once every 5 seconds
+		, active_tracker_limit(1600) // don't announce to trackers more than once every 1.125 seconds
 		, active_lsd_limit(60) // don't announce to local network more than once every 5 seconds
 		, active_limit(15)
 		, auto_manage_prefer_seeds(false)
@@ -1257,8 +1260,10 @@ namespace libtorrent
 		, utp_fin_resends(2)
 		, utp_num_resends(6)
 		, utp_connect_timeout(3000) // milliseconds
+#ifndef TORRENT_NO_DEPRECATE
 		, utp_delayed_ack(0) // milliseconds
-		, utp_dynamic_sock_buf(true)
+#endif
+		, utp_dynamic_sock_buf(false) // this doesn't seem quite reliable yet
 		, utp_loss_multiplier(50) // specified in percent
 		, mixed_mode_algorithm(peer_proportional)
 		, rate_limit_utp(true)

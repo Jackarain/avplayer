@@ -181,14 +181,14 @@ rpc_manager::rpc_manager(node_id const& our_id
 #define PRINT_OFFSETOF(x, y) TORRENT_LOG(rpc) << "  +" << offsetof(x, y) << ": " #y
 
 	TORRENT_LOG(rpc) << " observer: " << sizeof(observer);
-	PRINT_OFFSETOF(observer, m_sent);
-	PRINT_OFFSETOF(observer, m_refs);
-	PRINT_OFFSETOF(observer, m_algorithm);
-	PRINT_OFFSETOF(observer, m_id);
-	PRINT_OFFSETOF(observer, m_addr);
-	PRINT_OFFSETOF(observer, m_port);
-	PRINT_OFFSETOF(observer, m_transaction_id);
-	PRINT_OFFSETOF(observer, flags);
+	PRINT_OFFSETOF(dht::observer, m_sent);
+	PRINT_OFFSETOF(dht::observer, m_refs);
+	PRINT_OFFSETOF(dht::observer, m_algorithm);
+	PRINT_OFFSETOF(dht::observer, m_id);
+	PRINT_OFFSETOF(dht::observer, m_addr);
+	PRINT_OFFSETOF(dht::observer, m_port);
+	PRINT_OFFSETOF(dht::observer, m_transaction_id);
+	PRINT_OFFSETOF(dht::observer, flags);
 
 	TORRENT_LOG(rpc) << " announce_observer: " << sizeof(announce_observer);
 	TORRENT_LOG(rpc) << " null_observer: " << sizeof(null_observer);
@@ -313,9 +313,11 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 		return false;
 	}
 
+	ptime now = time_now_hires();
+
 #ifdef TORRENT_DHT_VERBOSE_LOGGING
 	std::ofstream reply_stats("round_trip_ms.log", std::ios::app);
-	reply_stats << m.addr << "\t" << total_milliseconds(time_now_hires() - o->sent())
+	reply_stats << m.addr << "\t" << total_milliseconds(now - o->sent())
 		<< std::endl;
 #endif
 
@@ -366,17 +368,19 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 	o->reply(m);
 	*id = node_id(node_id_ent->string_ptr());
 
+	int rtt = total_milliseconds(now - o->sent());
+
 	// we found an observer for this reply, hence the node is not spoofing
 	// add it to the routing table
-	return m_table.node_seen(*id, m.addr);
+	return m_table.node_seen(*id, m.addr, rtt);
 }
 
 time_duration rpc_manager::tick()
 {
 	INVARIANT_CHECK;
 
-	const static int short_timeout = 3;
-	const static int timeout = 20;
+	const static int short_timeout = 2;
+	const static int timeout = 10;
 
 	//	look for observers that have timed out
 
@@ -487,7 +491,7 @@ observer::~observer()
 	// reported back to the traversal_algorithm as
 	// well. If it wasn't sent, it cannot have been
 	// reported back
-	TORRENT_ASSERT(m_was_sent == bool(flags & flag_done));
+	TORRENT_ASSERT(m_was_sent == bool(flags & flag_done) || m_was_abandoned);
 	TORRENT_ASSERT(!m_in_constructor);
 }
 
