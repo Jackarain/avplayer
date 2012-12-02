@@ -68,6 +68,9 @@ public:
 	// 读取数据.
 	virtual bool read_data(char* data, uint64_t offset, size_t size, size_t& read_size);
 
+	// seek操作, 此处返回true, 表示数据不够, 需要缓冲.
+	virtual bool read_seek(uint64_t offset, int whence);
+
 	// 关闭.
 	virtual void close();
 

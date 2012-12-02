@@ -202,6 +202,34 @@ bool torrent_source::read_data(char* data, uint64_t offset, size_t size, size_t&
 	return ret;
 }
 
+bool torrent_source::read_seek(uint64_t offset, int whence)
+{
+	if (!m_read_op || m_videos.size() == 0)
+		return false;
+
+	if (offset >= m_current_video.data_size)
+		return false;
+
+	// 在这里检查请求seek时, 所在位置的分块或下一个块是否已经下载, 如果未下载, 则通知上层进入暂停缓冲逻辑.
+	if (whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END)
+	{
+		torrent_status status = m_torrent_handle.status();
+		const torrent_info& info = m_torrent_handle.get_torrent_info();
+		int piece_length = info.piece_length();
+		int piece_index = offset / piece_length;
+
+		if (!status.pieces[piece_index])
+			return true;
+		if (++piece_index < status.num_pieces)
+		{
+			if (!status.pieces[piece_index])
+				return true;
+		}
+	}
+
+	return false;
+}
+
 void torrent_source::close()
 {
 	m_abort = true;

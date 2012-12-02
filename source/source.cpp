@@ -172,6 +172,27 @@ EXPORT_API int64_t bt_read_data(void *ctx, char* buff, int64_t offset, size_t bu
 #endif // USE_TORRENT
 }
 
+EXPORT_API int64_t bt_read_seek(void *ctx, int64_t offset, int whence)
+{
+#ifdef USE_TORRENT
+	source_context *sc = (source_context*)ctx;
+	torrent_source *ts = (torrent_source*)sc->io_dev;
+
+	// 如果返回true, 则表示数据不够, 需要缓冲.
+	if (ts->read_seek(offset, whence))
+	{
+		printf("!!!!!!!!!!! data is not enough: %lld, whence: %d !!!!!!!!!!!\n", offset, whence);
+		sc->info.not_enough = 1;
+	}
+
+	// 此处的返回值无意义.
+	return 0;
+
+#else
+	return -1;
+#endif // USE_TORRENT
+}
+
 EXPORT_API void bt_close(void *ctx)
 {
 #ifdef USE_TORRENT
