@@ -1,4 +1,5 @@
-link_libraries(-lavcodec -lavformat -lswscale -lswresample ${PROJECT_BINARY_DIR}/libtorrent/libtorrent-rasterbar.a )
+link_libraries(-lavcodec -lavformat -lswscale -lswresample)
+
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_libraries(${Boost_LIBRARIES})
@@ -23,3 +24,6 @@ add_executable(avplayer player.cpp main.cpp
 	$<TARGET_OBJECTS:libav> $<TARGET_OBJECTS:libavsource>
 	$<TARGET_OBJECTS:libavvideo> $<TARGET_OBJECTS:libavaudio>)
 
+if(bt)
+	target_link_libraries(avplayer ${PROJECT_BINARY_DIR}/libtorrent/libtorrent-rasterbar.a )
+endif()
