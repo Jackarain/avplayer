@@ -332,6 +332,13 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 	if (play->m_abort)
 		return -1;
 
+	// 如果存在read_seek函数实现, 则调用相应的函数实现, 处理相关事件.
+	if (play->m_source_ctx && play->m_source_ctx->read_seek)
+	{
+		play->m_source_ctx->read_seek(play->m_source_ctx, offset, whence);
+	}
+
+	// 在下面计算修改offset, 于是在read_data的时候, 通过参数offset提供指定位置.
 	switch (whence)
 	{
 	case SEEK_SET:

@@ -1,12 +1,12 @@
-//
-// globals.h
-// ~~~~~~~~~
-//
-// Copyright (c) 2012 Jack (jack.wgm@gmail.com)
-//
+/*
+ * globals.h
+ * ~~~~~~~~~
+ *
+ * Copyright (c) 2012 Jack (jack.wgm@gmail.com)
+ */
 
-#ifndef __DEFS_H__
-#define __DEFS_H__
+#ifndef __AVPLAYER_GLOBALS_H__
+#define __AVPLAYER_GLOBALS_H__
 
 #include <stdint.h>
 
@@ -18,18 +18,19 @@ struct AVFrame;
 #define MEDIA_TYPE_RTSP 3
 
 /* 媒体文件信息. */
-typedef struct media_info 
+typedef struct media_info
 {
-	char *name;			// 文件名.
-	int64_t start_pos;	// 起始位置.
-	int64_t file_size;	// 文件大小.
+	char *name;			/*  文件名. */
+	int64_t start_pos;	/* 起始位置. */
+	int64_t file_size;	/* 文件大小. */
 } media_info;
 
 /*  */
 typedef struct download_info
 {
-	int speed;			// 下载下载速率.
-	int limit_speed;	// 限制下载速率.
+	int speed;			/* 下载下载速率. */
+	int limit_speed;	/* 限制下载速率. */
+	int not_enough;		/* 若为1, 则表示数据不够, 需要缓冲, 若为0, 表示缓冲完成. */
 } download_info;
 
 
@@ -45,6 +46,7 @@ typedef struct source_context
 	 */
 	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
 	int64_t (*read_data)(void *ctx, char* buff, int64_t offset, size_t buf_size);
+	int64_t (*read_seek)(void *ctx, int64_t offset, int whence);
 	void (*close)(void *ctx);
 	void (*destory)(void *ctx);
 	/* io_dev是保存内部用于访问实际数据的对象指针. */
@@ -96,7 +98,7 @@ typedef struct vo_context
 } vo_context;
 
 /* 音频播放输出结构定义. */
-typedef struct ao_context 
+typedef struct ao_context
 {
 	int (*init_audio)(void *ctx, uint32_t channels, uint32_t bits_per_sample,
 		uint32_t sample_rate, int format);
@@ -107,4 +109,4 @@ typedef struct ao_context
 	void *audio_dev;
 } ao_context;
 
-#endif // __DEFS_H__
+#endif /* __AVPLAYER_GLOBALS_H__ */
