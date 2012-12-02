@@ -207,6 +207,7 @@ typedef struct avplay
 	/* 正在播放的索引, 只用于BT文件播放. */
 	int m_current_play_index;
 	double m_start_time;
+	double m_buffering;
 
 	/* 停止标志.	*/
 	int m_abort;
@@ -347,18 +348,25 @@ EXPORT_API void enable_calc_frame_rate(avplay *play);
 EXPORT_API void enable_calc_bit_rate(avplay *play);
 
 /*
- *	Get current real-time bit rate.
+ * Get current real-time bit rate.
  * @param play pointer to the player.
  * @This function return bit rate(kpbs).
  */
 EXPORT_API int current_bit_rate(avplay *play);
 
 /*
- *	Get current real-time frame rate.
+ * Get current real-time frame rate.
  * @param play pointer to the player.
  * @This function return frame rate(fps).
  */
 EXPORT_API int current_frame_rate(avplay *play);
+
+/*
+ * Get buffer progress.
+ * @param play pointer to the player.
+ * @This function return buffering(percent).
+ */
+EXPORT_API double buffering(avplay *play);
 
 /*
  * Blurring algorithm to the input video.

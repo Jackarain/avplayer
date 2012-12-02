@@ -1244,6 +1244,7 @@ void* read_pkt_thrd(void *param)
 		av_seek(play, play->m_start_time);
 	}
 
+	play->m_buffering = 0.0f;
 	play->m_real_bit_rate = 0;
 
 	for (; !play->m_abort;)
@@ -1338,6 +1339,7 @@ void* read_pkt_thrd(void *param)
 		/* 更新缓冲字节数.	*/
 		pthread_mutex_lock(&play->m_buf_size_mtx);
 		play->m_pkt_buffer_size += packet.size;
+		play->m_buffering = (double)play->m_pkt_buffer_size / (double)MAX_PKT_BUFFER_SIZE;
 		pthread_mutex_unlock(&play->m_buf_size_mtx);
 
 		/* 在这里计算码率.	*/
@@ -1398,7 +1400,7 @@ static
 void* audio_dec_thrd(void *param)
 {
 	AVPacket pkt, pkt2;
-	int ret, n;
+	int ret, n, out_size = 0;
 	AVFrame avframe = { 0 }, avcopy;
 	avplay *play = (avplay*) param;
 	int64_t v_start_time = 0;
@@ -1410,6 +1412,9 @@ void* audio_dec_thrd(void *param)
 		v_start_time = play->m_video_st->start_time;
 		a_start_time = play->m_audio_st->start_time;
 	}
+
+	avframe.data[0] = av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE * 3);
+	audio_buf = avframe.data[0];
 
 	for (; !play->m_abort;)
 	{
@@ -1446,65 +1451,62 @@ void* audio_dec_thrd(void *param)
 			pthread_mutex_unlock(&play->m_audio_q.m_mutex);
 
 			/* 解码音频. */
+			out_size = 0;
 			pkt2 = pkt;
-			avcodec_get_frame_defaults(&avframe);
-
+			avframe.linesize[0] = 0;
 			while (!play->m_abort)
 			{
-				int got_frame = 0;
- 				ret = avcodec_decode_audio4(play->m_audio_ctx, &avframe, &got_frame, &pkt2);
+				int audio_out_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+				ret = avcodec_decode_audio3(play->m_audio_ctx,
+					(int16_t*)((uint8_t*)audio_buf + out_size), &audio_out_size, &pkt2);
 				if (ret < 0)
 				{
 					printf("Audio error while decoding one frame!!!\n");
 					break;
 				}
+				out_size += audio_out_size;
 				pkt2.size -= ret;
 				pkt2.data += ret;
 
-				if (!got_frame && pkt2.size > 0)
-					continue;
-
-				if (pkt2.size == 0 && !got_frame)
-					break;
-
-				if (avframe.linesize[0]/*out_size*/ != 0)
-				{
-					/* copy并转换音频格式. */
-					audio_copy(play, &avcopy, &avframe);
-
-					/* 将计算的pts复制到avcopy.pts.	*/
-					memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
-
-					/* 计算下一个audio的pts值.	*/
-					n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
-
-					play->m_audio_clock += ((double) avcopy.linesize[0] / (double) (n * play->m_audio_ctx->sample_rate));
-
-					/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
-					if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
-						play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
-					{
-						/* 暂无实现.	*/
-					}
-
-					/* 防止内存过大.	*/
-					chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
-
-					/* 丢到播放队列中.	*/
-					put_queue(&play->m_audio_dq, &avcopy);
-				}
-				
 				if (pkt2.size <= 0)
 					break;
 			}
 
+			if (out_size > 0)
+			{
+				avframe.pts = pkt2.pts;
+				avframe.best_effort_timestamp = pkt2.pts;
+				avframe.linesize[0] = out_size;
+
+				/* 拷贝到avcopy用于添加到队列. */
+				audio_copy(play, &avcopy, &avframe);
+
+				/* 将计算的pts复制到avcopy.pts.	*/
+				memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
+
+				/* 计算下一个audio的pts值.	*/
+				n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
+
+				play->m_audio_clock += ((double) avcopy.linesize[0]
+						/ (double) (n * play->m_audio_ctx->sample_rate));
+
+				/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
+				if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
+					play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
+				{
+					/* 暂无实现.	*/
+				}
+
+				/* 防止内存过大.	*/
+				chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
+
+				/* 丢到播放队列中.	*/
+				put_queue(&play->m_audio_dq, &avcopy);
+			}
 			av_free_packet(&pkt);
 		}
 	}
-
-	if (audio_buf)
-		av_free(audio_buf);
-
+	av_free(audio_buf);
 	return NULL;
 }
 
@@ -2365,4 +2367,9 @@ int logger(const char *fmt, ...)
 	va_end(va);
 
 	return ret;
+}
+
+double buffering(avplay *play)
+{
+	return play->m_buffering;
 }
