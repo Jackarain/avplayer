@@ -1237,21 +1237,6 @@ void* read_pkt_thrd(void *param)
 	if (fabs(play->m_start_time) > 1.0e-6)
 	{
 		av_seek(play, play->m_start_time);
-// 		double duration = (double)play->m_format_ctx->duration / AV_TIME_BASE;
-// 		int64_t seek_pos = play->m_start_time * duration;
-// 		if (duration <= 0.0f)
-// 		{
-// 			uint64_t size = avio_size(play->m_format_ctx->pb);
-// 			seek_pos = play->m_start_time * size;
-// 		}
-// 
-// 		if (play->m_format_ctx->start_time != AV_NOPTS_VALUE)
-// 			seek_pos += play->m_format_ctx->start_time;
-// 
-// 		seek_pos *= AV_TIME_BASE;
-// 		ret = avformat_seek_file(play->m_format_ctx, -1, INT64_MIN, seek_pos, INT64_MAX, 0);
-// 		if (ret < 0)
-// 			printf("start seek error: could not seek to position %0.3f\n", (double)seek_pos / AV_TIME_BASE);
 	}
 
 	play->m_real_bit_rate = 0;
@@ -1324,7 +1309,7 @@ void* read_pkt_thrd(void *param)
 		}
 
 		/* 缓冲读满, 在这休眠让出cpu.	*/
-		while (play->m_pkt_buffer_size > MAX_PKT_BUFFER_SIZE && !play->m_abort)
+		while (play->m_pkt_buffer_size > MAX_PKT_BUFFER_SIZE && !play->m_abort && !play->m_seek_req)
 			Sleep(32);
 		if (play->m_abort)
 			break;
