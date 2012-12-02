@@ -1,5 +1,5 @@
 #include "ins.h"
-#include "defs.h"
+#include "globals.h"
 #include "wave_render.h"
 #include "dsound_render.h"
 #include "audio_out.h"

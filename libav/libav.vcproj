@@ -195,7 +195,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\defs.h"
+				RelativePath=".\globals.h"
 				>
 			</File>
 		</Filter>

@@ -30,7 +30,7 @@
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 #include <assert.h>
-#include "defs.h"
+#include "globals.h"
 
 #ifdef  __cplusplus
 extern "C" {

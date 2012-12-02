@@ -1,5 +1,5 @@
 #include "ins.h"
-#include "defs.h"
+#include "globals.h"
 #include "source.h"
 #include "av_source.h"
 #include "file_source.h"

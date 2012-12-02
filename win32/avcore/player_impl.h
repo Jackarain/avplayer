@@ -11,7 +11,7 @@
 #include "audio_out.h"
 #include "video_out.h"
 #include "source.h"
-#include "defs.h"
+#include "globals.h"
 
 #pragma once
 

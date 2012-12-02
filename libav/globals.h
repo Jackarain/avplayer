@@ -1,6 +1,6 @@
 //
-// defs.h
-// ~~~~~~
+// globals.h
+// ~~~~~~~~~
 //
 // Copyright (c) 2012 Jack (jack.wgm@gmail.com)
 //

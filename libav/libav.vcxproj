@@ -97,7 +97,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="avplay.h" />
-    <ClInclude Include="defs.h" />
+    <ClInclude Include="globals.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avplay.c" />

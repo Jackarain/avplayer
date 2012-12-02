@@ -360,8 +360,7 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 			else if (play->m_source_ctx->type == MEDIA_TYPE_BT)
 			{
 				/* 找到正在播放的文件. */
-				media_info *mi = find_media_info(
-					play->m_source_ctx, play->m_current_play_index);
+				media_info *mi = find_media_info(play->m_source_ctx, play->m_current_play_index);
 				if (mi)
 					size = mi->file_size;
 				else
@@ -386,8 +385,7 @@ int64_t seek_packet(void *opaque, int64_t offset, int whence)
 			else if (play->m_source_ctx->type == MEDIA_TYPE_BT)
 			{
 				/* 找到正在播放的文件. */
-				media_info *mi = find_media_info(
-					play->m_source_ctx, play->m_current_play_index);
+				media_info *mi = find_media_info(play->m_source_ctx, play->m_current_play_index);
 				if (mi)
 					size = mi->file_size;
 				else

@@ -1,5 +1,5 @@
 #include "ins.h"
-#include "defs.h"
+#include "globals.h"
 #include "video_out.h"
 #include "d3d_render.h"
 #include "ddraw_render.h"
