@@ -148,6 +148,7 @@
     <ClCompile Include="..\src\socks5_stream.cpp" />
     <ClCompile Include="..\src\stat.cpp" />
     <ClCompile Include="..\src\storage.cpp" />
+    <ClCompile Include="..\src\string_util.cpp" />
     <ClCompile Include="..\src\thread.cpp" />
     <ClCompile Include="..\src\time.cpp" />
     <ClCompile Include="..\src\timestamp_history.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="libtorrent\stat.hpp" />
     <ClInclude Include="libtorrent\storage.hpp" />
     <ClInclude Include="libtorrent\storage_defs.hpp" />
+    <ClInclude Include="libtorrent\string_util.hpp" />
     <ClInclude Include="libtorrent\struct_debug.hpp" />
     <ClInclude Include="libtorrent\thread.hpp" />
     <ClInclude Include="libtorrent\time.hpp" />
