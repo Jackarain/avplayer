@@ -9,39 +9,34 @@
 class player_impl;
 class win_data
 {
+	typedef player_impl* player_impl_ptr;
+	typedef std::map<player_impl_ptr, HWND> player_impl_map;
 public:
 	win_data();
 	~win_data();
 
 public:
 	BOOL add_window(HWND hwnd, player_impl *win);
-	BOOL remove_window(HWND hwnd);
+	BOOL remove_window(player_impl* win);
 	player_impl *lookup_window(HWND hwnd);
-
-	inline HHOOK get_hook_handle();
-	inline void set_hook_handle(HHOOK hook);
-
-	inline player_impl *get_current_window();
-	inline void set_current_window(player_impl *win);
 
 private:
 	CRITICAL_SECTION m_cs;
-	std::map<HWND, player_impl*> m_maps;
+	player_impl_map m_maps;
 	HHOOK m_hook_cbt_filter;
-	player_impl *m_current_win;
 };
 
 // 线程本地存储.
 template <typename T>
-class thread_tls_ptr
+class thread_tls
 {
 public:
-	thread_tls_ptr()
+	thread_tls()
 		: m_tls_index(0)
 	{
 		m_tls_index = TlsAlloc();
 	}
-	~thread_tls_ptr()
+	~thread_tls()
 	{
 		TlsFree(m_tls_index);
 	}
@@ -70,8 +65,8 @@ private:
 	DWORD m_tls_index;
 };
 
-// 本地线程存储, 用于存储win_data, 并且在各线程独立.
-thread_tls_ptr<win_data> win_data_ptr;
+// 本地线程存储, 用于存储hwnd和player_impl之间的关系, 并且在消息回调时能及时查询到对应的窗口.
+win_data window_pool;
 
 win_data::win_data()
 {
@@ -86,21 +81,21 @@ win_data::~win_data()
 BOOL win_data::add_window(HWND hwnd, player_impl* win)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
+	player_impl_map::iterator finder = m_maps.find(win);
 	if (finder != m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
 		return FALSE;
 	}
-	m_maps.insert(std::make_pair(hwnd, win));
+	m_maps.insert(std::make_pair(win, hwnd));
 	LeaveCriticalSection(&m_cs);
 	return TRUE;
 }
 
-BOOL win_data::remove_window(HWND hwnd)
+BOOL win_data::remove_window(player_impl* win)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
+	player_impl_map::iterator finder = m_maps.find(win);
 	if (finder != m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
@@ -114,34 +109,16 @@ BOOL win_data::remove_window(HWND hwnd)
 player_impl *win_data::lookup_window(HWND hwnd)
 {
 	EnterCriticalSection(&m_cs);
-	std::map<HWND, player_impl*>::iterator finder = m_maps.find(hwnd);
-	if (finder == m_maps.end())
+	for (player_impl_map::iterator it = m_maps.begin(); it != m_maps.end(); it++)
 	{
-		LeaveCriticalSection(&m_cs);
-		return NULL;
+		if (it->second == hwnd)
+		{
+			LeaveCriticalSection(&m_cs);
+			return it->first;
+		}
 	}
 	LeaveCriticalSection(&m_cs);
-	return finder->second;
-}
-
-HHOOK win_data::get_hook_handle()
-{
-	return m_hook_cbt_filter;
-}
-
-void win_data::set_hook_handle(HHOOK hook)
-{
-	m_hook_cbt_filter = hook;
-}
-
-player_impl *win_data::get_current_window()
-{
-	return m_current_win;
-}
-
-void win_data::set_current_window(player_impl *win)
-{
-	m_current_win = win;
+	return NULL;
 }
 
 static uint64_t file_size(LPCTSTR filename)
@@ -154,22 +131,28 @@ static uint64_t file_size(LPCTSTR filename)
 		<< (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
 }
 
+struct win_cbt_context
+{
+	HHOOK hook;
+	player_impl* win;
+};
+
+thread_tls<win_cbt_context> win_tls;
+
 LRESULT CALLBACK win_cbt_filter_hook(int code, WPARAM wParam, LPARAM lParam)
 {
 	if (code != HCBT_CREATEWND)
 	{
-		return CallNextHookEx(win_data_ptr->get_hook_handle(),
-			code, wParam, lParam);
+		return CallNextHookEx(win_tls->hook, code, wParam, lParam);
 	}
 	else
 	{
 		HWND hwnd = (HWND)wParam;
-		player_impl *win = win_data_ptr->get_current_window();
-		win_data_ptr->add_window(hwnd, win);
+		player_impl *win = win_tls->win;
+		window_pool.add_window(hwnd, win);
 	}
 
-	return CallNextHookEx(win_data_ptr->get_hook_handle(),
-		code, wParam, lParam);
+	return CallNextHookEx(win_tls->hook, code, wParam, lParam);
 }
 
 
@@ -296,8 +279,6 @@ player_impl::player_impl(void)
 	, m_full_screen(FALSE)
 	, m_mute(false)
 {
-	// 初始化线程局部存储对象.
-	win_data_ptr.set(new win_data());
 	// 初始化字幕插件的临界.
 	InitializeCriticalSection(&m_plugin_cs);
 }
@@ -342,8 +323,10 @@ HWND player_impl::create_window(const char *player_name)
 
 	// 创建hook, 以便在窗口创建之前得到HWND句柄, 使HWND与this绑定.
 	HHOOK hook = SetWindowsHookEx(WH_CBT, win_cbt_filter_hook, NULL, GetCurrentThreadId());
-	win_data_ptr->set_hook_handle(hook);
-	win_data_ptr->set_current_window(this);
+	win_cbt_context win_cbt_ctx;
+	win_tls.set(&win_cbt_ctx);
+	win_tls->hook = hook;
+	win_tls->win = this;
 
 	// 创建窗口.
 	m_hwnd = CreateWindowExA(/*WS_EX_APPWINDOW*/0,
@@ -352,7 +335,8 @@ HWND player_impl::create_window(const char *player_name)
 
 	// 撤销hook.
 	UnhookWindowsHookEx(hook);
-	win_data_ptr->set_hook_handle(NULL);
+	win_tls->hook = NULL;
+	win_tls->win = NULL;
 
 	ShowWindow(m_hwnd, SW_SHOW);
 
@@ -371,7 +355,7 @@ BOOL player_impl::destory_window()
 		m_brbackground = NULL;
 	}
 
-	win_data_ptr->remove_window(m_hwnd);
+	window_pool.remove_window(this);
 
 	return ret;
 }
@@ -384,12 +368,12 @@ BOOL player_impl::subclasswindow(HWND hwnd, BOOL in_process)
 		return FALSE;
 	// 创建非纯黑色的画刷, 用于ddraw播放时刷背景色.
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
-	win_data_ptr->add_window(hwnd, this);
+	window_pool.add_window(hwnd, this);
 	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd,
 		GWLP_WNDPROC, (LONG_PTR)&player_impl::static_win_wnd_proc);
 	if (!m_old_win_proc)
 	{
-		win_data_ptr->remove_window(hwnd);
+		window_pool.remove_window(this);
 		if (in_process)
 			return FALSE;
 	}
@@ -407,7 +391,7 @@ BOOL player_impl::unsubclasswindow(HWND hwnd)
 
 	// 设置为原来的窗口过程.
 	::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)m_old_win_proc);
-	win_data_ptr->remove_window(hwnd);
+	window_pool.remove_window(this);
 	m_hwnd = NULL;
 
 	return TRUE;
@@ -415,7 +399,7 @@ BOOL player_impl::unsubclasswindow(HWND hwnd)
 
 LRESULT CALLBACK player_impl::static_win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	player_impl* this_ptr = win_data_ptr->lookup_window(hwnd);
+	player_impl* this_ptr = window_pool.lookup_window(hwnd);
 	if (!this_ptr)
 	{
 		::logger("Impossible running to here!\n");
