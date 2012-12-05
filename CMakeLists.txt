@@ -19,14 +19,16 @@ include_directories(libav/)
 include_directories(source/)
 include_directories(audio/)
 
-
-add_definitions(-DUSE_SWR)
+option(bt "support bt protocol" ON)
 
 add_subdirectory(libav)
 add_subdirectory(video)
 add_subdirectory(audio)
 add_subdirectory(source)
-add_subdirectory(libtorrent)
+
+if(bt)
+	add_subdirectory(libtorrent)
+endif()
 
 if(UNIX)
 	add_subdirectory(linux)
