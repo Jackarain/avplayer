@@ -934,6 +934,7 @@ void av_stop(avplay *play)
 	{
 		free_audio_render(play->m_ao_ctx);
 		play->m_ao_ctx = NULL;
+		play->m_ao_inited = 0;
 	}
 	if (play->m_vo_ctx)
 	{
@@ -1003,9 +1004,14 @@ void av_seek(avplay *play, double fact)
 	}
 }
 
-void av_volume(avplay *play, double l, double r)
+int av_volume(avplay *play, double l, double r)
 {
-	play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
+	if (play->m_ao_inited)
+	{
+		play->m_ao_ctx->audio_control(play->m_ao_ctx, l, r);
+		return 0;
+	}
+	return -1;
 }
 
 void av_mute_set(avplay *play, int s)
@@ -1731,6 +1737,9 @@ void* audio_render_thrd(void *param)
 				}
 				bytes_per_sec = play->m_audio_ctx->sample_rate *
 					FFMIN(play->m_audio_ctx->channels, 2) * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+				/* 修改音频设备初始化状态, 置为1. */
+				if (inited != -1)
+					play->m_ao_inited = 1;
 			}
 			else if (!play->m_ao_ctx)
 			{
@@ -2372,4 +2381,9 @@ int logger(const char *fmt, ...)
 double buffering(avplay *play)
 {
 	return play->m_buffering;
+}
+
+int audio_is_inited(avplay *play)
+{
+	return play->m_ao_inited;
 }

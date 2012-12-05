@@ -176,6 +176,8 @@ typedef struct avplay
 	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
 	vo_context *m_vo_ctx;
+	/* 当前音频渲染器是否已经初始化完成, 为1表示完成初始化, 0表示未完成初始化. */
+	int m_ao_inited;
 
 	/* 当前音频播放buffer大小.	*/
 	uint32_t m_audio_buf_size;
@@ -301,9 +303,16 @@ EXPORT_API void av_seek(avplay *play, double fact);
  * @param play pointer to the player.
  * @param l is left channel.
  * @param r is right channel.
- * @This function does not return a value.
+ * @param Returns 0 if successful, or an error value otherwise.
  */
-EXPORT_API void av_volume(avplay *play, double l, double r);
+EXPORT_API int av_volume(avplay *play, double l, double r);
+
+/*
+ * Audio device is inited.
+ * @param play pointer to the player.
+ * @param Returns 0 if successful, or an error value otherwise.
+ */
+EXPORT_API int audio_is_inited(avplay *play);
 
 /* Sets mute.
  * @param play pointer to the player.
