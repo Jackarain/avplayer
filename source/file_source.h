@@ -44,14 +44,6 @@ public:
    virtual void close();
 
 private:
-   // 循环缓冲操作函数.
-   unsigned int put_data(char* buffer, unsigned int len);
-   unsigned int get_data(char* buffer, unsigned int len);
-   inline unsigned int available_size() { return m_write_p - m_read_p; }
-   inline unsigned int _max(unsigned int a, unsigned int b);
-   inline unsigned int _min(unsigned int a, unsigned int b);
-
-private:
    // 文件打开结构.
    open_file_data *m_open_data;
 
@@ -61,23 +53,8 @@ private:
    // 文件大小.
    uint64_t m_file_size;
 
-   // 循环缓冲位置.
-   unsigned int m_offset;
-
-   // 循环缓冲区.
-   char* m_circle_buffer;
-
-   // 缓冲大小.
-   unsigned int m_buffer_size;
-
-   // 写指针下标.
-   unsigned int m_write_p;
-
-   // 读指针下标.
-   unsigned int m_read_p;
-
    // 线程安全锁.
-	mutable pthread_mutex_t m_mutex;
+   mutable pthread_mutex_t m_mutex;
 };
 
 #endif // __FILE_SOURCE_H__
