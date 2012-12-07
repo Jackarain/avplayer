@@ -21,7 +21,7 @@
 #define PLAYER_H
 #include <map>
 #include <string>
-#include <avplay.h>
+#include "libav/avplay.h"
 
 class player
 {	

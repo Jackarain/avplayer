@@ -17,7 +17,7 @@
 */
 #define UINT64_C(c)     c ## ULL
 
-#include <avplay.h>
+#include "../libav/avplay.h"
 #include <SDL/SDL.h>
 
 #include "sdl_render.h"
@@ -81,7 +81,7 @@ EXPORT_API void sdl_destory_render(void *ctx)
 
 bool sdl_render::init_render(void* ctx, int w, int h, int pix_fmt)
 {
-	sfc = SDL_SetVideoMode(w,h,32,0);
+	sfc = SDL_SetVideoMode(w,h,0,pix_fmt );
 	SDL_LockSurface(sfc);
 	this->m_yuv = SDL_CreateYUVOverlay(w,h,SDL_IYUV_OVERLAY,sfc);
 	SDL_UnlockSurface(sfc);

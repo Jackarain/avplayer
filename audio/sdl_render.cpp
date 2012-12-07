@@ -25,7 +25,7 @@
 #include <SDL/SDL_audio.h>
 #include <boost/thread/condition.hpp>
 
-#include <avplay.h>
+#include "../libav/avplay.h"
 #include "sdl_render.h"
 
 #define EXPORT_API
@@ -54,7 +54,7 @@ EXPORT_API void sdl_audio_control(void* ctx, double l, double r)
 {
 	ao_context *ao = (ao_context*)ctx;
 	sdl_audio_render* sdl = (sdl_audio_render*)ao->audio_dev;
-	control_vol_t ctrl_vol = { l, r };
+	control_vol_t ctrl_vol = { static_cast<float>(l),static_cast<float>(r) };
 	sdl->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
 }
 
