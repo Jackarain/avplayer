@@ -1,1 +1,1 @@
-add_library(libavvideo OBJECT sdl_render.cpp)
+add_library(avvideo STATIC sdl_render.cpp)

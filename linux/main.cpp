@@ -1,40 +1,15 @@
+#define __STDC_CONSTANT_MACROS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <boost/filesystem.hpp>
-#include <boost/concept_check.hpp>
-namespace fs=boost::filesystem;
 
 #include <SDL/SDL.h>
 #include <X11/Xlib.h>
+#include <boost/filesystem.hpp>
+namespace fs=boost::filesystem;
 
 #include <avplay.h>
 #include "player.h"
-
-static void play_thread(void *param)
-{
-//	avplayer *play = (avplayer*)param;
-//	play->play();
-//	play->wait_for_completion();
-	// play->load_subtitle("d:\\media\\dfsschs2.srt");
-	// 一直等待直到播放完成.
-// 	Sleep(5000);
-// 	play->stop();
-// 	play->close();
-
-// 	// 播放完成后, 处理各种事件.
-//
-// 	printf("+++++++++++++++ play completed! ++++++++++++++\n");
-// 	return ;
-//
-// 	for (;;)
-// 	{
-// 		double d = play->duration();
-// 		double cur_time = play->curr_play_time();
-// 		printf("-----------time: %0.2f, duration: %0.2f---------\n", cur_time, d - cur_time);
-// 		Sleep(200);
-// 	}
-}
 
 int main(int argc, char* argv[])
 {
