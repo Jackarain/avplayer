@@ -8,11 +8,11 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_STATIC_RUNTIME    ON)
+
 find_package( Boost 1.51 REQUIRED COMPONENTS thread filesystem)
 
 #dont't define this, libbt need depreated api
-#add_definitions(-DBOOST_SYSTEM_NO_DEPRECATED)
-
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(libav/)
 include_directories(source/)

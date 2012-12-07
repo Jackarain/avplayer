@@ -2,7 +2,6 @@ find_package(SDL  REQUIRED)
 find_package(X11)
 find_package( Boost 1.51 COMPONENTS filesystem)
 
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${SDL_INCLUDE_DIR})
 
 add_executable(avplayer player.cpp main.cpp)
