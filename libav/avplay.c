@@ -36,23 +36,49 @@ enum bool_type
 #include <time.h>
 #include <errno.h>
 
+#ifdef MAC
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 void Sleep(int msec)
 {
+//mac下如果播放sleep会造成声像不同步且图像快于声音播放、暂时先注释掉 by InvXp
+#ifdef MAC
+    return;
+#endif
 	struct timespec rev,rem;
 	rev.tv_sec =msec/1000;
 	rev.tv_nsec = msec * 1000000;
-	
+#ifdef LINUX
 	int ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
 	while(ret <0 && errno == EINTR){
 		rev = rem;
 		ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
 	}
+#else
+    int ret = nanosleep(&rev,&rem);
+	while(ret <0 && errno == EINTR){
+		rev = rem;
+		ret = nanosleep(&rev,&rem);
+	}
+#endif
 }
 
 int64_t av_gettime()
 {
-	struct timespec cltime;
+    struct timespec cltime;
+#ifdef LINUX
 	clock_gettime(CLOCK_MONOTONIC,&cltime);
+#else
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    cltime.tv_sec = mts.tv_sec;
+    cltime.tv_nsec = mts.tv_nsec;
+#endif
 	return cltime.tv_sec * 1000000 + cltime.tv_nsec / 1000;
 }
 

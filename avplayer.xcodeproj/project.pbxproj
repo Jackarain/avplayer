@@ -1,0 +1,334 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		ECA5895216709A4600480D3B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA5895116709A4600480D3B /* main.cpp */; };
+		ECA5897A1671878900480D3B /* player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA589781671878900480D3B /* player.cpp */; };
+		ECA5897C16718D7500480D3B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA5897B16718D7500480D3B /* Cocoa.framework */; };
+		ECA5898116718DDA00480D3B /* avplay.c in Sources */ = {isa = PBXBuildFile; fileRef = ECA5897E16718DDA00480D3B /* avplay.c */; };
+		ECA5898B1671908F00480D3B /* file_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA589841671908F00480D3B /* file_source.cpp */; };
+		ECA5898C1671908F00480D3B /* source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA589871671908F00480D3B /* source.cpp */; };
+		ECA5898D1671908F00480D3B /* torrent_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA589891671908F00480D3B /* torrent_source.cpp */; };
+		ECA5899C167194AD00480D3B /* sdl_render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA58996167194AD00480D3B /* sdl_render.cpp */; };
+		ECA589B2167195DA00480D3B /* sdl_render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA589A6167195DA00480D3B /* sdl_render.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		ECA5894B16709A4600480D3B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		ECA5894D16709A4600480D3B /* avplayer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = avplayer; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECA5895116709A4600480D3B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		ECA589781671878900480D3B /* player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = player.cpp; sourceTree = "<group>"; };
+		ECA589791671878900480D3B /* player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = player.h; sourceTree = "<group>"; };
+		ECA5897B16718D7500480D3B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		ECA5897E16718DDA00480D3B /* avplay.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = avplay.c; path = avplayer/libav/avplay.c; sourceTree = "<group>"; };
+		ECA5897F16718DDA00480D3B /* avplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = avplay.h; path = avplayer/libav/avplay.h; sourceTree = "<group>"; };
+		ECA5898016718DDA00480D3B /* globals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = globals.h; path = avplayer/libav/globals.h; sourceTree = "<group>"; };
+		ECA589831671908F00480D3B /* av_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = av_source.h; path = avplayer/source/av_source.h; sourceTree = "<group>"; };
+		ECA589841671908F00480D3B /* file_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = file_source.cpp; path = avplayer/source/file_source.cpp; sourceTree = "<group>"; };
+		ECA589851671908F00480D3B /* file_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = file_source.h; path = avplayer/source/file_source.h; sourceTree = "<group>"; };
+		ECA589861671908F00480D3B /* ins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ins.h; path = avplayer/source/ins.h; sourceTree = "<group>"; };
+		ECA589871671908F00480D3B /* source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = source.cpp; path = avplayer/source/source.cpp; sourceTree = "<group>"; };
+		ECA589881671908F00480D3B /* source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = source.h; path = avplayer/source/source.h; sourceTree = "<group>"; };
+		ECA589891671908F00480D3B /* torrent_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = torrent_source.cpp; path = avplayer/source/torrent_source.cpp; sourceTree = "<group>"; };
+		ECA5898A1671908F00480D3B /* torrent_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = torrent_source.h; path = avplayer/source/torrent_source.h; sourceTree = "<group>"; };
+		ECA58991167194AD00480D3B /* audio_render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio_render.h; path = avplayer/audio/audio_render.h; sourceTree = "<group>"; };
+		ECA58992167194AD00480D3B /* audiocvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audiocvt.h; path = avplayer/audio/audiocvt.h; sourceTree = "<group>"; };
+		ECA58996167194AD00480D3B /* sdl_render.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sdl_render.cpp; path = avplayer/audio/sdl_render.cpp; sourceTree = "<group>"; };
+		ECA58997167194AD00480D3B /* sdl_render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sdl_render.h; path = avplayer/audio/sdl_render.h; sourceTree = "<group>"; };
+		ECA589A6167195DA00480D3B /* sdl_render.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sdl_render.cpp; path = avplayer/video/sdl_render.cpp; sourceTree = "<group>"; };
+		ECA589A7167195DA00480D3B /* sdl_render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sdl_render.h; path = avplayer/video/sdl_render.h; sourceTree = "<group>"; };
+		ECA589AC167195DA00480D3B /* video_render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = video_render.h; path = avplayer/video/video_render.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		ECA5894A16709A4600480D3B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECA5897C16718D7500480D3B /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		ECA5894216709A4600480D3B = {
+			isa = PBXGroup;
+			children = (
+				ECA5899E167195BB00480D3B /* video */,
+				ECA5898E1671948D00480D3B /* audio */,
+				ECA589821671907800480D3B /* source */,
+				ECA5897D16718DC400480D3B /* avplay */,
+				ECA5897B16718D7500480D3B /* Cocoa.framework */,
+				ECA5895016709A4600480D3B /* avplayer */,
+				ECA5894E16709A4600480D3B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		ECA5894E16709A4600480D3B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ECA5894D16709A4600480D3B /* avplayer */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ECA5895016709A4600480D3B /* avplayer */ = {
+			isa = PBXGroup;
+			children = (
+				ECA589781671878900480D3B /* player.cpp */,
+				ECA589791671878900480D3B /* player.h */,
+				ECA5895116709A4600480D3B /* main.cpp */,
+			);
+			path = avplayer;
+			sourceTree = "<group>";
+		};
+		ECA5897D16718DC400480D3B /* avplay */ = {
+			isa = PBXGroup;
+			children = (
+				ECA5897E16718DDA00480D3B /* avplay.c */,
+				ECA5897F16718DDA00480D3B /* avplay.h */,
+				ECA5898016718DDA00480D3B /* globals.h */,
+			);
+			name = avplay;
+			sourceTree = "<group>";
+		};
+		ECA589821671907800480D3B /* source */ = {
+			isa = PBXGroup;
+			children = (
+				ECA589831671908F00480D3B /* av_source.h */,
+				ECA589841671908F00480D3B /* file_source.cpp */,
+				ECA589851671908F00480D3B /* file_source.h */,
+				ECA589861671908F00480D3B /* ins.h */,
+				ECA589871671908F00480D3B /* source.cpp */,
+				ECA589881671908F00480D3B /* source.h */,
+				ECA589891671908F00480D3B /* torrent_source.cpp */,
+				ECA5898A1671908F00480D3B /* torrent_source.h */,
+			);
+			name = source;
+			sourceTree = "<group>";
+		};
+		ECA5898E1671948D00480D3B /* audio */ = {
+			isa = PBXGroup;
+			children = (
+				ECA58991167194AD00480D3B /* audio_render.h */,
+				ECA58992167194AD00480D3B /* audiocvt.h */,
+				ECA58996167194AD00480D3B /* sdl_render.cpp */,
+				ECA58997167194AD00480D3B /* sdl_render.h */,
+			);
+			name = audio;
+			sourceTree = "<group>";
+		};
+		ECA5899E167195BB00480D3B /* video */ = {
+			isa = PBXGroup;
+			children = (
+				ECA589A6167195DA00480D3B /* sdl_render.cpp */,
+				ECA589A7167195DA00480D3B /* sdl_render.h */,
+				ECA589AC167195DA00480D3B /* video_render.h */,
+			);
+			name = video;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		ECA5894C16709A4600480D3B /* avplayer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ECA5895716709A4600480D3B /* Build configuration list for PBXNativeTarget "avplayer" */;
+			buildPhases = (
+				ECA5894916709A4600480D3B /* Sources */,
+				ECA5894A16709A4600480D3B /* Frameworks */,
+				ECA5894B16709A4600480D3B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = avplayer;
+			productName = avplayer;
+			productReference = ECA5894D16709A4600480D3B /* avplayer */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ECA5894416709A4600480D3B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = InvXp;
+			};
+			buildConfigurationList = ECA5894716709A4600480D3B /* Build configuration list for PBXProject "avplayer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = ECA5894216709A4600480D3B;
+			productRefGroup = ECA5894E16709A4600480D3B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				ECA5894C16709A4600480D3B /* avplayer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		ECA5894916709A4600480D3B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECA5895216709A4600480D3B /* main.cpp in Sources */,
+				ECA5897A1671878900480D3B /* player.cpp in Sources */,
+				ECA5898116718DDA00480D3B /* avplay.c in Sources */,
+				ECA5898B1671908F00480D3B /* file_source.cpp in Sources */,
+				ECA5898C1671908F00480D3B /* source.cpp in Sources */,
+				ECA5898D1671908F00480D3B /* torrent_source.cpp in Sources */,
+				ECA5899C167194AD00480D3B /* sdl_render.cpp in Sources */,
+				ECA589B2167195DA00480D3B /* sdl_render.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		ECA5895516709A4600480D3B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		ECA5895616709A4600480D3B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		ECA5895816709A4600480D3B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = /opt/local/include;
+				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				OTHER_LDFLAGS = (
+					"-lSDLMain",
+					"-lSDL",
+					"-lboost_filesystem",
+					"-lboost_system",
+					"-lswresample",
+					"-lavcodec",
+					"-lavformat",
+					"-lavutil",
+					"-lswscale",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		ECA5895916709A4600480D3B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = /opt/local/include;
+				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				OTHER_LDFLAGS = (
+					"-lSDLMain",
+					"-lSDL",
+					"-lboost_filesystem",
+					"-lboost_system",
+					"-lswresample",
+					"-lavcodec",
+					"-lavformat",
+					"-lavutil",
+					"-lswscale",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		ECA5894716709A4600480D3B /* Build configuration list for PBXProject "avplayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECA5895516709A4600480D3B /* Debug */,
+				ECA5895616709A4600480D3B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ECA5895716709A4600480D3B /* Build configuration list for PBXNativeTarget "avplayer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECA5895816709A4600480D3B /* Debug */,
+				ECA5895916709A4600480D3B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = ECA5894416709A4600480D3B /* Project object */;
+}

@@ -6,9 +6,12 @@
 namespace fs=boost::filesystem;
 
 #include <SDL/SDL.h>
-#include <X11/Xlib.h>
 
-#include <avplay.h>
+#ifdef LINUX
+#include <X11/Xlib.h>
+#endif
+
+#include "libav/avplay.h"
 #include "player.h"
 
 static void play_thread(void *param)
@@ -47,7 +50,9 @@ int main(int argc, char* argv[])
 
 	player ply;
 
+#ifdef LINUX
 	XInitThreads();
+#endif
 
 	SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_EVENTTHREAD);
 

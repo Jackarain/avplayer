@@ -231,7 +231,8 @@ int player::open(const char* movie, int media_type)
 void player::init_video(vo_context* vo)
 {
 	//创建第一个窗口
-	vo->user_data = SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE);
+	//vo->user_data = SDL_SetVideoMode(800, 600, 32, SDL_RESIZABLE); 为了兼容mac注释该代码使用标准SDL初始化WindowSize by InvXp
+	vo->user_data = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_RESIZABLE | SDL_HWACCEL | SDL_ASYNCBLIT );
 
 	vo->init_video = sdl_init_video;
 	//m_draw_frame = sdl_render_one_frame;
