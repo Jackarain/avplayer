@@ -61,4 +61,5 @@ $ git pull
 ####最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
 
 
-mail: jack.wgm@gmail.com
+mail: jack.wgm AT gmail.com microcaicai AT gmail.com
+
