@@ -283,3 +283,11 @@ void player::fwd()
 {	
 	av_seek(m_avplay,av_curr_play_time(m_avplay) / av_duration(m_avplay) + 0.05);
 }
+
+void player::bwd()
+{
+	double p = av_curr_play_time(m_avplay) / av_duration(m_avplay) - 0.05;
+	if ( p < 0.0 )
+	 p = 0.0;
+	av_seek(m_avplay,p);
+}

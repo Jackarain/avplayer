@@ -76,7 +76,9 @@ int main ( int argc, char *argv[] )
             if ( event.key.keysym.sym == SDLK_RIGHT )
             {
                 ply.fwd();
-            }
+            }else if(event.key.keysym.sym == SDLK_LEFT){
+	    	ply.bwd();
+	    }
         }
     }
 

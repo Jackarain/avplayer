@@ -28,6 +28,7 @@ class player
 public:
 	// 播放控制
 	void fwd(); //快进
+	void bwd(); //快退
 	
 private:
 	bool HasWindow(){return true;};
