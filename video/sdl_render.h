@@ -21,6 +21,7 @@
 #define SDL_RENDER_H
 
 #include "video_render.h"
+#include <boost/thread/pthread/mutex.hpp>
 
 class sdl_render : public video_render
 {
@@ -39,9 +40,13 @@ public:
 
 	// 撤销render.
 	virtual void destory_render();
+    virtual bool use_overlay();
 private:
     SDL_Overlay* m_yuv;
     SDL_Surface* sfc;
+    boost::mutex	renderlock;
+    int	m_image_width, m_image_height;
+    SwsContext* m_swsctx;
 };
 
 #endif // SDL_RENDER_H

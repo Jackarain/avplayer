@@ -30,6 +30,9 @@ public:
 	void fwd(); //快进
 	void bwd(); //快退
 	
+	// 调节大小
+	void resize(int, int);
+	
 private:
 	bool HasWindow(){return true;};
 

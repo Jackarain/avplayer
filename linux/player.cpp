@@ -291,3 +291,8 @@ void player::bwd()
 	 p = 0.0;
 	av_seek(m_avplay,p);
 }
+
+void player::resize(int w, int h)
+{
+	m_video->re_size(m_video, w, h);
+}

@@ -76,10 +76,19 @@ int main ( int argc, char *argv[] )
             if ( event.key.keysym.sym == SDLK_RIGHT )
             {
                 ply.fwd();
-            }else if(event.key.keysym.sym == SDLK_LEFT){
-	    	ply.bwd();
-	    }
+            }
+            else if ( event.key.keysym.sym == SDLK_LEFT )
+            {
+                ply.bwd();
+            }
+            else if (event.key.keysym.sym == SDLK_f){
+				//SDL_SetVideoMode(0, 0, 32)
+			}
         }
+        if ( event.type == SDL_VIDEORESIZE){
+			SDL_SetVideoMode(event.resize.w,event.resize.h,32,SDL_RESIZABLE);
+			ply.resize(event.resize.w,event.resize.h);
+		}
     }
 
     // ply.wait_for_completion();
