@@ -45,8 +45,9 @@ private:
     SDL_Overlay* m_yuv;
     SDL_Surface* sfc;
     boost::mutex	renderlock;
+    int		m_pix_fmt;
     int	m_image_width, m_image_height;
-    SwsContext* m_swsctx;
+    SwsContext* m_swsctx;	
 };
 
 #endif // SDL_RENDER_H

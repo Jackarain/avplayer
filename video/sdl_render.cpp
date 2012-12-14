@@ -102,15 +102,19 @@ sdl_render::render_one_frame(AVFrame * data, int pix_fmt)
 	data->linesize[2]
     };
 
+	m_swsctx = sws_getCachedContext(m_swsctx, m_image_width, m_image_height,
+				(PixelFormat)m_pix_fmt, sfc->w, sfc->h, PIX_FMT_YUV420P,
+				SWS_BICUBIC, NULL, NULL, NULL);
+			     
     SDL_LockYUVOverlay(m_yuv);
 
     pict.data[0] = m_yuv->pixels[0];
-    pict.data[1] = m_yuv->pixels[1];
-    pict.data[2] = m_yuv->pixels[2];
+    pict.data[1] = m_yuv->pixels[2];
+    pict.data[2] = m_yuv->pixels[1];
 
     pict.linesize[0] = m_yuv->pitches[0];
-    pict.linesize[1] = m_yuv->pitches[1];
-    pict.linesize[2] = m_yuv->pitches[2];
+    pict.linesize[1] = m_yuv->pitches[2];
+    pict.linesize[2] = m_yuv->pitches[1];
 
     sws_scale(m_swsctx, pixels, linesize, 0, m_image_height, pict.data,
 	      pict.linesize);
@@ -131,24 +135,33 @@ sdl_render::render_one_frame(AVFrame * data, int pix_fmt)
 void
 sdl_render::re_size(int w, int h)
 {
-    m_swsctx =
-	sws_getCachedContext(m_swsctx, m_image_width, m_image_height,
-			     PIX_FMT_YUV420P, w, h, PIX_FMT_YUV420P,
-			     SWS_BICUBIC, NULL, NULL, NULL);
+	boost::mutex::scoped_lock l(renderlock);
 
-    logger("resize happned\n");
-    boost::mutex::scoped_lock l(renderlock);
-    SDL_FreeYUVOverlay(this->m_yuv);
-    this->m_yuv = SDL_CreateYUVOverlay(w, h, SDL_IYUV_OVERLAY, sfc);
+	//FIXME 
+	//resize 有办法传递全屏信息就好了
+	int fw, fh;
+	SDL_Rect** mode = SDL_ListModes(NULL,SDL_FULLSCREEN);
+	
+	fw = mode[0]->w ; fh =  mode[0]->h;
+
+	bool fs=false;
+	if ( w == fw && h == fh )
+		fs = true;
+	sfc = SDL_SetVideoMode(w, h, 32, fs?  SDL_FULLSCREEN : SDL_RESIZABLE);
+	SDL_FreeYUVOverlay(this->m_yuv);
+    this->m_yuv = SDL_CreateYUVOverlay(w, h, SDL_YV12_OVERLAY, sfc);
 }
 
 bool
 sdl_render::init_render(void *ctx, int w, int h, int pix_fmt)
 {
     m_swsctx = NULL;
+    m_pix_fmt = pix_fmt;
+
     if (!SDL_WasInit(SDL_INIT_VIDEO))
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
-    sfc = SDL_SetVideoMode(w, h, 32, SDL_RESIZABLE);
+	
+	SDL_SetVideoMode(w, h, 32, SDL_RESIZABLE);
 
     m_image_height = h;
     m_image_width = w;

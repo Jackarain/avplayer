@@ -26,12 +26,14 @@
 class player
 {	
 public:
-	// 播放控制
+	// 播放控制.
 	void fwd(); //快进
 	void bwd(); //快退
 	
-	// 调节大小
+	// 调节大小.
 	void resize(int, int);
+	// 全屏.
+	void togglefs();
 	
 private:
 	bool HasWindow(){return true;};
@@ -41,8 +43,6 @@ private:
 	void init_torrent_source(source_context *sc);
 	void init_audio(ao_context *ao);
 	void init_video(vo_context *vo);
-
-	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt, double pts);
 
 	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
 	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
@@ -63,6 +63,8 @@ private:
     int m_video_width;
     int m_video_height;
     int m_cur_index;
+
+    bool m_fs;
 };
 
 #endif // PLAYER_H

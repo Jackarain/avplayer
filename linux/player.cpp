@@ -296,3 +296,17 @@ void player::resize(int w, int h)
 {
 	m_video->re_size(m_video, w, h);
 }
+
+void player::togglefs()
+{
+	if ( m_fs = ! m_fs ){
+		m_avplay->m_video_st->codec->width;
+		m_avplay->m_video_st->codec->height;
+
+		this->resize(m_avplay->m_video_st->codec->width,m_avplay->m_video_st->codec->height);
+	}else{
+		SDL_Rect** mode = SDL_ListModes(NULL,SDL_FULLSCREEN);
+		this->resize(mode[0]->w, mode[0]->h);
+	}
+}
+

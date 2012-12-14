@@ -63,6 +63,7 @@ int main ( int argc, char *argv[] )
 
     while ( true )
     {
+		int w=-1, h=-1;
         SDL_Event event;
         SDL_WaitEvent ( &event );
 
@@ -73,16 +74,19 @@ int main ( int argc, char *argv[] )
         }
         if ( event.type == SDL_KEYDOWN )
         {
-            if ( event.key.keysym.sym == SDLK_RIGHT )
-            {
-                ply.fwd();
-            }
-            else if ( event.key.keysym.sym == SDLK_LEFT )
-            {
-                ply.bwd();
-            }
-            else if (event.key.keysym.sym == SDLK_f){
-				//SDL_SetVideoMode(0, 0, 32)
+			switch (event.key.keysym.sym)
+			{
+				case SDLK_RIGHT:
+					ply.fwd();
+					break;
+				case SDLK_LEFT:
+					ply.bwd();
+					break;
+				case SDLK_f:
+					ply.togglefs();
+					break;
+				case SDLK_q:
+					return 0;		 
 			}
         }
         if ( event.type == SDL_VIDEORESIZE){
