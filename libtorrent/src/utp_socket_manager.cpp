@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009, Arvid Norberg
+Copyright (c) 2009-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ namespace libtorrent
 		, m_new_connection(-1)
 		, m_sett(sett)
 		, m_last_route_update(min_time())
+		, m_last_if_update(min_time())
 		, m_sock_buf_size(0)
 	{}
 
@@ -194,9 +195,65 @@ namespace libtorrent
 #endif
 	}
 
-	tcp::endpoint utp_socket_manager::local_endpoint(error_code& ec) const
+	int utp_socket_manager::local_port(error_code& ec) const
 	{
-		return m_sock.local_endpoint(ec);
+		return m_sock.local_endpoint(ec).port();
+	}
+
+	tcp::endpoint utp_socket_manager::local_endpoint(address const& remote, error_code& ec) const
+	{
+		tcp::endpoint socket_ep = m_sock.local_endpoint(ec);
+
+		// first enumerate the routes in the routing table
+		if (time_now() - m_last_route_update > seconds(60))
+		{
+			m_last_route_update = time_now();
+			error_code ec;
+			m_routes = enum_routes(m_sock.get_io_service(), ec);
+			if (ec) return socket_ep;
+		}
+
+		if (m_routes.empty()) return socket_ep;
+		// then find the best match
+		ip_route* best = &m_routes[0];
+		for (std::vector<ip_route>::iterator i = m_routes.begin()
+			, end(m_routes.end()); i != end; ++i)
+		{
+			if (is_any(i->destination) && i->destination.is_v4() == remote.is_v4())
+			{
+				best = &*i;
+				continue;
+			}
+
+			if (match_addr_mask(remote, i->destination, i->netmask))
+			{
+				best = &*i;
+				continue;
+			}
+		}
+
+		// best now tells us which interface we would send over
+		// for this target. Now figure out what the local address
+		// is for that interface
+
+		if (time_now() - m_last_if_update > seconds(60))
+		{
+			m_last_if_update = time_now();
+			error_code ec;
+			m_interfaces = enum_net_interfaces(m_sock.get_io_service(), ec);
+			if (ec) return socket_ep;
+		}
+
+		for (std::vector<ip_interface>::iterator i = m_interfaces.begin()
+			, end(m_interfaces.end()); i != end; ++i)
+		{
+			if (i->interface_address.is_v4() != remote.is_v4())
+				continue;
+
+			if (strcmp(best->name, i->name) == 0)
+				return tcp::endpoint(i->interface_address, socket_ep.port());
+		}
+		return socket_ep;
 	}
 
 	bool utp_socket_manager::incoming_packet(error_code const& ec, udp::endpoint const& ep
@@ -250,13 +307,15 @@ namespace libtorrent
 			if (m_utp_sockets.size() > m_sett.connections_limit * 2)
 				return false;
 
-			// create the new socket with this ID
-			m_new_connection = id;
-
 //			UTP_LOGV("not found, new connection id:%d\n", m_new_connection);
 
 			boost::shared_ptr<socket_type> c(new (std::nothrow) socket_type(m_sock.get_io_service()));
 			if (!c) return false;
+
+			TORRENT_ASSERT(m_new_connection == -1);
+			// create the new socket with this ID
+			m_new_connection = id;
+
 			instantiate_connection(m_sock.get_io_service(), proxy_settings(), *c, 0, this);
 			utp_stream* str = c->get<utp_stream>();
 			TORRENT_ASSERT(str);

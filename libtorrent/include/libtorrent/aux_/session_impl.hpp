@@ -237,10 +237,19 @@ namespace libtorrent
 					, boost::bind(&boost::intrusive_ptr<peer_connection>::get, _1) == p)
 					!= m_connections.end();
 			}
+			// this is set while the session is building the
+			// torrent status update message
+			bool m_posting_torrent_updates;
 #endif
 			void main_thread();
 
 			void open_listen_port(int flags, error_code& ec);
+
+			// prioritize this torrent to be allocated some connection
+			// attempts, because this torrent needs more peers.
+			// this is typically done when a torrent starts out and
+			// need the initial push to connect peers
+			void prioritize_connections(boost::weak_ptr<torrent> t);
 
 			// if we are listening on an IPv6 interface
 			// this will return one of the IPv6 addresses on this
@@ -291,6 +300,11 @@ namespace libtorrent
 			void stop_dht();
 			void start_dht(entry const& startup_state);
 
+			// this is called for torrents when they are started
+			// it will prioritize them for announcing to
+			// the DHT, to get the initial peers quickly
+			void prioritize_dht(boost::weak_ptr<torrent> t);
+
 #ifndef TORRENT_NO_DEPRECATE
 			entry dht_state() const;
 #endif
@@ -334,6 +348,7 @@ namespace libtorrent
 			bool is_listening() const;
 
 			torrent_handle add_torrent(add_torrent_params const&, error_code& ec);
+			torrent_handle add_torrent_impl(add_torrent_params const&, error_code& ec);
 			void async_add_torrent(add_torrent_params* params);
 
 			void remove_torrent(torrent_handle const& h, int options);
@@ -553,6 +568,8 @@ namespace libtorrent
 
 			void update_connections_limit();
 			void update_unchoke_limit();
+			void trigger_auto_manage();
+			void on_trigger_auto_manage();
 			void update_rate_settings();
 
 			void update_disk_thread_settings();
@@ -766,7 +783,7 @@ namespace libtorrent
 			boost::shared_ptr<socket_type> m_i2p_listen_socket;
 #endif
 
-			void setup_listener(listen_socket_t* s, tcp::endpoint ep, int retries
+			void setup_listener(listen_socket_t* s, tcp::endpoint ep, int& retries
 				, bool v6_only, int flags, error_code& ec);
 
 			// the proxy used for bittorrent
@@ -957,6 +974,9 @@ namespace libtorrent
 			std::deque<boost::weak_ptr<torrent> > m_dht_torrents;
 #endif
 
+			// torrents prioritized to get connection attempts
+			std::deque<std::pair<boost::weak_ptr<torrent>, int> > m_prio_torrents;
+
 			// this announce timer is used
 			// by Local service discovery
 			deadline_timer m_lsd_announce_timer;
@@ -1113,10 +1133,15 @@ namespace libtorrent
 			boost::shared_ptr<logger> create_log(std::string const& name
 				, int instance, bool append = true);
 			
+			void session_log(char const* fmt, ...) const;
+
 			// this list of tracker loggers serves as tracker_callbacks when
 			// shutting down. This list is just here to keep them alive during
 			// whe shutting down process
 			std::list<boost::shared_ptr<tracker_logger> > m_tracker_loggers;
+
+			std::string get_log_path() const
+			{ return m_logpath; }
 
 			std::string m_logpath;
 
@@ -1180,6 +1205,20 @@ namespace libtorrent
 			// total redundant and failed bytes
 			size_type m_total_failed_bytes;
 			size_type m_total_redundant_bytes;
+
+			// this is set to true when a torrent auto-manage
+			// event is triggered, and reset whenever the message
+			// is delivered and the auto-manage is executed.
+			// there should never be more than a single pending auto-manage
+			// message in-flight at any given time.
+			bool m_pending_auto_manage;
+			
+			// this is also set to true when triggering an auto-manage
+			// of the torrents. However, if the normal auto-manage
+			// timer comes along and executes the auto-management,
+			// this is set to false, which means the triggered event
+			// no longer needs to execute the auto-management.
+			bool m_need_auto_manage;
 
 			// redundant bytes per category
 			size_type m_redundant_bytes[7];

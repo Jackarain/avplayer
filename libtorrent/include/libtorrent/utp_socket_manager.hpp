@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009, Arvid Norberg
+Copyright (c) 2009-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,8 @@ namespace libtorrent
 
 		void tick(ptime now);
 
-		tcp::endpoint local_endpoint(error_code& ec) const;
+		tcp::endpoint local_endpoint(address const& remote, error_code& ec) const;
+		int local_port(error_code& ec) const;
 
 		// flags for send_packet
 		enum { dont_fragment = 1 };
@@ -121,11 +122,15 @@ namespace libtorrent
 
 		// this is a copy of the routing table, used
 		// to initialize MTU sizes of uTP sockets
-		std::vector<ip_route> m_routes;
+		mutable std::vector<ip_route> m_routes;
 
 		// the timestamp for the last time we updated
 		// the routing table
-		ptime m_last_route_update;
+		mutable ptime m_last_route_update;
+
+		// cache of interfaces
+		mutable std::vector<ip_interface> m_interfaces;
+		mutable ptime m_last_if_update;
 
 		// the buffer size of the socket. This is used
 		// to now lower the buffer size

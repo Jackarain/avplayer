@@ -1,7 +1,7 @@
 /*
 
-Copyright (c) 2003 - 2006, Arvid Norberg
-Copyright (c) 2007, Arvid Norberg, Un Shyam
+Copyright (c) 2003-2012, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg, Un Shyam
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -367,7 +367,7 @@ namespace libtorrent
 		if (is_queued()) p.flags |= peer_info::queued;
 
 		p.client = m_client_version;
-		p.connection_type = get_socket()->get<utp_stream>()
+		p.connection_type = is_utp(*get_socket())
 			? peer_info::bittorrent_utp
 			: peer_info::standard_bittorrent;
 	}
@@ -2179,7 +2179,7 @@ namespace libtorrent
 		send_buffer(msg, sizeof(msg));
 		send_buffer(&dict_msg[0], dict_msg.size());
 
-#if defined TORRENT_VERBOSE_LOGGING && TORRENT_USE_IOSTREAM
+#if defined TORRENT_VERBOSE_LOGGING
 		std::stringstream handshake_str;
 		handshake.print(handshake_str);
 		peer_log("==> EXTENDED HANDSHAKE: %s", handshake_str.str().c_str());

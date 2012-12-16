@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -153,7 +153,8 @@ namespace libtorrent
 				continue;
 			}
 			TORRENT_TRY {
-				e.on_connect(-1);
+				if (e.connecting) e.on_timeout();
+				else e.on_connect(-1);
 			} TORRENT_CATCH(std::exception&) {}
 			tmp.pop_front();
 		}

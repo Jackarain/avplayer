@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010, Arvid Norberg
+Copyright (c) 2010-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -104,9 +104,9 @@ namespace libtorrent {
 			else if (idx < m_first)
 			{
 				// We have wrapped.
-				if (idx > ((m_first + m_capacity) & 0xffff) && m_capacity < 0xffff)
+				if (idx >= ((m_first + m_capacity) & 0xffff) && m_capacity < 0xffff)
 				{
-					reserve(m_capacity + (idx - ((m_first + m_capacity) & 0xffff)));
+					reserve(m_capacity + (idx + 1 - ((m_first + m_capacity) & 0xffff)));
 				}
 			}
 			if (compare_less_wrap(m_last, (idx + 1) & 0xffff, 0xffff))

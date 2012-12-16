@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ upnp::upnp(io_service& ios, connection_queue& cc
 	, m_log_callback(lcb)
 	, m_retry_count(0)
 	, m_io_service(ios)
-	, m_socket(ios, udp::endpoint(address_v4::from_string("239.255.255.250", ec), 1900)
+	, m_socket(udp::endpoint(address_v4::from_string("239.255.255.250", ec), 1900)
 		, boost::bind(&upnp::on_reply, self(), _1, _2, _3))
 	, m_broadcast_timer(ios)
 	, m_refresh_timer(ios)
@@ -81,6 +81,9 @@ upnp::upnp(io_service& ios, connection_queue& cc
 	, m_cc(cc)
 {
 	TORRENT_ASSERT(cb);
+
+	error_code ec;
+	m_socket.open(ios, ec);
 
 	if (state)
 	{
@@ -696,7 +699,7 @@ void upnp::update_map(rootdevice& d, int i, mutex::scoped_lock& l)
 		if (d.upnp_connection) d.upnp_connection->close();
 		d.upnp_connection.reset(new http_connection(m_io_service
 			, m_cc, boost::bind(&upnp::on_upnp_map_response, self(), _1, _2
-			, boost::ref(d), i, _5), true
+			, boost::ref(d), i, _5), true, default_max_bottled_buffer_size
 			, boost::bind(&upnp::create_port_mapping, self(), _1, boost::ref(d), i)));
 
 		d.upnp_connection->start(d.hostname, to_string(d.port).elems
@@ -707,7 +710,7 @@ void upnp::update_map(rootdevice& d, int i, mutex::scoped_lock& l)
 		if (d.upnp_connection) d.upnp_connection->close();
 		d.upnp_connection.reset(new http_connection(m_io_service
 			, m_cc, boost::bind(&upnp::on_upnp_unmap_response, self(), _1, _2
-			, boost::ref(d), i, _5), true
+			, boost::ref(d), i, _5), true, default_max_bottled_buffer_size
 			, boost::bind(&upnp::delete_port_mapping, self(), boost::ref(d), i)));
 		d.upnp_connection->start(d.hostname, to_string(d.port).elems
 			, seconds(10), 1);
@@ -955,7 +958,7 @@ void upnp::on_upnp_xml(error_code const& e
 
 	d.upnp_connection.reset(new http_connection(m_io_service
 		, m_cc, boost::bind(&upnp::on_upnp_get_ip_address_response, self(), _1, _2
-		, boost::ref(d), _5), true
+		, boost::ref(d), _5), true, default_max_bottled_buffer_size 
 		, boost::bind(&upnp::get_ip_address, self(), boost::ref(d))));
 	d.upnp_connection->start(d.hostname, to_string(d.port).elems
 		, seconds(10), 1);

@@ -3,7 +3,7 @@ libtorrent API Documentation
 ============================
 
 :Author: Arvid Norberg, arvid@rasterbar.com
-:Version: 0.16.4
+:Version: 1.0.0
 
 .. contents:: Table of contents
   :depth: 1
@@ -224,6 +224,7 @@ The ``session`` class has the following synopsis::
 		void set_alert_mask(int m);
 		size_t set_alert_queue_size_limit(
 			size_t queue_size_limit_);
+		void set_alert_dispatch(boost::function<void(std::auto_ptr<alert>)> const& fun);
 
 		feed_handle session::add_feed(feed_settings const& feed);
 		void session::remove_feed(feed_handle h);
@@ -1177,6 +1178,22 @@ To control the max number of alerts that's queued by the session, see
 
 ``save_resume_data_alert`` and ``save_resume_data_failed_alert`` are always posted, regardelss
 of the alert mask.
+
+set_alert_dispatch()
+--------------------
+
+	::
+
+		void set_alert_dispatch(boost::function<void(std::auto_ptr<alert>)> const& fun);
+
+This sets a function to be called (from within libtorrent's netowrk thread) every time an alert
+is posted. Since the function (``fun``) is run in libtorrent's internal thread, it may not call
+any of libtorrent's external API functions. Doing so results in a dead lock.
+
+The main intention with this function is to support integration with platform-dependent message
+queues or signalling systems. For instance, on windows, one could post a message to an HNWD or
+on linux, write to a pipe or an eventfd.
+
 
 add_feed()
 ----------
@@ -2302,7 +2319,7 @@ Its declaration looks like this::
 		void file_progress(std::vector<size_type>& fp, int flags = 0);
 		void get_download_queue(std::vector<partial_piece_info>& queue) const;
 		void get_peer_info(std::vector<peer_info>& v) const;
-		torrent_info const& get_torrent_info() const;
+		boost::intrusive_ptr<torrent_info> torrent_file() const;
 		bool is_valid() const;
 
 		std::string name() const;
@@ -3204,7 +3221,7 @@ Example code to pause and save resume data for all torrents and wait for the ale
 		}
 		
 		torrent_handle h = rd->handle;
-		std::ofstream out((h.save_path() + "/" + h.get_torrent_info().name() + ".fastresume").c_str()
+		std::ofstream out((h.save_path() + "/" + h.torrent_file()->name() + ".fastresume").c_str()
 			, std::ios_base::binary);
 		out.unsetf(std::ios_base::skipws);
 		bencode(std::ostream_iterator<char>(out), *rd->resume_data);
@@ -3347,18 +3364,18 @@ torrent_handle_ is invalid, it will throw libtorrent_exception_ exception. Each 
 the vector contains information about that particular peer. See peer_info_.
 
 
-get_torrent_info()
-------------------
+torrent_file()
+--------------
 
 	::
 
-		torrent_info const& get_torrent_info() const;
+		boost::intrusive_ptr<torrent_info> torrent_file() const;
 
-Returns a const reference to the torrent_info_ object associated with this torrent.
-This reference is valid as long as the torrent_handle_ is valid, no longer. If the
-torrent_handle_ is invalid or if it doesn't have any metadata, libtorrent_exception_
-exception will be thrown. The torrent may be in a state without metadata only if
-it was started without a .torrent file, i.e. by using the libtorrent extension of
+Returns a pointer to the torrent_info_ object associated with this torrent. The
+``torrent_info`` object is a copy of the internal object. If the torrent doesn't
+have metadata, the object being returned will not be fully filled in.
+The torrent may be in a state without metadata only if
+it was started without a .torrent file, e.g. by using the libtorrent extension of
 just supplying a tracker and info-hash.
 
 
@@ -3616,8 +3633,7 @@ set to priority 0, i.e. are not downloaded.
 ``has_metadata`` is true if this torrent has metadata (either it was started from a
 .torrent file or the metadata has been downloaded). The only scenario where this can be
 false is when the torrent was started torrent-less (i.e. with just an info-hash and tracker
-ip, a magnet link for instance). Note that if the torrent doesn't have metadata, the member
-`get_torrent_info()`_ will throw.
+ip, a magnet link for instance).
 
 ``error`` may be set to an error message describing why the torrent was paused, in
 case it was paused by an error. If the torrent is not paused or if it's paused but
@@ -4602,6 +4618,7 @@ session_settings
 		int tracker_backoff;
 
 		bool ban_web_seeds;
+		int max_http_recv_buffer_size;
 	};
 
 ``version`` is automatically set to the libtorrent version you're using
@@ -5496,6 +5513,11 @@ trackers.
 ``ban_web_seeds`` enables banning web seeds. By default, web seeds that send
 corrupt data are banned.
 
+``max_http_recv_buffer_size`` specifies the max number of bytes to receive into
+RAM buffers when downloading stuff over HTTP. Specifically when specifying a
+URL to a .torrent file when adding a torrent or when announcing to an HTTP
+tracker. The default is 2 MiB.
+
 pe_settings
 ===========
 
@@ -6325,8 +6347,8 @@ The specific alerts are:
 torrent_added_alert
 -------------------
 
-The ``torrent_added_alert`` is posted once every time a torrent is added.
-It doesn't contain any members of its own, but inherits the torrent handle
+The ``torrent_added_alert`` is posted once every time a torrent is successfully
+added. It doesn't contain any members of its own, but inherits the torrent handle
 from its base class.
 It's posted when the ``status_notification`` bit is set in the alert mask.
 
@@ -6341,9 +6363,10 @@ It's posted when the ``status_notification`` bit is set in the alert mask.
 add_torrent_alert
 -----------------
 
-This alert is always posted when a torrent was added via ``async_add_torrent()``
+This alert is always posted when a torrent was attempted to be added
 and contains the return status of the add operation. The torrent handle of the new
-torrent can be found in the base class' ``handle`` member.
+torrent can be found in the base class' ``handle`` member. If adding
+the torrent failed, ``error`` contains the error code.
 
 ::
 
@@ -6357,7 +6380,7 @@ torrent can be found in the base class' ``handle`` member.
 ``params`` is a copy of the parameters used when adding the torrent, it can be used
 to identify which invocation to ``async_add_torrent()`` caused this alert.
 
-``error`` is set to the error, if any, adding the torrent.
+``error`` is set to the error, if one occurred while adding the torrent.
 
 
 torrent_removed_alert
@@ -6367,6 +6390,14 @@ The ``torrent_removed_alert`` is posted whenever a torrent is removed. Since
 the torrent handle in its baseclass will always be invalid (since the torrent
 is already removed) it has the info hash as a member, to identify it.
 It's posted when the ``status_notification`` bit is set in the alert mask.
+
+Even though the ``handle`` member doesn't point to an existing torrent anymore,
+it is still useful for comparing to other handles, which may also no
+longer point to existing torrents, but to the same non-existing torrents.
+
+The ``torrent_handle`` acts as a ``weak_ptr``, even though its object no
+longer exists, it can still compare equal to another weak pointer which
+points to the same non-existent object.
 
 ::
 
@@ -7171,12 +7202,12 @@ code to do that::
 
 	torrent_handle h = alert->handle();
 	if (h.is_valid()) {
-		torrent_info const& ti = h.get_torrent_info();
-		create_torrent ct(ti);
+		boost::intrusive_ptr<torrent_info const> ti = h.torrent_file();
+		create_torrent ct(*ti);
 		entry te = ct.generate();
 		std::vector<char> buffer;
 		bencode(std::back_inserter(buffer), te);
-		FILE* f = fopen((to_hex(ti.info_hash().to_string()) + ".torrent").c_str(), "w+");
+		FILE* f = fopen((to_hex(ti->info_hash().to_string()) + ".torrent").c_str(), "w+");
 		if (f) {
 			fwrite(&buffer[0], 1, buffer.size(), f);
 			fclose(f);
@@ -7594,7 +7625,7 @@ Examples usage::
 			// write fast resume data
 			// ...
 
-			std::cout << a.handle.get_torrent_info().name() << "completed"
+			std::cout << a.handle.torrent_file()->name() << "completed"
 				<< std::endl;
 		}
 	};

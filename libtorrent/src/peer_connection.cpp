@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
+Copyright (c) 2003-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -242,8 +242,13 @@ namespace libtorrent
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING
 		error_code ec;
 		TORRENT_ASSERT(m_socket->remote_endpoint(ec) == m_remote || ec);
-		m_logger = m_ses.create_log(m_remote.address().to_string(ec) + "_"
-			+ to_string(m_remote.port()).elems, m_ses.listen_port());
+		std::string log_name = m_remote.address().to_string(ec) + "_"
+			+ to_string(m_remote.port()).elems;
+
+		if (t) log_name = combine_path(to_hex(t->info_hash().to_string())
+			, log_name);
+
+		m_logger = m_ses.create_log(log_name, m_ses.listen_port());
 		peer_log("%s [ ep: %s type: %s seed: %d p: %p local: %s]"
 			, m_outgoing ? ">>> OUTGOING_CONNECTION" : "<<< INCOMING CONNECTION"
 			, print_endpoint(m_remote).c_str()
@@ -992,6 +997,17 @@ namespace libtorrent
 		TORRENT_ASSERT(m_torrent.expired());
 		boost::weak_ptr<torrent> wpt = m_ses.find_torrent(ih);
 		boost::shared_ptr<torrent> t = wpt.lock();
+
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_ERROR_LOGGING
+		// now that we know which torrent this peer belongs
+		// to. Move the log file into its directory
+
+		error_code ec;
+		std::string log_name = combine_path(to_hex(ih.to_string())
+			, m_remote.address().to_string(ec) + "_"
+				+ to_string(m_remote.port()).elems);
+		m_logger->move_log_file(m_ses.get_log_path(), log_name, m_ses.listen_port());
+#endif
 
 		if (t && t->is_aborted())
 		{
@@ -3297,7 +3313,7 @@ namespace libtorrent
 		// a connection attempt using uTP just failed
 		// mark this peer as not supporting uTP
 		// we'll never try it again (unless we're trying holepunch)
-		if (m_socket->get<utp_stream>()
+		if (is_utp(*m_socket)
 			&& m_peer_info
 			&& m_peer_info->supports_utp
 			&& !m_holepunch_mode)
@@ -3316,7 +3332,8 @@ namespace libtorrent
 			fast_reconnect(true);
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
-		if ((!m_socket->get<utp_stream>() || !m_ses.m_settings.enable_outgoing_tcp)
+		if ((!is_utp(*m_socket)
+				|| !m_ses.m_settings.enable_outgoing_tcp)
 			&& m_peer_info
 			&& m_peer_info->supports_holepunch
 			&& !m_holepunch_mode)
@@ -3406,7 +3423,7 @@ namespace libtorrent
 		if (ec == error_code(errors::timed_out_no_handshake))
 			++m_ses.m_connect_timeouts;
 
-		if (m_socket->get<utp_stream>()) ++m_ses.m_error_utp_peers;
+		if (is_utp(*m_socket)) ++m_ses.m_error_utp_peers;
 		else ++m_ses.m_error_tcp_peers;
 
 		if (m_outgoing) ++m_ses.m_error_outgoing_peers;
@@ -5390,11 +5407,7 @@ namespace libtorrent
 		if (m_disconnecting) return;
 		m_last_receive = time_now();
 
-		if ((m_socket->get<utp_stream>()
-#ifdef TORRENT_USE_OPENSSL
-			|| m_socket->get<ssl_stream<utp_stream> >()
-#endif
-			) && m_peer_info)
+		if (is_utp(*m_socket) && m_peer_info)
 		{
 			m_peer_info->confirmed_supports_utp = true;
 			m_peer_info->supports_utp = false;

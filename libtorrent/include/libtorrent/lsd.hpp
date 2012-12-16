@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -73,9 +73,6 @@ private:
 
 	peer_callback_t m_callback;
 
-	// current retry count
-	int m_retry_count;
-
 	// the udp socket used to send and receive
 	// multicast messages on
 	broadcast_socket m_socket;
@@ -84,9 +81,19 @@ private:
 	// they time out
 	deadline_timer m_broadcast_timer;
 
+	// current retry count
+	boost::uint32_t m_retry_count;
+
+	// this is a random (presumably unique)
+	// ID for this LSD node. It is used to
+	// ignore our own broadcast messages.
+	// There's no point in adding ourselves
+	// as a peer
+	int m_cookie;
+
 	bool m_disabled;
 #if defined(TORRENT_LOGGING) || defined(TORRENT_VERBOSE_LOGGING)
-	std::ofstream m_log;
+	FILE* m_log;
 #endif
 };
 

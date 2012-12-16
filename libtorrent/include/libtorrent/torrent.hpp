@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
+Copyright (c) 2003-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -383,16 +383,9 @@ namespace libtorrent
 
 		// add or remove a url that will be attempted for
 		// finding the file(s) in this torrent.
-		void add_web_seed(std::string const& url, web_seed_entry::type_t type)
-		{
-			m_web_seeds.push_back(web_seed_entry(url, type));
-		}
-
+		void add_web_seed(std::string const& url, web_seed_entry::type_t type);
 		void add_web_seed(std::string const& url, web_seed_entry::type_t type
-			, std::string const& auth, web_seed_entry::headers_t const& extra_headers)
-		{
-			m_web_seeds.push_back(web_seed_entry(url, type, auth, extra_headers));
-		}
+			, std::string const& auth, web_seed_entry::headers_t const& extra_headers);
 	
 		void remove_web_seed(std::string const& url, web_seed_entry::type_t type);
 		void disconnect_web_seed(peer_connection* p);
@@ -478,6 +471,10 @@ namespace libtorrent
 		// ready to be sent over http (but without
 		// base64 encoding).
 		std::string tracker_login() const;
+
+		// if we need a connect boost, connect some peers
+		// immediately
+		void do_connect_boost();
 
 		// returns the absolute time when the next tracker
 		// announce will take place.
@@ -730,6 +727,8 @@ namespace libtorrent
 		piece_manager& filesystem();
 		torrent_info const& torrent_file() const
 		{ return *m_torrent_file; }
+
+		boost::intrusive_ptr<torrent_info> get_torrent_copy();
 
 		std::string const& uuid() const { return m_uuid; }
 		void set_uuid(std::string const& s) { m_uuid = s; }
@@ -1044,6 +1043,7 @@ namespace libtorrent
 		};
 
 		// this list is sorted by time_critical_piece::deadline
+		// TODO: this should be a deque
 		std::list<time_critical_piece> m_time_critical_pieces;
 
 		std::string m_trackerid;
@@ -1391,6 +1391,9 @@ namespace libtorrent
 	public:
 		// set to false until we've loaded resume data
 		bool m_resume_data_loaded;
+
+		// set to true when the finished alert is posted
+		bool m_finished_alert_posted;
 #endif
 	};
 }
