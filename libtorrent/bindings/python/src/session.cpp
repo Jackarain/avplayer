@@ -85,6 +85,11 @@ namespace
 			}
 		}
 
+		if (!sett_dict.has_key("outgoing_port"))
+			sett.outgoing_ports.first = extract<int>(sett_dict["outgoing_port"]);
+		if (!sett_dict.has_key("num_outgoing_ports"))
+			sett.outgoing_ports.second = sett.outgoing_ports.first + extract<int>(sett_dict["num_outgoing_ports"]);
+
 		ses.set_settings(sett);
 	}
 
@@ -122,6 +127,8 @@ namespace
 					break;
 			}
 		}
+		sett_dict["outgoing_port"] = sett.outgoing_ports.first;
+		sett_dict["num_outgoing_ports"] = sett.outgoing_ports.second - sett.outgoing_ports.first + 1;
 		return sett_dict;
 	}
 
@@ -570,6 +577,7 @@ void bind_session()
         .def("get_settings", &session_get_settings)
 #else
         .def("settings", &session_get_settings)
+        .def("get_settings", &session_get_settings)
 #endif
         .def("set_settings", &session_set_settings)
 #ifndef TORRENT_DISABLE_ENCRYPTION
