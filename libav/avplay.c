@@ -1343,10 +1343,13 @@ void* read_pkt_thrd(void *param)
 			play->m_play_status = playing;
 
 		/* 更新缓冲字节数.	*/
-		pthread_mutex_lock(&play->m_buf_size_mtx);
-		play->m_pkt_buffer_size += packet.size;
-		play->m_buffering = (double)play->m_pkt_buffer_size / (double)MAX_PKT_BUFFER_SIZE;
-		pthread_mutex_unlock(&play->m_buf_size_mtx);
+		if (packet.stream_index == play->m_video_index || packet.stream_index == play->m_audio_index)
+		{
+			pthread_mutex_lock(&play->m_buf_size_mtx);
+			play->m_pkt_buffer_size += packet.size;
+			play->m_buffering = (double)play->m_pkt_buffer_size / (double)MAX_PKT_BUFFER_SIZE;
+			pthread_mutex_unlock(&play->m_buf_size_mtx);
+		}
 
 		/* 在这里计算码率.	*/
 		if (play->m_enable_calc_video_bite)
@@ -1452,9 +1455,9 @@ void* audio_dec_thrd(void *param)
 				play->m_audio_current_pts_last = play->m_audio_clock;
 
 			/* 计算pkt缓冲数据大小. */
-			pthread_mutex_lock(&play->m_audio_q.m_mutex);
+			pthread_mutex_lock(&play->m_buf_size_mtx);
 			play->m_pkt_buffer_size -= pkt.size;
-			pthread_mutex_unlock(&play->m_audio_q.m_mutex);
+			pthread_mutex_unlock(&play->m_buf_size_mtx);
 
 			/* 解码音频. */
 			out_size = 0;

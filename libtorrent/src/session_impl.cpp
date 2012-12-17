@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006, Arvid Norberg, Magnus Jonsson
+Copyright (c) 2006-2012, Arvid Norberg, Magnus Jonsson
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -388,6 +388,7 @@ namespace aux {
 		TORRENT_SETTING(boolean, drop_skipped_requests)
 		TORRENT_SETTING(boolean, low_prio_disk)
 		TORRENT_SETTING(integer, local_service_announce_interval)
+		TORRENT_SETTING(integer, dht_announce_interval)
 		TORRENT_SETTING(integer, udp_tracker_token_expiry)
 		TORRENT_SETTING(boolean, volatile_read_cache)
 		TORRENT_SETTING(boolean, guided_read_cache)
@@ -410,6 +411,8 @@ namespace aux {
 		TORRENT_SETTING(boolean, no_recheck_incomplete_resume)
 		TORRENT_SETTING(boolean, anonymous_mode)
 		TORRENT_SETTING(integer, tick_interval)
+		TORRENT_SETTING(boolean, report_web_seed_downloads)
+		TORRENT_SETTING(integer, share_mode_target)
 		TORRENT_SETTING(integer, upload_rate_limit)
 		TORRENT_SETTING(integer, download_rate_limit)
 		TORRENT_SETTING(integer, local_upload_rate_limit)
@@ -445,6 +448,8 @@ namespace aux {
 		TORRENT_SETTING(boolean, lock_files)
 		TORRENT_SETTING(integer, ssl_listen)
 		TORRENT_SETTING(integer, tracker_backoff)
+		TORRENT_SETTING(boolean, ban_web_seeds)
+		TORRENT_SETTING(integer, max_http_recv_buffer_size)
 	};
 
 #undef TORRENT_SETTING
@@ -668,10 +673,16 @@ namespace aux {
 #endif
 		, m_total_failed_bytes(0)
 		, m_total_redundant_bytes(0)
+		, m_pending_auto_manage(false)
+		, m_need_auto_manage(false)
 #if (defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS) && defined BOOST_HAS_PTHREADS
 		, m_network_thread(0)
 #endif
 	{
+#if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
+		m_posting_torrent_updates = false;
+#endif
+
 		memset(m_redundant_bytes, 0, sizeof(m_redundant_bytes));
 		m_udp_socket.set_rate_limit(m_settings.dht_upload_rate_limit);
 
@@ -694,7 +705,7 @@ namespace aux {
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
 		m_logger = create_log("main_session", listen_port(), false);
-		(*m_logger) << time_now_string() << "\n";
+		session_log("log created");
 #endif
 
 		error_code ec;
@@ -1031,7 +1042,7 @@ namespace aux {
 		if (getrlimit(RLIMIT_NOFILE, &rl) == 0)
 		{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			(*m_logger) << time_now_string() << " max number of open files: " << rl.rlim_cur << "\n";
+			session_log(" max number of open files: %d", rl.rlim_cur);
 #endif
 
 			// deduct some margin for epoll/kqueue, log files,
@@ -1067,7 +1078,7 @@ namespace aux {
 		url_random((char*)&m_peer_id[print.length()], (char*)&m_peer_id[0] + 20);
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		(*m_logger) << time_now_string() << " generated peer ID: " << m_peer_id.to_string() << "\n";
+		session_log(" generated peer ID: %s", m_peer_id.to_string().c_str());
 #endif
 
 		update_rate_settings();
@@ -1296,9 +1307,26 @@ namespace aux {
 	void session_impl::start_session()
 	{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		(*m_logger) << time_now_string() << " spawning network thread\n";
+		session_log(" spawning network thread");
 #endif
 		m_thread.reset(new thread(boost::bind(&session_impl::main_thread, this)));
+	}
+
+	void session_impl::trigger_auto_manage()
+	{
+		if (m_pending_auto_manage) return;
+
+		m_pending_auto_manage = true;
+		m_need_auto_manage = true;
+		m_io_service.post(boost::bind(&session_impl::on_trigger_auto_manage, this));
+	}
+
+	void session_impl::on_trigger_auto_manage()
+	{
+		assert(m_pending_auto_manage);
+		m_pending_auto_manage = false;
+		if (!m_need_auto_manage) return;
+		recalculate_auto_managed_torrents();
 	}
 
 	void session_impl::update_dht_announce_interval()
@@ -1322,7 +1350,7 @@ namespace aux {
 	void session_impl::init()
 	{
 #if defined TORRENT_LOGGING || defined TORRENT_VERBOSE_LOGGING
-		(*m_logger) << time_now_string() << " *** session thread init\n";
+		session_log(" *** session thread init");
 #endif
 
 		// this is where we should set up all async operations. This
@@ -1351,12 +1379,12 @@ namespace aux {
 #endif
 
 #if defined TORRENT_LOGGING || defined TORRENT_VERBOSE_LOGGING
-		(*m_logger) << time_now_string() << " open listen port\n";
+		session_log(" open listen port");
 #endif
 		// no reuse_address and allow system defined port
 		open_listen_port(0, ec);
 #if defined TORRENT_LOGGING || defined TORRENT_VERBOSE_LOGGING
-		(*m_logger) << time_now_string() << " done starting session\n";
+		session_log(" done starting session");
 #endif
 	}
 
@@ -1659,15 +1687,6 @@ namespace aux {
 	}
 #endif
 
-#ifndef TORRENT_DISABLE_DHT
-	void session_impl::add_dht_node(udp::endpoint n)
-	{
-		TORRENT_ASSERT(is_network_thread());
-
-		if (m_dht) m_dht->add_node(n);
-	}
-#endif
-
 	feed_handle session_impl::add_feed(feed_settings const& sett)
 	{
 		TORRENT_ASSERT(is_network_thread());
@@ -1719,7 +1738,7 @@ namespace aux {
 
 		if (m_paused) return;
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
-		(*m_logger) << time_now_string() << " *** session paused ***\n";
+		session_log(" *** session paused ***");
 #endif
 		m_paused = true;
 		for (torrent_map::iterator i = m_torrents.begin()
@@ -1751,7 +1770,7 @@ namespace aux {
 
 		if (m_abort) return;
 #if defined TORRENT_LOGGING
-		(*m_logger) << time_now_string() << " *** ABORT CALLED ***\n";
+		session_log(" *** ABORT CALLED ***");
 #endif
 		// abort the main thread
 		m_abort = true;
@@ -1789,7 +1808,7 @@ namespace aux {
 #endif
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " aborting all torrents (" << m_torrents.size() << ")\n";
+		session_log(" aborting all torrents (%d)", m_torrents.size());
 #endif
 		// abort all torrents
 		for (torrent_map::iterator i = m_torrents.begin()
@@ -1799,12 +1818,12 @@ namespace aux {
 		}
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " aborting all tracker requests\n";
+		session_log(" aborting all tracker requests");
 #endif
 		m_tracker_manager.abort_all_requests();
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " sending event=stopped to trackers\n";
+		session_log(" sending event=stopped to trackers");
 #endif
 		for (torrent_map::iterator i = m_torrents.begin();
 			i != m_torrents.end(); ++i)
@@ -1814,12 +1833,12 @@ namespace aux {
 		}
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " aborting all connections (" << m_connections.size() << ")\n";
+		session_log(" aborting all connections (%d)", m_connections.size());
 #endif
 		m_half_open.close();
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " connection queue: " << m_half_open.size() << "\n";
+		session_log(" connection queue: %d", m_half_open.size());
 #endif
 
 		// abort all connections
@@ -1833,11 +1852,11 @@ namespace aux {
 		}
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " connection queue: " << m_half_open.size() << "\n";
+		session_log(" connection queue: %d", m_half_open.size());
 #endif
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " shutting down connection queue\n";
+		session_log(" shutting down connection queue");
 #endif
 
 		m_download_rate.close();
@@ -2097,15 +2116,15 @@ namespace aux {
 	}
 
 	void session_impl::setup_listener(listen_socket_t* s, tcp::endpoint ep
-		, int retries, bool v6_only, int flags, error_code& ec)
+		, int& retries, bool v6_only, int flags, error_code& ec)
 	{
 		s->sock.reset(new socket_acceptor(m_io_service));
 		s->sock->open(ep.protocol(), ec);
 		if (ec)
 		{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			(*m_logger) << "failed to open socket: " << print_endpoint(ep)
-				<< ": " << ec.message() << "\n" << "\n";
+			session_log("failed to open socket: %s: %s"
+				, print_endpoint(ep).c_str(), ec.message().c_str());
 #endif
 			return;
 		}
@@ -2117,7 +2136,9 @@ namespace aux {
 		if (ep.protocol() == tcp::v6())
 		{
 			error_code err; // ignore errors here
+#ifdef IPV6_V6ONLY
 			s->sock->set_option(v6only(v6_only), err);
+#endif
 #ifdef TORRENT_WINDOWS
 
 #ifndef PROTECTION_LEVEL_UNRESTRICTED
@@ -2132,10 +2153,8 @@ namespace aux {
 		while (ec && retries > 0)
 		{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, 200, "failed to bind to interface \"%s\": %s"
+			session_log("failed to bind to interface \"%s\": %s"
 				, print_endpoint(ep).c_str(), ec.message().c_str());
-			(*m_logger) << time_now_string() << " " << msg << "\n";
 #endif
 			ec.clear();
 			TORRENT_ASSERT_VAL(!ec, ec);
@@ -2157,10 +2176,8 @@ namespace aux {
 			if (m_alerts.should_post<listen_failed_alert>())
 				m_alerts.post_alert(listen_failed_alert(ep, ec));
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, 200, "cannot bind to interface \"%s\": %s"
+			session_log("cannot bind to interface \"%s\": %s"
 				, print_endpoint(ep).c_str(), ec.message().c_str());
-			(*m_logger) << time_now_string() << msg << "\n";
 #endif
 			return;
 		}
@@ -2171,10 +2188,8 @@ namespace aux {
 			if (m_alerts.should_post<listen_failed_alert>())
 				m_alerts.post_alert(listen_failed_alert(ep, ec));
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, 200, "cannot listen on interface \"%s\": %s"
+			session_log("cannot listen on interface \"%s\": %s"
 				, print_endpoint(ep).c_str(), ec.message().c_str());
-			(*m_logger) << time_now_string() << msg << "\n";
 #endif
 			return;
 		}
@@ -2188,8 +2203,8 @@ namespace aux {
 			m_alerts.post_alert(listen_succeeded_alert(ep));
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		(*m_logger) << time_now_string() << " listening on: " << ep
-			<< " external port: " << s->external_port << "\n";
+		session_log(" listening on: %s external port: %d"
+			, print_endpoint(ep).c_str(), s->external_port);
 #endif
 	}
 	
@@ -2197,9 +2212,19 @@ namespace aux {
 	{
 		TORRENT_ASSERT(is_network_thread());
 
+		TORRENT_ASSERT(!m_abort);
+retry:
+
 		// close the open listen sockets
+		// close the listen sockets
+		for (std::list<listen_socket_t>::iterator i = m_listen_sockets.begin()
+			, end(m_listen_sockets.end()); i != end; ++i)
+			i->sock->close(ec);
 		m_listen_sockets.clear();
 		m_incoming_connection = false;
+		ec.clear();
+
+		if (m_abort) return;
 
 		m_ipv6_interface = tcp::endpoint();
 		m_ipv4_interface = tcp::endpoint();
@@ -2225,8 +2250,8 @@ namespace aux {
 				// sockets can be bound to the same one
 				m_listen_interface.port(s.external_port);
 
+				TORRENT_ASSERT(!m_abort);
 				m_listen_sockets.push_back(s);
-				async_accept(s.sock, s.ssl);
 			}
 
 #ifdef TORRENT_USE_OPENSSL
@@ -2234,12 +2259,13 @@ namespace aux {
 			{
 				listen_socket_t s;
 				s.ssl = true;
-				setup_listener(&s, ssl_interface, 10, false, flags, ec);
+				int retries = 10;
+				setup_listener(&s, ssl_interface, retries, false, flags, ec);
 
 				if (s.sock)
 				{
+					TORRENT_ASSERT(!m_abort);
 					m_listen_sockets.push_back(s);
-					async_accept(s.sock, s.ssl);
 				}
 			}
 #endif
@@ -2253,8 +2279,8 @@ namespace aux {
 
 				if (s.sock)
 				{
+					TORRENT_ASSERT(!m_abort);
 					m_listen_sockets.push_back(s);
-					async_accept(s.sock, s.ssl);
 				}
 
 #ifdef TORRENT_USE_OPENSSL
@@ -2262,13 +2288,14 @@ namespace aux {
 				{
 					listen_socket_t s;
 					s.ssl = true;
+					int retries = 10;
 					setup_listener(&s, tcp::endpoint(address_v6::any(), ssl_interface.port())
-						, 10, false, flags, ec);
+						, retries, false, flags, ec);
 
 					if (s.sock)
 					{
+						TORRENT_ASSERT(!m_abort);
 						m_listen_sockets.push_back(s);
-						async_accept(s.sock, s.ssl);
 					}
 				}
 #endif // TORRENT_USE_OPENSSL
@@ -2298,8 +2325,8 @@ namespace aux {
 
 			if (s.sock)
 			{
+				TORRENT_ASSERT(!m_abort);
 				m_listen_sockets.push_back(s);
-				async_accept(s.sock, s.ssl);
 
 				if (m_listen_interface.address().is_v6())
 					m_ipv6_interface = m_listen_interface;
@@ -2312,12 +2339,13 @@ namespace aux {
 			{
 				listen_socket_t s;
 				s.ssl = true;
-				setup_listener(&s, ssl_interface, 10, false, flags, ec);
+				int retries = 10;
+				setup_listener(&s, ssl_interface, retries, false, flags, ec);
 
 				if (s.sock)
 				{
+					TORRENT_ASSERT(!m_abort);
 					m_listen_sockets.push_back(s);
-					async_accept(s.sock, s.ssl);
 				}
 			}
 #endif
@@ -2326,14 +2354,18 @@ namespace aux {
 		m_udp_socket.bind(udp::endpoint(m_listen_interface.address(), m_listen_interface.port()), ec);
 		if (ec)
 		{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+			session_log("cannot bind to UDP interface \"%s\": %s"
+				, print_endpoint(m_listen_interface).c_str(), ec.message().c_str());
+#endif
+			if (m_listen_port_retries > 0)
+			{
+				m_listen_interface.port(m_listen_interface.port() + 1);
+				--m_listen_port_retries;
+				goto retry;
+			}
 			if (m_alerts.should_post<listen_failed_alert>())
 				m_alerts.post_alert(listen_failed_alert(m_listen_interface, ec));
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, sizeof(msg), "cannot bind to UDP interface \"%s\": %s"
-				, print_endpoint(m_listen_interface).c_str(), ec.message().c_str());
-			(*m_logger) << msg << "\n";
-#endif
 		}
 		else
 		{
@@ -2347,6 +2379,11 @@ namespace aux {
 		(*m_logger) << ">>> SET_TOS[ udp_socket tos: " << m_settings.peer_tos << " e: " << ec.message() << " ]\n";
 #endif
 		ec.clear();
+
+		// initiate accepting on the listen sockets
+		for (std::list<listen_socket_t>::iterator i = m_listen_sockets.begin()
+			, end(m_listen_sockets.end()); i != end; ++i)
+			async_accept(i->sock, i->ssl);
 
 		open_new_incoming_socks_connection();
 #if TORRENT_USE_I2P
@@ -2452,10 +2489,8 @@ namespace aux {
 				m_alerts.post_alert(listen_failed_alert(tcp::endpoint(
 					address_v4::any(), m_listen_interface.port()), e));
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, sizeof(msg), "cannot bind to port %d: %s"
+			session_log("cannot bind to port %d: %s"
 				, m_listen_interface.port(), e.message().c_str());
-			(*m_logger) << msg << "\n";
 #endif
 			return;
 		}
@@ -2479,9 +2514,7 @@ namespace aux {
 				m_alerts.post_alert(udp_error_alert(ep, ec));
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-			char msg[200];
-			snprintf(msg, sizeof(msg), "UDP socket error: (%d) %s", ec.value(), ec.message().c_str());
-			(*m_logger) << msg << "\n";
+			session_log("UDP socket error: (%d) %s", ec.value(), ec.message().c_str());
 #endif
 		}
 		return false;
@@ -2541,9 +2574,8 @@ namespace aux {
 		{
 			tcp::endpoint ep = listener->local_endpoint(ec);
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			std::string msg = "error accepting connection on '"
-				+ print_endpoint(ep) + "' " + e.message();
-			(*m_logger) << msg << "\n";
+			session_log("error accepting connection on '%s': %s"
+				, print_endpoint(ep).c_str(), e.message().c_str());
 #endif
 #ifdef TORRENT_WINDOWS
 			// Windows sometimes generates this error. It seems to be
@@ -2626,8 +2658,8 @@ namespace aux {
 		if (e) return;
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " *** peer SSL handshake done [ ip: "
-			<< endp << " ec: " << ec.message() << " socket: " << s->type_name() << "]\n";
+		session_log(" *** peer SSL handshake done [ ip: %s ec: %s socket: %s ]"
+			, print_endpoint(endp).c_str(), ec.message().c_str(), s->type_name());
 #endif
 
 		if (ec)
@@ -2659,7 +2691,7 @@ namespace aux {
 		if (m_paused)
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << time_now_string() << " <== INCOMING CONNECTION [ ignored, paused ]\n";
+			session_log(" <== INCOMING CONNECTION [ ignored, paused ]");
 #endif
 			return;
 		}
@@ -2671,8 +2703,9 @@ namespace aux {
 		if (ec)
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << endp << " <== INCOMING CONNECTION FAILED, could "
-				"not retrieve remote endpoint " << ec.message() << "\n";
+			session_log("%s <== INCOMING CONNECTION FAILED, could "
+				"not retrieve remote endpoint "
+				, print_endpoint(endp).c_str(), ec.message().c_str());
 #endif
 			return;
 		}
@@ -2680,8 +2713,8 @@ namespace aux {
 		TORRENT_ASSERT(endp.address() != address_v4::any());
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " <== INCOMING CONNECTION " << endp
-			<< " type: " << s->type_name() << "\n";
+		session_log(" <== INCOMING CONNECTION %s type: %s"
+			, print_endpoint(endp).c_str(), s->type_name());
 #endif
 
 		if (m_alerts.should_post<incoming_connection_alert>())
@@ -2693,7 +2726,7 @@ namespace aux {
 			&& s->get<utp_stream>())
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << "    rejected uTP connection\n";
+			session_log("    rejected uTP connection");
 #endif
 			if (m_alerts.should_post<peer_blocked_alert>())
 				m_alerts.post_alert(peer_blocked_alert(torrent_handle(), endp.address()));
@@ -2704,7 +2737,7 @@ namespace aux {
 			&& s->get<stream_socket>())
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << "    rejected TCP connection\n";
+			session_log("    rejected TCP connection");
 #endif
 			if (m_alerts.should_post<peer_blocked_alert>())
 				m_alerts.post_alert(peer_blocked_alert(torrent_handle(), endp.address()));
@@ -2725,7 +2758,7 @@ namespace aux {
 			&& (m_ip_filter.access(endp.address()) & ip_filter::blocked))
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << "filtered blocked ip\n";
+			session_log("filtered blocked ip");
 #endif
 			if (m_alerts.should_post<peer_blocked_alert>())
 				m_alerts.post_alert(peer_blocked_alert(torrent_handle(), endp.address()));
@@ -2761,7 +2794,7 @@ namespace aux {
 		if (m_torrents.empty())
 		{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-			(*m_logger) << " There are no torrents, disconnect\n";
+			session_log(" There are no torrents, disconnect");
 #endif
 		  	return;
 		}
@@ -2786,7 +2819,7 @@ namespace aux {
 			if (!has_active_torrent)
 			{
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-				(*m_logger) << " There are no _active_ torrents, disconnect\n";
+				session_log(" There are no _active_ torrents, disconnect");
 #endif
 			  	return;
 			}
@@ -2860,8 +2893,8 @@ namespace aux {
 #endif
 
 #if defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " CLOSING CONNECTION "
-			<< p->remote() << " : " << ec.message() << "\n";
+		session_log(" CLOSING CONNECTION %s : %s"
+			, print_endpoint(p->remote()).c_str(), ec.message().c_str());
 #endif
 
 		TORRENT_ASSERT(p->is_disconnecting());
@@ -2923,8 +2956,7 @@ namespace aux {
 		++m_next_port;
 		if (m_next_port > out_ports.second) m_next_port = out_ports.first;
 #if defined TORRENT_LOGGING
-		(*m_logger) << time_now_string() << " *** BINDING OUTGOING CONNECTION [ "
-			"port: " << port << " ]\n";
+		session_log(" *** BINDING OUTGOING CONNECTION [ port: %d ]", port);
 #endif
 		return port;
 	}
@@ -2991,10 +3023,6 @@ namespace aux {
 // too expensive
 //		INVARIANT_CHECK;
 
-#if defined TORRENT_VERBOSE_LOGGING
-//		(*m_logger) << time_now_string() << " session_impl::on_tick\n";
-#endif
-
 		// we have to keep ticking the utp socket manager
 		// until they're all closed
 		if (m_abort && m_utp_socket_manager.num_sockets() == 0)
@@ -3010,7 +3038,7 @@ namespace aux {
 		if (e)
 		{
 #if defined TORRENT_LOGGING || defined TORRENT_VERBOSE_LOGGING
-			(*m_logger) << "*** TICK TIMER FAILED " << e.message() << "\n";
+			session_log("*** TICK TIMER FAILED %s", e.message().c_str());
 #endif
 			::abort();
 			return;
@@ -3111,7 +3139,7 @@ namespace aux {
 						peer_connection& p = *(*i);
 						if (p.in_handshake()) continue;
 						int protocol = 0;
-						if (p.get_socket()->get<utp_stream>()) protocol = 1;
+						if (is_utp(*p.get_socket())) protocol = 1;
 
 						if (p.download_queue().size() + p.request_queue().size() > 0)
 							++num_peers[protocol][peer_connection::download_channel];
@@ -3666,6 +3694,13 @@ namespace aux {
 				++peers_up_send_buffer;
 
 			utp_stream* utp_socket = p->get_socket()->get<utp_stream>();
+#ifdef TORRENT_USE_OPENSSL
+			if (!utp_socket)
+			{
+				ssl_stream<utp_stream>* ssl_str = p->get_socket()->get<ssl_stream<utp_stream> >();
+				if (ssl_str) utp_socket = &ssl_str->next_layer();
+			}
+#endif
 			if (utp_socket)
 			{
 				utp_up_rate += ul_rate;
@@ -3956,7 +3991,36 @@ namespace aux {
 		m_next_rss_update = min_update;
 	}
 
+	void session_impl::prioritize_connections(boost::weak_ptr<torrent> t)
+	{
+		m_prio_torrents.push_back(std::make_pair(t, 10));
+	}
+
 #ifndef TORRENT_DISABLE_DHT
+
+	void session_impl::add_dht_node(udp::endpoint n)
+	{
+		TORRENT_ASSERT(is_network_thread());
+
+		if (m_dht) m_dht->add_node(n);
+	}
+
+	void session_impl::prioritize_dht(boost::weak_ptr<torrent> t)
+	{
+		m_dht_torrents.push_back(t);
+		// trigger a DHT announce right away if we just
+		// added a new torrent and there's no back-log
+		if (m_dht_torrents.size() == 1)
+		{
+#if defined TORRENT_ASIO_DEBUGGING
+			add_outstanding_async("session_impl::on_dht_announce");
+#endif
+			error_code ec;
+			m_dht_announce_timer.expires_from_now(seconds(0), ec);
+			m_dht_announce_timer.async_wait(
+				bind(&session_impl::on_dht_announce, this, _1));
+		}
+	}
 
 	void session_impl::on_dht_announce(error_code const& e)
 	{
@@ -3974,6 +4038,15 @@ namespace aux {
 		// announce to DHT every 15 minutes
 		int delay = (std::max)(m_settings.dht_announce_interval
 			/ (std::max)(int(m_torrents.size()), 1), 1);
+
+		if (!m_dht_torrents.empty())
+		{
+			// we have prioritized torrents that need
+			// an initial DHT announce. Don't wait too long
+			// until we announce those.
+			delay = (std::min)(4, delay);
+		}
+
 		error_code ec;
 		m_dht_announce_timer.expires_from_now(seconds(delay), ec);
 		m_dht_announce_timer.async_wait(
@@ -4108,6 +4181,8 @@ namespace aux {
 	void session_impl::recalculate_auto_managed_torrents()
 	{
 		INVARIANT_CHECK;
+
+		m_need_auto_manage = false;
 
 		// these vectors are filled with auto managed torrents
 		std::vector<torrent*> downloaders;
@@ -4688,7 +4763,7 @@ namespace aux {
 		}
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " locking mutex\n";
+		session_log(" locking mutex");
 #endif
 
 /*
@@ -4701,7 +4776,7 @@ namespace aux {
 #endif
 */
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string() << " cleaning up torrents\n";
+		session_log(" cleaning up torrents");
 #endif
 		m_torrents.clear();
 
@@ -4747,8 +4822,24 @@ namespace aux {
 	boost::shared_ptr<logger> session_impl::create_log(std::string const& name
 		, int instance, bool append)
 	{
+		error_code ec;
 		// current options are file_logger, cout_logger and null_logger
-		return boost::shared_ptr<logger>(new logger(m_logpath, name + ".log", instance, append));
+		return boost::shared_ptr<logger>(new logger(m_logpath, name, instance, append));
+	}
+
+	void session_impl::session_log(char const* fmt, ...) const
+	{
+		if (!m_logger) return;
+
+		va_list v;	
+		va_start(v, fmt);
+	
+		char usr[400];
+		vsnprintf(usr, sizeof(usr), fmt, v);
+		va_end(v);
+		char buf[450];
+		snprintf(buf, sizeof(buf), "%s: %s\n", time_now_string(), usr);
+		(*m_logger) << buf;
 	}
 #endif
 
@@ -4789,6 +4880,10 @@ namespace aux {
 		std::auto_ptr<state_update_alert> alert(new state_update_alert());
 		alert->status.reserve(m_state_updates.size());
 
+#if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
+		m_posting_torrent_updates = true;
+#endif
+
 		for (std::vector<boost::weak_ptr<torrent> >::iterator i = m_state_updates.begin()
 			, end(m_state_updates.end()); i != end; ++i)
 		{
@@ -4799,6 +4894,10 @@ namespace aux {
 			t->clear_in_state_update();
 		}
 		m_state_updates.clear();
+
+#if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
+		m_posting_torrent_updates = false;
+#endif
 
 		m_alerts.post_alert_ptr(alert.release());
 	}
@@ -4826,12 +4925,19 @@ namespace aux {
 	{
 		error_code ec;
 		torrent_handle handle = add_torrent(*params, ec);
-		m_alerts.post_alert(add_torrent_alert(handle, *params, ec));
 		delete params->resume_data;
 		delete params;
 	}
 
 	torrent_handle session_impl::add_torrent(add_torrent_params const& p
+		, error_code& ec)
+	{
+		torrent_handle h = add_torrent_impl(p, ec);
+		m_alerts.post_alert(add_torrent_alert(h, p, ec));
+		return h;
+	}
+
+	torrent_handle session_impl::add_torrent_impl(add_torrent_params const& p
 		, error_code& ec)
 	{
 		TORRENT_ASSERT(!p.save_path.empty());
@@ -4887,6 +4993,76 @@ namespace aux {
 			ih = &tmp;
 		}
 		else ih = &params.info_hash;
+
+		// we don't have a torrent file. If the user provided
+		// resume data, there may be some metadata in there
+		if ((!params.ti || !params.ti->is_valid())
+			&& params.resume_data)
+		{
+			int pos;
+			error_code ec;
+			lazy_entry tmp;
+			lazy_entry const* info = 0;
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
+			session_log("adding magnet link with resume data");
+#endif
+			if (lazy_bdecode(&(*params.resume_data)[0], &(*params.resume_data)[0]
+					+ params.resume_data->size(), tmp, ec, &pos) == 0
+				&& tmp.type() == lazy_entry::dict_t
+				&& (info = tmp.dict_find_dict("info")))
+			{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
+				session_log("found metadata in resume data");
+#endif
+				// verify the info-hash of the metadata stored in the resume file matches
+				// the torrent we're loading
+
+				std::pair<char const*, int> buf = info->data_section();
+				sha1_hash resume_ih = hasher(buf.first, buf.second).final();
+
+				// if url is set, the info_hash is not actually the info-hash of the
+				// torrent, but the hash of the URL, until we have the full torrent
+				// only require the info-hash to match if we actually passed in one
+				if (resume_ih == params.info_hash
+					|| !params.url.empty()
+					|| params.info_hash.is_all_zeros())
+				{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
+					session_log("info-hash matched");
+#endif
+					params.ti = new torrent_info(resume_ih);
+
+					if (params.ti->parse_info_section(*info, ec, 0))
+					{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING
+						session_log("successfully loaded metadata from resume file");
+#endif
+						// make the info-hash be the one in the resume file
+						params.info_hash = resume_ih;
+						ih = &params.info_hash;
+					}
+					else
+					{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+						session_log("failed to load metadata from resume file: %s"
+								, ec.message().c_str());
+#endif
+					}
+				}
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+				else
+				{
+					session_log("metadata info-hash failed");
+				}
+#endif
+			}
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+			else
+			{
+				session_log("no metadata found");
+			}
+#endif
+		}
 
 		// is the torrent already active?
 		boost::shared_ptr<torrent> torrent_ptr = find_torrent(*ih).lock();
@@ -4963,7 +5139,7 @@ namespace aux {
 		// a boat load of torrents, we postpone the recalculation until
 		// we're done adding them all (since it's kind of an expensive operation)
 		if (params.flags & add_torrent_params::flag_auto_managed)
-			m_auto_manage_time_scaler = 2;
+			trigger_auto_manage();
 
 		return torrent_handle(torrent_ptr);
 	}
@@ -5113,8 +5289,8 @@ namespace aux {
 			if (ec)
 			{
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-				(*m_logger) << time_now_string() << "listen_on: " << net_interface
-					<< " failed: " << ec.message() << "\n";
+				session_log("listen_on: %s failed: %s"
+					, net_interface, ec.message().c_str());
 #endif
 				return;
 			}
@@ -5138,7 +5314,7 @@ namespace aux {
 
 #if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
 		m_logger = create_log("main_session", listen_port(), false);
-		(*m_logger) << time_now_string() << "\n";
+		session_log("log created");
 #endif
 	}
 
@@ -5215,8 +5391,7 @@ namespace aux {
 			&& !m_settings.allow_i2p_mixed)) return;
 
 #if defined(TORRENT_VERBOSE_LOGGING) || defined(TORRENT_LOGGING)
-		(*m_logger) << time_now_string()
-			<< ": added peer from local discovery: " << peer << "\n";
+		session_log("added peer from local discovery: %s", print_endpoint(peer).c_str());
 #endif
 		t->get_policy().add_peer(peer, peer_id(0), peer_info::lsd, 0);
 		if (m_alerts.should_post<lsd_peer_alert>())
@@ -5915,8 +6090,8 @@ namespace aux {
 		if (is_loopback(ip)) return;
 
 #if defined TORRENT_VERBOSE_LOGGING
-		(*m_logger) << time_now_string() << ": set_external_address(" << print_address(ip)
-			<< ", " << source_type << ", " << print_address(source) << ")\n";
+		session_log(": set_external_address(%s, %d, %s)", print_address(ip).c_str()
+			, source_type, print_address(source).c_str());
 #endif
 		// this is the key to use for the bloom filters
 		// it represents the identity of the voter
@@ -5937,7 +6112,7 @@ namespace aux {
 				if (random() < UINT_MAX / 2)
 				{
 #if defined TORRENT_VERBOSE_LOGGING
-					(*m_logger) << time_now_string() << ": More than 20 slots, dopped\n";
+					session_log(": More than 20 slots, dopped");
 #endif
 					return;
 				}
@@ -5953,9 +6128,9 @@ namespace aux {
 				// entry has had the longest time to receive more
 				// votes to be bumped up
 #if defined TORRENT_VERBOSE_LOGGING
-				(*m_logger) << "  More than 20 slots, dopping "
-					<< print_address(m_external_addresses.front().addr)
-					<< " (" << m_external_addresses.front().num_votes << ")\n";
+				session_log("  More than 20 slots, dopping %s (%d)"
+					, print_address(m_external_addresses.front().addr).c_str()
+					, m_external_addresses.front().num_votes);
 #endif
 				m_external_addresses.erase(m_external_addresses.begin());
 			}
@@ -5973,15 +6148,14 @@ namespace aux {
 		for (std::vector<external_ip_t>::iterator j = m_external_addresses.begin()
 			, end(m_external_addresses.end()); j != end; ++j)
 		{
-			(*m_logger) << ((j == i)?"-->":"   ")
-				<< print_address(j->addr) << " votes: "
-				<< j->num_votes << "\n";
+			session_log("%s %s votes: %d", (j == i)?"-->":"   "
+				, print_address(j->addr).c_str(), j->num_votes);
 		}
 #endif
 		if (i->addr == m_external_address) return;
 
 #if defined TORRENT_VERBOSE_LOGGING
-		(*m_logger) << "  external IP updated\n";
+		session_log("  external IP updated");
 #endif
 		m_external_address = i->addr;
 		m_external_address_voters.clear();

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009, Arvid Norberg
+Copyright (c) 2009-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -305,6 +305,9 @@ namespace libtorrent
 
 	// returns true if this socket is an SSL socket
 	bool is_ssl(socket_type const& s);
+
+	// returns true if this is a uTP socket
+	bool is_utp(socket_type const& s);
 
 	// assuming the socket_type s is an ssl socket, make sure it
 	// verifies the hostname in its SSL handshake

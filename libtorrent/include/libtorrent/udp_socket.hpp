@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -209,6 +209,13 @@ namespace libtorrent
 
 		udp::socket m_ipv4_sock;
 		int m_buf_size;
+
+		// if the buffer size is attempted
+		// to be changed while the buffer is
+		// being used, this member is set to
+		// the desired size, and it's resized
+		// later
+		int m_new_buf_size;
 		char* m_buf;
 
 #if TORRENT_USE_IPV6
@@ -249,6 +256,11 @@ namespace libtorrent
 		bool m_started;
 		int m_magic;
 		int m_outstanding_when_aborted;
+		int m_outstanding_connect;
+		int m_outstanding_timeout;
+		int m_outstanding_resolve;
+		int m_outstanding_connect_queue;
+		int m_outstanding_socks;
 #endif
 	};
 

@@ -3,7 +3,7 @@
 # Using this script should be identical to the resulto of "autoreconf -fi".
 # Some code taken from the gnome macros/autogen.sh scripts.
 
-# $Id: autotool.sh 3859 2009-09-14 20:52:48Z cristiangreco $
+# $Id$
 
 
 ###############################################################################
@@ -139,6 +139,21 @@ version_check automake AUTOMAKE "automake automake-1.11 automake-1.10" $REQUIRED
 ACLOCAL=`echo $AUTOMAKE | sed s/automake/aclocal/`
 
 version_check libtool LIBTOOLIZE "libtoolize glibtoolize" $REQUIRED_LIBTOOL_VERSION || exit 1
+
+##########################################
+# Copy config.rpath to build dir
+##########################################
+build_dir=`cat $configure_ac | grep '^AC_CONFIG_AUX_DIR' |
+sed -n -e 's/AC_CONFIG_AUX_DIR(\([^()]*\))/\1/p' | sed -e 's/^\[\(.*\)\]$/\1/' | sed -e 1q`
+
+if [ -n "$build_dir" ]; then
+  mkdir $build_dir
+fi
+config_rpath=m4/config.rpath
+echo "Copying $config_rpath to $build_dir"
+cp $config_rpath "$build_dir/"
+
+##########################################
 
 echo
 printbold "Processing $configure_ac"

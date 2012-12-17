@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg, Daniel Wallin
+Copyright (c) 2003-2012, Arvid Norberg, Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,12 +71,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 //#define TORRENT_PARTIAL_HASH_LOG
 
-#if TORRENT_USE_IOSTREAM
-#include <ios>
-#include <iostream>
-#include <iomanip>
-#endif
-
 #if defined(__APPLE__)
 // for getattrlist()
 #include <sys/attr.h>
@@ -98,20 +92,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 // for convert_to_wstring and convert_to_native
 #include "libtorrent/escape_string.hpp"
-
-#if defined TORRENT_DEBUG && defined TORRENT_STORAGE_DEBUG && TORRENT_USE_IOSTREAM
-namespace
-{
-	using namespace libtorrent;
-
-	void print_to_log(std::string const& s)
-	{
-		static std::ofstream log("log.txt");
-		log << s;
-		log.flush();
-	}
-}
-#endif
 
 namespace libtorrent
 {
@@ -196,6 +176,9 @@ namespace libtorrent
 			}
 
 			if (flags & ignore_timestamps) continue;
+
+			// if there is no timestamp in the resume data, ignore it
+			if (size_iter->second == 0) continue;
 
 			// allow one second 'slack', because of FAT volumes
 			// in sparse mode, allow the files to be more recent
@@ -1802,10 +1785,6 @@ ret:
 
 		if (m_storage->settings().disable_hash_checks) return ret;
 
-#if defined TORRENT_PARTIAL_HASH_LOG && TORRENT_USE_IOSTREAM
-		std::ofstream out("partial_hash.log", std::ios::app);
-#endif
-
 		if (offset == 0)
 		{
 			partial_hash& ph = m_piece_hasher[piece_index];
@@ -1815,15 +1794,6 @@ ret:
 			for (file::iovec_t* i = iov, *end(iov + num_bufs); i < end; ++i)
 				ph.h.update((char const*)i->iov_base, i->iov_len);
 
-#if defined TORRENT_PARTIAL_HASH_LOG && TORRENT_USE_IOSTREAM
-			out << time_now_string() << " NEW ["
-				" s: " << this
-				<< " p: " << piece_index
-				<< " off: " << offset
-				<< " size: " << size
-				<< " entries: " << m_piece_hasher.size()
-				<< " ]" << std::endl;
-#endif
 		}
 		else
 		{
@@ -2846,24 +2816,6 @@ ret:
 		if (slot_index != piece_index
 			&& m_slot_to_piece[piece_index] >= 0)
 		{
-
-#if defined TORRENT_DEBUG && defined TORRENT_STORAGE_DEBUG && TORRENT_USE_IOSTREAM
-			std::stringstream s;
-
-			s << "there is another piece at our slot, swapping..";
-
-			s << "\n   piece_index: ";
-			s << piece_index;
-			s << "\n   slot_index: ";
-			s << slot_index;
-			s << "\n   piece at our slot: ";
-			s << m_slot_to_piece[piece_index];
-			s << "\n";
-
-			print_to_log(s.str());
-			debug_log();
-#endif
-
 			int piece_at_our_slot = m_slot_to_piece[piece_index];
 			TORRENT_ASSERT(m_piece_to_slot[piece_at_our_slot] == piece_index);
 
@@ -3087,24 +3039,6 @@ ret:
 		}
 	}
 
-#if defined(TORRENT_STORAGE_DEBUG) && TORRENT_USE_IOSTREAM
-	void piece_manager::debug_log() const
-	{
-		std::stringstream s;
-
-		s << "index\tslot\tpiece\n";
-
-		for (int i = 0; i < m_files.num_pieces(); ++i)
-		{
-			s << i << "\t" << m_slot_to_piece[i] << "\t";
-			s << m_piece_to_slot[i] << "\n";
-		}
-
-		s << "---------------------------------\n";
-
-		print_to_log(s.str());
-	}
-#endif
 #endif
 } // namespace libtorrent
 

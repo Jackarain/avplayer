@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
+Copyright (c) 2003-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -259,7 +259,7 @@ namespace libtorrent
 		// suggest read cache will make libtorrent suggest pieces
 		// that are fresh in the disk read cache, to potentially
 		// lower disk access and increase the cache hit ratio
-		enum { no_piece_suggestions = 0, suggest_read_cache = 1 };
+		enum suggest_mode_t { no_piece_suggestions = 0, suggest_read_cache = 1 };
 		int suggest_mode;
 
 		// the maximum number of bytes a connection may have
@@ -447,7 +447,7 @@ namespace libtorrent
 		// torrents to activate and which ones to queue
 		int auto_manage_interval;
 	
-		// when a seeding torrent reaches eaither the share ratio
+		// when a seeding torrent reaches either the share ratio
 		// (bytes up / bytes down) or the seed time ratio
 		// (seconds as seed / seconds as downloader) or the seed
 		// time limit (seconds as seed) it is considered
@@ -933,6 +933,10 @@ namespace libtorrent
 
 		// when true, web seeds sending bad data will be banned
 		bool ban_web_seeds;
+		
+		// http_connection maximum receive buffer size
+		// limits torrent file size for URL torrents
+		int max_http_recv_buffer_size;
 	};
 
 #ifndef TORRENT_DISABLE_DHT

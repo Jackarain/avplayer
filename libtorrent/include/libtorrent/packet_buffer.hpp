@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010, Arvid Norberg, Daniel Wallin.
+Copyright (c) 2010-2012, Arvid Norberg, Daniel Wallin.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ namespace libtorrent
 		std::size_t m_size;
 
 		// This defines the first index that is part of the m_storage.
-		// The last index is (m_first + (m_capacity - 1)) & 0xffff.
+		// last is one passed the last used slot
 		index_type m_first;
 		index_type m_last;
 	};

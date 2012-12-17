@@ -1,7 +1,7 @@
 /*
 
-Copyright (c) 2003 - 2006, Arvid Norberg
-Copyright (c) 2007, Arvid Norberg, Un Shyam
+Copyright (c) 2003-2012, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg, Un Shyam
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -367,7 +367,7 @@ namespace libtorrent
 		if (is_queued()) p.flags |= peer_info::queued;
 
 		p.client = m_client_version;
-		p.connection_type = get_socket()->get<utp_stream>()
+		p.connection_type = is_utp(*get_socket())
 			? peer_info::bittorrent_utp
 			: peer_info::standard_bittorrent;
 	}
@@ -760,7 +760,7 @@ namespace libtorrent
 			// in anonymous mode, every peer connection
 			// has a unique peer-id
 			for (int i = 0; i < 20; ++i)
-				*ptr++ = rand();
+				*ptr++ = random();
 		}
 		else
 		{
@@ -1504,7 +1504,7 @@ namespace libtorrent
 				error_code ec;
 				char const* err_msg[] = {"no such peer", "not connected", "no support", "no self"};
 				peer_log("<== HOLEPUNCH [ msg:failed error: %d msg: %s ]", error
-					, ((error >= 0 && error < 4)?err_msg[error]:"unknown message id"));
+					, ((error > 0 && error < 5)?err_msg[error-1]:"unknown message id"));
 #endif
 				// #error deal with holepunch errors
 				(void)error;
@@ -2179,7 +2179,7 @@ namespace libtorrent
 		send_buffer(msg, sizeof(msg));
 		send_buffer(&dict_msg[0], dict_msg.size());
 
-#if defined TORRENT_VERBOSE_LOGGING && TORRENT_USE_IOSTREAM
+#if defined TORRENT_VERBOSE_LOGGING
 		std::stringstream handshake_str;
 		handshake.print(handshake_str);
 		peer_log("==> EXTENDED HANDSHAKE: %s", handshake_str.str().c_str());

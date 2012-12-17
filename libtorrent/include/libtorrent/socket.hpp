@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
+Copyright (c) 2003-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,7 @@ namespace libtorrent
 #endif
 
 #if TORRENT_USE_IPV6
+#ifdef IPV6_V6ONLY
 	struct v6only
 	{
 		v6only(bool enable): m_value(enable) {}
@@ -111,6 +112,7 @@ namespace libtorrent
 		size_t size(Protocol const&) const { return sizeof(m_value); }
 		int m_value;
 	};
+#endif
 #endif
 	
 #ifdef TORRENT_WINDOWS

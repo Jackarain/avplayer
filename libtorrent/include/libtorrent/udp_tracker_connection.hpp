@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
+Copyright (c) 2003-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -119,8 +119,6 @@ namespace libtorrent
 		virtual void on_timeout(error_code const& ec);
 
 		udp::endpoint pick_target_endpoint() const;
-
-//		tracker_manager& m_man;
 
 		bool m_abort;
 		std::string m_hostname;

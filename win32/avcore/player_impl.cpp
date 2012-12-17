@@ -96,7 +96,7 @@ BOOL win_data::remove_window(player_impl* win)
 {
 	EnterCriticalSection(&m_cs);
 	player_impl_map::iterator finder = m_maps.find(win);
-	if (finder != m_maps.end())
+	if (finder == m_maps.end())
 	{
 		LeaveCriticalSection(&m_cs);
 		return FALSE;

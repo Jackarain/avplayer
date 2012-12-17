@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009, Arvid Norberg
+Copyright (c) 2009-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -398,6 +398,9 @@ struct utp_socket_impl
 	// the address of the remote endpoint
 	address m_remote_address;
 
+	// the local address
+	address m_local_address;
+
 	// the send and receive buffers
 	// maps packet sequence numbers
 	packet_buffer m_inbuf;
@@ -789,7 +792,7 @@ utp_stream::endpoint_type utp_stream::local_endpoint(error_code& ec) const
 		ec = asio::error::not_connected;
 		return endpoint_type();
 	}
-	return m_impl->m_sm->local_endpoint(ec);
+	return tcp::endpoint(m_impl->m_local_address, m_impl->m_sm->local_port(ec));
 }
 
 utp_stream::~utp_stream()
@@ -1063,6 +1066,9 @@ void utp_stream::do_connect(tcp::endpoint const& ep, utp_stream::connect_handler
 	m_impl->m_port = ep.port();
 	m_impl->m_connect_handler = handler;
 
+	error_code ec;
+	m_impl->m_local_address = m_impl->m_sm->local_endpoint(m_impl->m_remote_address, ec).address();
+
 	if (m_impl->test_socket_state()) return;
 	m_impl->send_syn();
 }
@@ -1114,8 +1120,13 @@ bool utp_socket_impl::should_delete() const
 	// closing the socket. Only delete the state if we're not
 	// attached and we're in a state where the other end doesn't
 	// expect the socket to still be alive
+	// when m_stalled is true, it means the socket manager has a
+	// pointer to this socket, waiting for the UDP socket to
+	// become writable again. We have to wait for that, so that
+	// the pointer is removed from that queue. Otherwise we would
+	// leave a dangling pointer in the socket manager
 	bool ret = (m_state >= UTP_STATE_ERROR_WAIT || m_state == UTP_STATE_NONE)
-		&& !m_attached;
+		&& !m_attached && !m_stalled;
 
 	if (ret)
 	{
@@ -1250,7 +1261,7 @@ void utp_socket_impl::send_syn()
 	m_sm->send_packet(udp::endpoint(m_remote_address, m_port), (char const*)h
 		, sizeof(utp_header), ec);
 
-	if (ec == error::would_block)
+	if (ec == error::would_block || ec == error::try_again)
 	{
 #if TORRENT_UTP_LOG
 		UTP_LOGV("%8p: socket stalled\n", this);
@@ -1295,6 +1306,8 @@ void utp_socket_impl::writable()
 #if TORRENT_UTP_LOG
 	UTP_LOGV("%8p: writable\n", this);
 #endif
+	if (should_delete()) return;
+
 	while(send_pkt());
 
 	maybe_trigger_send_callback(time_now_hires());
@@ -1647,15 +1660,16 @@ bool utp_socket_impl::send_pkt(int flags)
 	boost::uint8_t* ptr = NULL;
 	utp_header* h = NULL;
 
+#ifdef TORRENT_DEBUG
+	bool stack_alloced = false;
+#endif
+
 	// payload size being zero means we're just sending
 	// an force. We should not pick up the nagle packet
 	if (!m_nagle_packet || (payload_size == 0 && force))
 	{
 		// we only need a heap allocation if we have payload and
 		// need to keep the packet around (in the outbuf)
-#ifdef TORRENT_DEBUG
-		bool stack_alloced = false;
-#endif
 		if (payload_size) 
 		{
 			p = (packet*)malloc(sizeof(packet) + m_mtu);
@@ -1704,7 +1718,9 @@ bool utp_socket_impl::send_pkt(int flags)
 		if (h->extension == 1)
 		{
 			sack = ptr[1];
-			if (m_inbuf.size() == 0 && h->ack_nr != m_ack_nr)
+			// if we no longer have any out-of-order packets waiting
+			// to be delivered, there's no selective ack to be sent.
+			if (m_inbuf.size() == 0)
 			{
 				// we need to remove the sack header
 				remove_sack_header(p);
@@ -1830,7 +1846,7 @@ bool utp_socket_impl::send_pkt(int flags)
 		// as well, to resend the packet immediately without
 		// it being an MTU probe
 	}
-	else if (ec == error::would_block)
+	else if (ec == error::would_block || ec == error::try_again)
 	{
 #if TORRENT_UTP_LOG
 		UTP_LOGV("%8p: socket stalled\n", this);
@@ -1843,6 +1859,7 @@ bool utp_socket_impl::send_pkt(int flags)
 	}
 	else if (ec)
 	{
+		TORRENT_ASSERT(stack_alloced != bool(payload_size));
 		if (payload_size) free(p);
 		m_error = ec;
 		m_state = UTP_STATE_ERROR_WAIT;
@@ -1993,7 +2010,7 @@ bool utp_socket_impl::resend_packet(packet* p, bool fast_resend)
 		, boost::uint32_t(h->timestamp_difference_microseconds));
 #endif
 
-	if (ec == error::would_block)
+	if (ec == error::would_block || ec == error::try_again)
 	{
 #if TORRENT_UTP_LOG
 		UTP_LOGV("%8p: socket stalled\n", this);
@@ -2709,6 +2726,9 @@ bool utp_socket_impl::incoming_packet(boost::uint8_t const* buf, int size
 
 				m_remote_address = ep.address();
 				m_port = ep.port();
+
+				error_code ec;
+				m_local_address = m_sm->local_endpoint(m_remote_address, ec).address();
 
 				m_ack_nr = ph->seq_nr;
 				m_seq_nr = random();

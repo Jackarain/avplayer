@@ -1,11 +1,11 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-# $Id: configure.ac 7488 2012-09-29 21:30:40Z arvidn $
+# $Id$
 
 AC_PREREQ([2.63])
 
-AC_INIT([libtorrent-rasterbar],[0.16.4],[arvid@cs.umu.se],
+AC_INIT([libtorrent-rasterbar],[1.0.0],[arvid@cs.umu.se],
         [libtorrent-rasterbar],[http://www.libtorrent.org])
 AC_CONFIG_SRCDIR([src/torrent.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -41,7 +41,7 @@ dnl  increment AGE, Otherwise AGE is reset to 0. If CURRENT has changed,
 dnl  REVISION is set to 0, otherwise REVISION is incremented.
 dnl ---------------------------------------------------------------------------
 
-m4_define([VERSION_INFO_CURRENT],[6])
+m4_define([VERSION_INFO_CURRENT],[8])
 m4_define([VERSION_INFO_REVISION],[0])
 m4_define([VERSION_INFO_AGE],[0])
 INTERFACE_VERSION_INFO=VERSION_INFO_CURRENT:VERSION_INFO_REVISION:VERSION_INFO_AGE
@@ -97,9 +97,23 @@ AS_ECHO "Checking for posix thread support:"
 AX_PTHREAD()
 
 LIBS="$PTHREAD_LIBS $LIBS"
-CFLAGS="$PTHREAD_CFLAGS $CFLAGS -fvisibility=hidden"
-CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
+CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
 CC="$PTHREAD_CC"
+
+AS_ECHO "Checking for visibility support:"
+AC_CACHE_CHECK([for __attribute__((visibility("hidden")))],
+    ac_cv_hidden_visibility_attribute, [
+    echo 'int __attribute__ ((visibility ("hidden"))) foo (void) { return 1; }' > visibility_conftest.c
+    ac_cv_hidden_visibility_attribute=no
+    if AC_TRY_COMMAND(${CC-cc} -fvisibility=hidden -S visibility_conftest.c -o visibility_conftest.s 1>&AS_MESSAGE_LOG_FD);
+    then
+        AS_ECHO "found"
+        ac_cv_hidden_visibility_attribute=yes
+        CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
+        CFLAGS="$CFLAGS -fvisibility=hidden"
+    fi
+    rm -f visibility_conftest.*
+])
 
 AS_ECHO
 AS_ECHO "Checking for boost libraries:"
@@ -308,6 +322,14 @@ AC_ARG_WITH(
   [[ARG_WITH_LIBGEOIP=no]]
 )
 
+AC_ARG_WITH(
+  [libiconv],
+  [AS_HELP_STRING(
+    [--with-libiconv],
+    [enable linking against system libiconv [default=no]])],
+  [[ARG_WITH_LIBICONV=$withval]],
+  [[ARG_WITH_LIBICONV=no]]
+)
 
 ###############################################################################
 # Checking configure options
@@ -570,6 +592,25 @@ AS_CASE(["$ARG_WITH_LIBGEOIP"],
    AC_MSG_ERROR([Unknown option "$ARG_WITH_LIBGEOIP". Use either "yes" or "no".])]
 )
 
+AC_MSG_CHECKING([whether to link against system libiconv])
+AS_CASE(["$ARG_WITH_LIBICONV"],
+  ["yes"], [
+      AC_MSG_RESULT([yes])
+      AM_ICONV()
+      AS_IF([test "x$am_cv_func_iconv" = "xyes"], [
+           ICONV_LIBS=$LTLIBICONV
+           AC_SUBST([ICONV_LIBS])
+           LIBS="$ICONV_LIBS $LIBS"
+      ], [
+           AC_MSG_ERROR([Iconv library not found.])
+      ])
+   ],
+  ["no"], [
+        ARG_WITH_LIBICONV="no"
+   ],
+  [AC_MSG_RESULT([$ARG_WITH_LIBICONV])
+   AC_MSG_ERROR([Unknown option "$ARG_WITH_LIBICONV". Use either "yes" or "no".])]
+)
 
 ###############################################################################
 # Setting conditional variables for Makefiles
@@ -736,6 +777,7 @@ cat >> config.report << END
 
 External libraries:
   system libgeoip:      ${ARG_WITH_LIBGEOIP:-no}
+  system libiconv:      ${ARG_WITH_LIBICONV:-no}
 END
 
 AS_IF([test "x$ARG_WITH_LIBGEOIP" = "xyes"], [
@@ -744,6 +786,14 @@ cat >> config.report << END
 GeoIP library:
   GeoIP CFlags:         ${GEOIP_CFLAGS}
   GeoIP Libs:           ${GEOIP_LIBS}
+END
+])
+
+AS_IF([test "x$ARG_WITH_LIBICONV" = "xyes"], [
+cat >> config.report << END
+
+Iconv library:
+  Iconv Libs:           ${ICONV_LIBS}
 END
 ])
 

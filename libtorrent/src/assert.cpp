@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007, Arvid Norberg
+Copyright (c) 2007-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ TORRENT_EXPORT void print_backtrace(char* out, int len, int max_depth)
 
 TORRENT_EXPORT void print_backtrace(char* out, int len, int max_depth)
 {
-	typedef USHORT (*RtlCaptureStackBackTrace_t)(
+	typedef USHORT (WINAPI *RtlCaptureStackBackTrace_t)(
 		__in ULONG FramesToSkip,
 		__in ULONG FramesToCapture,
 		__out PVOID *BackTrace,

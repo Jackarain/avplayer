@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009, Arvid Norberg
+Copyright (c) 2009-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,15 @@ namespace libtorrent
 #else
 		return false;
 #endif
+	}
+
+	bool is_utp(socket_type const& s)
+	{
+		return s.get<utp_stream>()
+#ifdef TORRENT_USE_OPENSSL
+			|| s.get<ssl_stream<utp_stream> >()
+#endif
+			;
 	}
 
 	void setup_ssl_hostname(socket_type& s, std::string const& hostname, error_code& ec)
