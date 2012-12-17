@@ -369,8 +369,7 @@ BOOL player_impl::subclasswindow(HWND hwnd, BOOL in_process)
 	// 创建非纯黑色的画刷, 用于ddraw播放时刷背景色.
 	m_brbackground = CreateSolidBrush(RGB(0, 0, 1));
 	window_pool.add_window(hwnd, this);
-	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd,
-		GWLP_WNDPROC, (LONG_PTR)&player_impl::static_win_wnd_proc);
+	m_old_win_proc = (WNDPROC)::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)&player_impl::static_win_wnd_proc);
 	if (!m_old_win_proc)
 	{
 		window_pool.remove_window(this);
@@ -393,6 +392,7 @@ BOOL player_impl::unsubclasswindow(HWND hwnd)
 	::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)m_old_win_proc);
 	window_pool.remove_window(this);
 	m_hwnd = NULL;
+	m_old_win_proc = NULL;
 
 	return TRUE;
 }
@@ -648,7 +648,7 @@ void player_impl::init_audio(ao_context *ao)
 	ao->destory_audio = wave_destory_audio;
 }
 
-void player_impl::init_video(vo_context *vo)
+void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 {
 	int ret = 0;
 
@@ -672,6 +672,7 @@ void player_impl::init_video(vo_context *vo)
 			break;
 		}
 #endif
+
 
 		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
 		d3d_destory_render(vo);

@@ -12,8 +12,10 @@
 #include "video_out.h"
 #include "source.h"
 #include "globals.h"
+#include "avplayer.h"
 
 #pragma once
+
 
 // 日志类.
 class avplay_logger
@@ -157,7 +159,7 @@ private:
 	void init_file_source(source_context *sc);
 	void init_torrent_source(source_context *sc);
 	void init_audio(ao_context *ao);
-	void init_video(vo_context *vo);
+	void init_video(vo_context *vo, int render_type = RENDER_D3D);
 
 	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
 	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
