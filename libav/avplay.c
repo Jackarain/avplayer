@@ -1409,21 +1409,17 @@ static
 void* audio_dec_thrd(void *param)
 {
 	AVPacket pkt, pkt2;
-	int ret, n, out_size = 0;
+	int ret, n;
 	AVFrame avframe = { 0 }, avcopy;
 	avplay *play = (avplay*) param;
 	int64_t v_start_time = 0;
 	int64_t a_start_time = 0;
-	uint8_t* audio_buf = NULL;
 
 	if (play->m_video_st && play->m_audio_st)
 	{
 		v_start_time = play->m_video_st->start_time;
 		a_start_time = play->m_audio_st->start_time;
 	}
-
-	avframe.data[0] = av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE * 3);
-	audio_buf = avframe.data[0];
 
 	for (; !play->m_abort;)
 	{
@@ -1460,62 +1456,64 @@ void* audio_dec_thrd(void *param)
 			pthread_mutex_unlock(&play->m_buf_size_mtx);
 
 			/* 解码音频. */
-			out_size = 0;
 			pkt2 = pkt;
-			avframe.linesize[0] = 0;
+			avcodec_get_frame_defaults(&avframe);
+
 			while (!play->m_abort)
 			{
-				int audio_out_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-				ret = avcodec_decode_audio3(play->m_audio_ctx,
-					(int16_t*)((uint8_t*)audio_buf + out_size), &audio_out_size, &pkt2);
+				int got_frame = 0;
+				ret = avcodec_decode_audio4(play->m_audio_ctx, &avframe, &got_frame, &pkt2);
 				if (ret < 0)
 				{
 					printf("Audio error while decoding one frame!!!\n");
 					break;
 				}
-				out_size += audio_out_size;
 				pkt2.size -= ret;
 				pkt2.data += ret;
 
-				if (pkt2.size <= 0)
+				/* 不足一个帧, 并且packet中还有数据, 继续解码当前音频packet. */
+				if (!got_frame && pkt2.size > 0)
+					continue;
+
+				/* packet中已经没有数据了, 并且不足一个帧, 丢弃这个音频packet. */
+				if (pkt2.size == 0 && !got_frame)
 					break;
-			}
 
-			if (out_size > 0)
-			{
-				avframe.pts = pkt2.pts;
-				avframe.best_effort_timestamp = pkt2.pts;
-				avframe.linesize[0] = out_size;
-
-				/* 拷贝到avcopy用于添加到队列. */
-				audio_copy(play, &avcopy, &avframe);
-
-				/* 将计算的pts复制到avcopy.pts.	*/
-				memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
-
-				/* 计算下一个audio的pts值.	*/
-				n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
-
-				play->m_audio_clock += ((double) avcopy.linesize[0]
-						/ (double) (n * play->m_audio_ctx->sample_rate));
-
-				/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
-				if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
-					play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
+				if (avframe.linesize[0] != 0)
 				{
-					/* 暂无实现.	*/
+					/* copy并转换音频格式. */
+					audio_copy(play, &avcopy, &avframe);
+
+					/* 将计算的pts复制到avcopy.pts.  */
+					memcpy(&avcopy.pts, &play->m_audio_clock, sizeof(double));
+
+					/* 计算下一个audio的pts值.  */
+					n = 2 * FFMIN(play->m_audio_ctx->channels, 2);
+
+					play->m_audio_clock += ((double) avcopy.linesize[0] / (double) (n * play->m_audio_ctx->sample_rate));
+
+					/* 如果不是以音频同步为主, 则需要计算是否移除一些采样以同步到其它方式.	*/
+					if (play->m_av_sync_type == AV_SYNC_EXTERNAL_CLOCK ||
+						play->m_av_sync_type == AV_SYNC_VIDEO_MASTER && play->m_video_st)
+					{
+						/* 暂无实现.	*/
+					}
+
+					/* 防止内存过大.	*/
+					chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
+
+					/* 丢到播放队列中.	*/
+					put_queue(&play->m_audio_dq, &avcopy);
+
+					/* packet中数据已经没有数据了, 解码下一个音频packet. */
+					if (pkt2.size <= 0)
+						break;
 				}
-
-				/* 防止内存过大.	*/
-				chk_queue(play, &play->m_audio_dq, AVDECODE_BUFFER_SIZE);
-
-				/* 丢到播放队列中.	*/
-				put_queue(&play->m_audio_dq, &avcopy);
 			}
 			av_free_packet(&pkt);
 		}
 	}
-	av_free(audio_buf);
+
 	return NULL;
 }
 
