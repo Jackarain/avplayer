@@ -149,7 +149,6 @@
     <ClCompile Include="..\src\stat.cpp" />
     <ClCompile Include="..\src\storage.cpp" />
     <ClCompile Include="..\src\string_util.cpp" />
-    <ClCompile Include="..\src\string.cpp" />
     <ClCompile Include="..\src\thread.cpp" />
     <ClCompile Include="..\src\time.cpp" />
     <ClCompile Include="..\src\timestamp_history.cpp" />
