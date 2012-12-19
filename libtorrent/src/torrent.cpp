@@ -2441,8 +2441,11 @@ namespace libtorrent
 			else
 #endif
 			{
-				m_ses.m_tracker_manager.queue_request(m_ses.m_io_service, m_ses.m_half_open, req
-					, tracker_login() , shared_from_this());
+				if (!m_abort)	// jackarain: 为了快速退出.
+				{
+					m_ses.m_tracker_manager.queue_request(m_ses.m_io_service, m_ses.m_half_open, req
+						, tracker_login() , shared_from_this());
+				}
 			}
 
 			ae.updating = true;
