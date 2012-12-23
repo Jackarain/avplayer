@@ -25,6 +25,21 @@
 #include "avutil.h"
 #include "attributes.h"
 
+typedef enum {
+    AV_CLASS_CATEGORY_NA = 0,
+    AV_CLASS_CATEGORY_INPUT,
+    AV_CLASS_CATEGORY_OUTPUT,
+    AV_CLASS_CATEGORY_MUXER,
+    AV_CLASS_CATEGORY_DEMUXER,
+    AV_CLASS_CATEGORY_ENCODER,
+    AV_CLASS_CATEGORY_DECODER,
+    AV_CLASS_CATEGORY_FILTER,
+    AV_CLASS_CATEGORY_BITSTREAM_FILTER,
+    AV_CLASS_CATEGORY_SWSCALER,
+    AV_CLASS_CATEGORY_SWRESAMPLER,
+    AV_CLASS_CATEGORY_NB, ///< not part of ABI/API
+}AVClassCategory;
+
 /**
  * Describe the class of an AVClass context structure. That is an
  * arbitrary struct of which the first field is a pointer to an
@@ -86,6 +101,19 @@ typedef struct AVClass {
      * child_class_next iterates over _all possible_ children.
      */
     const struct AVClass* (*child_class_next)(const struct AVClass *prev);
+
+    /**
+     * Category used for visualization (like color)
+     * This is only set if the category is equal for all objects using this class.
+     * available since version (51 << 16 | 56 << 8 | 100)
+     */
+    AVClassCategory category;
+
+    /**
+     * Callback to return the category.
+     * available since version (51 << 16 | 59 << 8 | 100)
+     */
+    AVClassCategory (*get_category)(void* ctx);
 } AVClass;
 
 /* av_log API */
@@ -148,6 +176,7 @@ void av_log_set_level(int);
 void av_log_set_callback(void (*)(void*, int, const char*, va_list));
 void av_log_default_callback(void* ptr, int level, const char* fmt, va_list vl);
 const char* av_default_item_name(void* ctx);
+AVClassCategory av_default_get_category(void *ptr);
 
 /**
  * Format a line of log the same way as the default callback.

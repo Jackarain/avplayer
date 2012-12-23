@@ -1,0 +1,14 @@
+prefix=/d/home/ffmpeg-1.0.1/build/
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavresample
+Description: Libav audio resampling library
+Version: 0.0.3
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir} -lavresample 
+Libs.private: -lavicap32 -lws2_32 -L/d/opens/SDL-1.2.14/build/lib -lmingw32 -lSDLmain -lSDL -mwindows -lx264 -lfaac -lm -lpsapi -lshell32
+Cflags: -I${includedir}

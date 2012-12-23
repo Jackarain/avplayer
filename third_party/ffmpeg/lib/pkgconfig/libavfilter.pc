@@ -1,14 +1,14 @@
-prefix=/d/home/ffmpeg-0.11.1/build
+prefix=/d/home/ffmpeg-1.0.1/build/
 exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: libavfilter
 Description: FFmpeg video filtering library
-Version: 2.77.100
+Version: 3.17.100
 Requires: 
-Requires.private: libpostproc = 52.0.100, libswresample = 0.15.100, libswscale = 2.1.100, libavformat = 54.6.100, libavcodec = 54.23.100
+Requires.private: libpostproc = 52.0.100, libswresample = 0.15.100, libswscale = 2.1.101, libavformat = 54.29.104, libavcodec = 54.59.100
 Conflicts:
 Libs: -L${libdir} -lavfilter 
-Libs.private: -lavicap32 -lws2_32 -L/d/opens/SDL-1.2.14/build/lib -lmingw32 -lSDLmain -lSDL -mwindows -lm -lbz2 -lz -lpsapi
+Libs.private: -lavicap32 -lws2_32 -L/d/opens/SDL-1.2.14/build/lib -lmingw32 -lSDLmain -lSDL -mwindows -lx264 -lfaac -lm -lpsapi -lshell32
 Cflags: -I${includedir}

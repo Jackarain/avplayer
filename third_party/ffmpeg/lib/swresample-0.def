@@ -6,82 +6,99 @@ EXPORTS
     ff_int16_to_float_a_sse2 @5 DATA
     ff_int16_to_float_u_sse2 @6 DATA
     ff_int16_to_int32_a_mmx @7 DATA
-    ff_int16_to_int32_a_sse @8 DATA
+    ff_int16_to_int32_a_sse2 @8 DATA
     ff_int16_to_int32_u_mmx @9 DATA
-    ff_int16_to_int32_u_sse @10 DATA
+    ff_int16_to_int32_u_sse2 @10 DATA
     ff_int32_to_float_a_avx @11 DATA
     ff_int32_to_float_a_sse2 @12 DATA
     ff_int32_to_float_u_avx @13 DATA
     ff_int32_to_float_u_sse2 @14 DATA
     ff_int32_to_int16_a_mmx @15 DATA
-    ff_int32_to_int16_a_sse @16 DATA
+    ff_int32_to_int16_a_sse2 @16 DATA
     ff_int32_to_int16_u_mmx @17 DATA
-    ff_int32_to_int16_u_sse @18 DATA
-    ff_pack_2ch_float_to_int16_a_sse2 @19 DATA
-    ff_pack_2ch_float_to_int16_u_sse2 @20 DATA
-    ff_pack_2ch_float_to_int32_a_sse2 @21 DATA
-    ff_pack_2ch_float_to_int32_u_sse2 @22 DATA
-    ff_pack_2ch_int16_to_float_a_sse2 @23 DATA
-    ff_pack_2ch_int16_to_float_u_sse2 @24 DATA
-    ff_pack_2ch_int16_to_int16_a_sse @25 DATA
-    ff_pack_2ch_int16_to_int16_u_sse @26 DATA
-    ff_pack_2ch_int16_to_int32_a_sse @27 DATA
-    ff_pack_2ch_int16_to_int32_u_sse @28 DATA
-    ff_pack_2ch_int32_to_float_a_sse2 @29 DATA
-    ff_pack_2ch_int32_to_float_u_sse2 @30 DATA
-    ff_pack_2ch_int32_to_int16_a_sse @31 DATA
-    ff_pack_2ch_int32_to_int16_u_sse @32 DATA
-    ff_pack_2ch_int32_to_int32_a_sse @33 DATA
-    ff_pack_2ch_int32_to_int32_u_sse @34 DATA
-    ff_pack_6ch_float_to_float_a_avx @35 DATA
-    ff_pack_6ch_float_to_float_a_mmx @36 DATA
-    ff_pack_6ch_float_to_float_a_sse4 @37 DATA
-    ff_pack_6ch_float_to_float_u_avx @38 DATA
-    ff_pack_6ch_float_to_float_u_mmx @39 DATA
-    ff_pack_6ch_float_to_float_u_sse4 @40 DATA
-    ff_pack_6ch_float_to_int32_a_avx @41 DATA
-    ff_pack_6ch_float_to_int32_a_sse4 @42 DATA
-    ff_pack_6ch_float_to_int32_u_avx @43 DATA
-    ff_pack_6ch_float_to_int32_u_sse4 @44 DATA
-    ff_pack_6ch_int32_to_float_a_avx @45 DATA
-    ff_pack_6ch_int32_to_float_a_sse4 @46 DATA
-    ff_pack_6ch_int32_to_float_u_avx @47 DATA
-    ff_pack_6ch_int32_to_float_u_sse4 @48 DATA
-    ff_unpack_2ch_float_to_int16_a_sse2 @49 DATA
-    ff_unpack_2ch_float_to_int16_u_sse2 @50 DATA
-    ff_unpack_2ch_float_to_int32_a_sse2 @51 DATA
-    ff_unpack_2ch_float_to_int32_u_sse2 @52 DATA
-    ff_unpack_2ch_int16_to_float_a_sse2 @53 DATA
-    ff_unpack_2ch_int16_to_float_a_ssse3 @54 DATA
-    ff_unpack_2ch_int16_to_float_u_sse2 @55 DATA
-    ff_unpack_2ch_int16_to_float_u_ssse3 @56 DATA
-    ff_unpack_2ch_int16_to_int16_a_sse @57 DATA
-    ff_unpack_2ch_int16_to_int16_a_ssse3 @58 DATA
-    ff_unpack_2ch_int16_to_int16_u_sse @59 DATA
-    ff_unpack_2ch_int16_to_int16_u_ssse3 @60 DATA
-    ff_unpack_2ch_int16_to_int32_a_sse @61 DATA
-    ff_unpack_2ch_int16_to_int32_a_ssse3 @62 DATA
-    ff_unpack_2ch_int16_to_int32_u_sse @63 DATA
-    ff_unpack_2ch_int16_to_int32_u_ssse3 @64 DATA
-    ff_unpack_2ch_int32_to_float_a_sse2 @65 DATA
-    ff_unpack_2ch_int32_to_float_u_sse2 @66 DATA
-    ff_unpack_2ch_int32_to_int16_a_sse @67 DATA
-    ff_unpack_2ch_int32_to_int16_u_sse @68 DATA
-    ff_unpack_2ch_int32_to_int32_a_sse @69 DATA
-    ff_unpack_2ch_int32_to_int32_u_sse @70 DATA
-    swr_alloc @71
-    swr_alloc_set_opts @72
-    swr_convert @73
-    swr_drop_output @74
-    swr_free @75
-    swr_get_class @76
-    swr_get_delay @77
-    swr_init @78
-    swr_inject_silence @79
-    swr_next_pts @80
-    swr_set_channel_mapping @81
-    swr_set_compensation @82
-    swr_set_matrix @83
-    swresample_configuration @84
-    swresample_license @85
-    swresample_version @86
+    ff_int32_to_int16_u_sse2 @18 DATA
+    ff_mix_1_1_a_float_avx @19 DATA
+    ff_mix_1_1_a_float_sse @20 DATA
+    ff_mix_1_1_a_int16_mmx @21 DATA
+    ff_mix_1_1_a_int16_sse2 @22 DATA
+    ff_mix_1_1_u_float_avx @23 DATA
+    ff_mix_1_1_u_float_sse @24 DATA
+    ff_mix_1_1_u_int16_mmx @25 DATA
+    ff_mix_1_1_u_int16_sse2 @26 DATA
+    ff_mix_2_1_a_float_avx @27 DATA
+    ff_mix_2_1_a_float_sse @28 DATA
+    ff_mix_2_1_a_int16_mmx @29 DATA
+    ff_mix_2_1_a_int16_sse2 @30 DATA
+    ff_mix_2_1_u_float_avx @31 DATA
+    ff_mix_2_1_u_float_sse @32 DATA
+    ff_mix_2_1_u_int16_mmx @33 DATA
+    ff_mix_2_1_u_int16_sse2 @34 DATA
+    ff_pack_2ch_float_to_int16_a_sse2 @35 DATA
+    ff_pack_2ch_float_to_int16_u_sse2 @36 DATA
+    ff_pack_2ch_float_to_int32_a_sse2 @37 DATA
+    ff_pack_2ch_float_to_int32_u_sse2 @38 DATA
+    ff_pack_2ch_int16_to_float_a_sse2 @39 DATA
+    ff_pack_2ch_int16_to_float_u_sse2 @40 DATA
+    ff_pack_2ch_int16_to_int16_a_sse2 @41 DATA
+    ff_pack_2ch_int16_to_int16_u_sse2 @42 DATA
+    ff_pack_2ch_int16_to_int32_a_sse2 @43 DATA
+    ff_pack_2ch_int16_to_int32_u_sse2 @44 DATA
+    ff_pack_2ch_int32_to_float_a_sse2 @45 DATA
+    ff_pack_2ch_int32_to_float_u_sse2 @46 DATA
+    ff_pack_2ch_int32_to_int16_a_sse2 @47 DATA
+    ff_pack_2ch_int32_to_int16_u_sse2 @48 DATA
+    ff_pack_2ch_int32_to_int32_a_sse2 @49 DATA
+    ff_pack_2ch_int32_to_int32_u_sse2 @50 DATA
+    ff_pack_6ch_float_to_float_a_avx @51 DATA
+    ff_pack_6ch_float_to_float_a_mmx @52 DATA
+    ff_pack_6ch_float_to_float_a_sse4 @53 DATA
+    ff_pack_6ch_float_to_float_u_avx @54 DATA
+    ff_pack_6ch_float_to_float_u_mmx @55 DATA
+    ff_pack_6ch_float_to_float_u_sse4 @56 DATA
+    ff_pack_6ch_float_to_int32_a_avx @57 DATA
+    ff_pack_6ch_float_to_int32_a_sse4 @58 DATA
+    ff_pack_6ch_float_to_int32_u_avx @59 DATA
+    ff_pack_6ch_float_to_int32_u_sse4 @60 DATA
+    ff_pack_6ch_int32_to_float_a_avx @61 DATA
+    ff_pack_6ch_int32_to_float_a_sse4 @62 DATA
+    ff_pack_6ch_int32_to_float_u_avx @63 DATA
+    ff_pack_6ch_int32_to_float_u_sse4 @64 DATA
+    ff_resample_int16_rounder @65 DATA
+    ff_unpack_2ch_float_to_int16_a_sse2 @66 DATA
+    ff_unpack_2ch_float_to_int16_u_sse2 @67 DATA
+    ff_unpack_2ch_float_to_int32_a_sse2 @68 DATA
+    ff_unpack_2ch_float_to_int32_u_sse2 @69 DATA
+    ff_unpack_2ch_int16_to_float_a_sse2 @70 DATA
+    ff_unpack_2ch_int16_to_float_a_ssse3 @71 DATA
+    ff_unpack_2ch_int16_to_float_u_sse2 @72 DATA
+    ff_unpack_2ch_int16_to_float_u_ssse3 @73 DATA
+    ff_unpack_2ch_int16_to_int16_a_sse2 @74 DATA
+    ff_unpack_2ch_int16_to_int16_a_ssse3 @75 DATA
+    ff_unpack_2ch_int16_to_int16_u_sse2 @76 DATA
+    ff_unpack_2ch_int16_to_int16_u_ssse3 @77 DATA
+    ff_unpack_2ch_int16_to_int32_a_sse2 @78 DATA
+    ff_unpack_2ch_int16_to_int32_a_ssse3 @79 DATA
+    ff_unpack_2ch_int16_to_int32_u_sse2 @80 DATA
+    ff_unpack_2ch_int16_to_int32_u_ssse3 @81 DATA
+    ff_unpack_2ch_int32_to_float_a_sse2 @82 DATA
+    ff_unpack_2ch_int32_to_float_u_sse2 @83 DATA
+    ff_unpack_2ch_int32_to_int16_a_sse2 @84 DATA
+    ff_unpack_2ch_int32_to_int16_u_sse2 @85 DATA
+    ff_unpack_2ch_int32_to_int32_a_sse2 @86 DATA
+    ff_unpack_2ch_int32_to_int32_u_sse2 @87 DATA
+    swr_alloc @88
+    swr_alloc_set_opts @89
+    swr_convert @90
+    swr_drop_output @91
+    swr_free @92
+    swr_get_class @93
+    swr_get_delay @94
+    swr_init @95
+    swr_inject_silence @96
+    swr_next_pts @97
+    swr_set_channel_mapping @98
+    swr_set_compensation @99
+    swr_set_matrix @100
+    swresample_configuration @101
+    swresample_license @102
+    swresample_version @103

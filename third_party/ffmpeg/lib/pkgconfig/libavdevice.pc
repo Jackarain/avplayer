@@ -1,14 +1,14 @@
-prefix=/d/home/ffmpeg-0.11.1/build
+prefix=/d/home/ffmpeg-1.0.1/build/
 exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: libavdevice
 Description: FFmpeg device handling library
-Version: 54.0.100
+Version: 54.2.101
 Requires: 
-Requires.private: libavfilter = 2.77.100, libavformat = 54.6.100
+Requires.private: libavfilter = 3.17.100, libavformat = 54.29.104
 Conflicts:
 Libs: -L${libdir} -lavdevice 
-Libs.private: -lavicap32 -lws2_32 -L/d/opens/SDL-1.2.14/build/lib -lmingw32 -lSDLmain -lSDL -mwindows -lm -lbz2 -lz -lpsapi
+Libs.private: -lavicap32 -lws2_32 -L/d/opens/SDL-1.2.14/build/lib -lmingw32 -lSDLmain -lSDL -mwindows -lx264 -lfaac -lm -lpsapi -lshell32
 Cflags: -I${includedir}

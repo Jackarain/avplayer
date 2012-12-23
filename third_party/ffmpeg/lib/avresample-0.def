@@ -1,0 +1,17 @@
+EXPORTS
+    avresample_alloc_context @1
+    avresample_available @2
+    avresample_build_matrix @3
+    avresample_close @4
+    avresample_configuration @5
+    avresample_convert @6
+    avresample_free @7
+    avresample_get_class @8
+    avresample_get_delay @9
+    avresample_get_matrix @10
+    avresample_license @11
+    avresample_open @12
+    avresample_read @13
+    avresample_set_compensation @14
+    avresample_set_matrix @15
+    avresample_version @16
