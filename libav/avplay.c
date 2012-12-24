@@ -1037,6 +1037,8 @@ void av_destory(avplay *play)
 		/* 关闭数据源. */
 		if (play->m_source_ctx && play->m_source_ctx->io_dev)
 			play->m_source_ctx->close(play->m_source_ctx);
+		if (play->m_source_ctx && play->m_source_ctx->save_path)
+			free(play->m_source_ctx->save_path);
 		av_stop(play);
 	}
 
