@@ -194,8 +194,15 @@ static
 void queue_end(av_queue *q)
 {
 	queue_flush(q);
+#ifdef WIN32
+	if (q->m_cond)
+		pthread_cond_destroy(&q->m_cond);
+	if (q->m_mutex)
+		pthread_mutex_destroy(&q->m_mutex);
+#else
 	pthread_cond_destroy(&q->m_cond);
 	pthread_mutex_destroy(&q->m_mutex);
+#endif
 }
 
 #define PRIV_OUT_QUEUE \
@@ -929,6 +936,9 @@ void av_stop(avplay *play)
 		swr_free(&play->m_swr_ctx);
 	if (play->m_resample_ctx)
 		audio_resample_close(play->m_resample_ctx);
+#ifdef WIN32
+	if (play->m_buf_size_mtx)
+#endif
 	pthread_mutex_destroy(&play->m_buf_size_mtx);
 	if (play->m_ao_ctx)
 	{
