@@ -47,7 +47,7 @@ avplayer.exe <文件名|URL|TORRENT>
 
 请使用git下载, 以便随时更新代码, 这样做也可以方便在你自己的分支中开发, 并提交补丁.
 
-$ git clone git://github.com/Jackarain/avplayer.git avplayer
+$ git clone https://github.com/avplayer/avplayer.git avplayer
 
 更新
 
