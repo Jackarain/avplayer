@@ -651,85 +651,96 @@ void player_impl::init_audio(ao_context *ao)
 void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 {
 	int ret = 0;
+	int check = 0;
 
 	do
 	{
 #ifdef USE_Y4M_OUT
-		ret = y4m_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		y4m_destory_render(vo);
-		if (ret == 0)
+		if (render_type == RENDER_Y4M || check == -1)
 		{
-			vo->init_video = y4m_init_video;
-			m_draw_frame = y4m_render_one_frame;
-			vo->re_size = y4m_re_size;
-			vo->aspect_ratio = y4m_aspect_ratio;
-			vo->use_overlay = y4m_use_overlay;
-			vo->destory_video = y4m_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
+			ret = y4m_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			y4m_destory_render(vo);
+			if (ret == 0)
+			{
+				vo->init_video = y4m_init_video;
+				m_draw_frame = y4m_render_one_frame;
+				vo->re_size = y4m_re_size;
+				vo->aspect_ratio = y4m_aspect_ratio;
+				vo->use_overlay = y4m_use_overlay;
+				vo->destory_video = y4m_destory_render;
+				vo->render_one_frame = &player_impl::draw_frame;
 
-			::logger("init video render to y4m.\n");
+				::logger("init video render to y4m.\n");
 
-			break;
+				break;
+			}
 		}
 #endif
 
-
-		ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		d3d_destory_render(vo);
-		if (ret == 0)
+		if (render_type == RENDER_D3D || check == -1)
 		{
-			vo->init_video = d3d_init_video;
-			m_draw_frame = d3d_render_one_frame;
-			vo->re_size = d3d_re_size;
-			vo->aspect_ratio = d3d_aspect_ratio;
-			vo->use_overlay = d3d_use_overlay;
-			vo->destory_video = d3d_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
+			ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			d3d_destory_render(vo);
+			if (ret == 0)
+			{
+				vo->init_video = d3d_init_video;
+				m_draw_frame = d3d_render_one_frame;
+				vo->re_size = d3d_re_size;
+				vo->aspect_ratio = d3d_aspect_ratio;
+				vo->use_overlay = d3d_use_overlay;
+				vo->destory_video = d3d_destory_render;
+				vo->render_one_frame = &player_impl::draw_frame;
 
-			::logger("init video render to d3d.\n");
+				::logger("init video render to d3d.\n");
 
-			break;
+				break;
+			}
 		}
 
-		ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		ddraw_destory_render(vo);
-		if (ret == 0)
+		if (render_type == RENDER_DDRAW || check == -1)
 		{
-			vo->init_video = ddraw_init_video;
-			m_draw_frame = ddraw_render_one_frame;
-			vo->re_size = ddraw_re_size;
-			vo->aspect_ratio = ddraw_aspect_ratio;
-			vo->use_overlay = ddraw_use_overlay;
-			vo->destory_video = ddraw_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
+			ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ddraw_destory_render(vo);
+			if (ret == 0)
+			{
+				vo->init_video = ddraw_init_video;
+				m_draw_frame = ddraw_render_one_frame;
+				vo->re_size = ddraw_re_size;
+				vo->aspect_ratio = ddraw_aspect_ratio;
+				vo->use_overlay = ddraw_use_overlay;
+				vo->destory_video = ddraw_destory_render;
+				vo->render_one_frame = &player_impl::draw_frame;
 
-			::logger("init video render to ddraw.\n");
+				::logger("init video render to ddraw.\n");
 
-			break;
+				break;
+			}
 		}
 
-		ret = ogl_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
-		ogl_destory_render(vo);
-		if (ret == 0)
+		if (render_type == RENDER_OGL || check == -1)
 		{
-			vo->init_video = ogl_init_video;
-			m_draw_frame = ogl_render_one_frame;
-			vo->re_size = ogl_re_size;
-			vo->aspect_ratio = ogl_aspect_ratio;
-			vo->use_overlay = ogl_use_overlay;
-			vo->destory_video = ogl_destory_render;
-			vo->render_one_frame = &player_impl::draw_frame;
+			ret = ogl_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ogl_destory_render(vo);
+			if (ret == 0)
+			{
+				vo->init_video = ogl_init_video;
+				m_draw_frame = ogl_render_one_frame;
+				vo->re_size = ogl_re_size;
+				vo->aspect_ratio = ogl_aspect_ratio;
+				vo->use_overlay = ogl_use_overlay;
+				vo->destory_video = ogl_destory_render;
+				vo->render_one_frame = &player_impl::draw_frame;
 
-			::logger("init video render to ogl.\n");
+				::logger("init video render to ogl.\n");
 
-			break;
+				break;
+			}
 		}
 
-		::logger("init video render failed!\n");
+	} while (check-- == 0);
 
-		// 表示视频渲染器初始化失败!!!
-		assert(0);
-	} while (0);
+	// 表示视频渲染器初始化失败!!!
+	assert(check != -2);
 
 	// 保存this为user_ctx.
 	vo->user_ctx = (void*)this;
@@ -882,7 +893,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 
 		// 初始化音频和视频渲染器.
 		init_audio(m_audio);
-		init_video(m_video);
+		init_video(m_video, render_type);
 
 		// 配置音频视频渲染器.
 		configure(m_avplay, m_video, VIDEO_RENDER);

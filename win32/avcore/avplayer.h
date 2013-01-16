@@ -26,6 +26,7 @@
 #define RENDER_DDRAW	0
 #define RENDER_D3D		1
 #define RENDER_OGL		2
+#define RENDER_Y4M		3
 
 class player_impl;
 // avplayer封装类.
@@ -56,7 +57,7 @@ public:
 	// 注意, 这个函数只打开文件, 但并不播放, 重新打开文件前, 必
 	// 须关闭之前的媒体文件, 否则可能产生内存泄漏! 另外, 在播放
 	// 前, avplayer必须拥有一个窗口.
-	BOOL open(const char *movie, int media_type, int render_type = RENDER_DDRAW);
+	BOOL open(const char *movie, int media_type, int render_type = RENDER_D3D);
 
 	// 开始播放视频.
 	// fact 表示播放视频的起始位置, 按视频百分比计算, 默认从文件头开始播放.
