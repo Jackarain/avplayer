@@ -16,4 +16,4 @@ target_link_libraries(avplayer ${X11_LIBRARIES})
 target_link_libraries(avplayer ${SDL_LIBRARY})
 target_link_libraries(avplayer ${Boost_LIBRARIES})
 
-install(PROGRAMS avplayer DESTINATION bin)
+INSTALL(TARGETS avplayer RUNTIME DESTINATION bin)
