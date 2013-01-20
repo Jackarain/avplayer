@@ -267,11 +267,11 @@ else (IS64BITS AND RESPECTLIB64)
 	set (LIBDIR "lib")
 endif (IS64BITS AND RESPECTLIB64)
 
-install(TARGETS torrent-rasterbar DESTINATION ${LIBDIR} CONFIGURATIONS release)
-install(DIRECTORY include/libtorrent
-	DESTINATION include
-	PATTERN ".svn" EXCLUDE)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libtorrent-rasterbar.pc DESTINATION ${LIBDIR}/pkgconfig)
+#install(TARGETS torrent-rasterbar DESTINATION ${LIBDIR} CONFIGURATIONS release)
+#install(DIRECTORY include/libtorrent
+#	DESTINATION include
+#	PATTERN ".svn" EXCLUDE)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libtorrent-rasterbar.pc DESTINATION ${LIBDIR}/pkgconfig)
 
 # === build examples ===
 if(build_examples)
