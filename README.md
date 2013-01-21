@@ -1,3 +1,3 @@
 moved to https://github.com/avplayer/avplayer see http://avplayer.avplayer.org/
 
-椤圭洰绉诲姩鍒癶ttps://github.com/avplayer/avplayer, 璇︾粏淇℃伅鏌ョ湅 http://avplayer.avplayer.org/
+项目移动到https://github.com/avplayer/avplayer, 详细信息查看 http://avplayer.avplayer.org/
