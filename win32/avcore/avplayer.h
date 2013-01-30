@@ -26,7 +26,8 @@
 #define RENDER_DDRAW	0
 #define RENDER_D3D		1
 #define RENDER_OGL		2
-#define RENDER_Y4M		3
+#define RENDER_SOFT		3
+#define RENDER_Y4M		4
 
 class player_impl;
 // avplayer封装类.

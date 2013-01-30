@@ -40,13 +40,19 @@ EXPORT_API void ogl_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspec
 EXPORT_API int ogl_use_overlay(void *ctx);
 EXPORT_API void ogl_destory_render(void *ctx);
 
+EXPORT_API int gdi_init_video(void *ctx, int w, int h, int pix_fmt);
+EXPORT_API int gdi_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
+EXPORT_API void gdi_re_size(void *ctx, int width, int height);
+EXPORT_API void gdi_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect);
+EXPORT_API int gdi_use_overlay(void *ctx);
+EXPORT_API void gdi_destory_render(void *ctx);
+
 EXPORT_API int y4m_init_video(void *ctx, int w, int h, int pix_fmt);
 EXPORT_API int y4m_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
 EXPORT_API void y4m_re_size(void *ctx, int width, int height);
 EXPORT_API void y4m_aspect_ratio(void *ctx, int srcw, int srch, int enable_aspect);
 EXPORT_API int y4m_use_overlay(void *ctx);
 EXPORT_API void y4m_destory_render(void *ctx);
-
 
 EXPORT_API int sdl_init_video(void *ctx, int w, int h, int pix_fmt);
 EXPORT_API int sdl_render_one_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);

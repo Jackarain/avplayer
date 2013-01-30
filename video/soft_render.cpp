@@ -14,7 +14,7 @@ soft_render::soft_render()
    , m_hdc(NULL)
    , m_image_width(0)
    , m_image_height(0)
-   , m_keep_aspect(true)
+   , m_keep_aspect(false)
    , m_window_aspect(0.0f)
    , m_framebuffer(NULL)
    , m_swsctx(NULL)
@@ -36,7 +36,7 @@ bool soft_render::init_render(void* ctx, int w, int h, int pix_fmt)
 
    m_window_aspect = (float)w / (float)h;
 
-   // 获得内存dc.
+   // 获得dc.
    m_hdc = GetDC(m_hwnd);
    if (!m_hdc)
    {
@@ -117,12 +117,12 @@ void soft_render::aspect_ratio(int srcw, int srch, bool enable_aspect)
 {
    if (enable_aspect)
    {
-      enable_aspect = true;
+      m_keep_aspect = true;
       m_window_aspect = (float)srcw / (float)srch;
    }
    else
    {
-      enable_aspect = false;
+      m_keep_aspect = false;
    }
 }
 
