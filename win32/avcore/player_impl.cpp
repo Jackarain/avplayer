@@ -737,6 +737,26 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 			}
 		}
 
+		if (render_type == RENDER_SOFT || check == -1)
+		{
+			ret = gdi_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			gdi_destory_render(vo);
+			if (ret == 0)
+			{
+				vo->init_video = gdi_init_video;
+				m_draw_frame = gdi_render_one_frame;
+				vo->re_size = gdi_re_size;
+				vo->aspect_ratio = gdi_aspect_ratio;
+				vo->use_overlay = gdi_use_overlay;
+				vo->destory_video = gdi_destory_render;
+				vo->render_one_frame = &player_impl::draw_frame;
+
+				::logger("init video render to gdi.\n");
+
+				break;
+			}
+		}
+
 	} while (check-- == 0);
 
 	// 表示视频渲染器初始化失败!!!
