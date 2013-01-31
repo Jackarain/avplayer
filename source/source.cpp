@@ -15,6 +15,10 @@
 #endif // USE_TORRENT
 
 
+#ifdef USE_YK
+#include "yk_source.h"
+#endif // USE_YK
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -210,6 +214,115 @@ EXPORT_API void bt_destory(void *ctx)
 	ts->close();
 	delete ts;
 #endif // USE_TORRENT
+}
+
+
+EXPORT_API int yk_init_source(void *ctx)
+{
+#ifdef USE_YK
+    source_context *sc = (source_context*)ctx;
+    yk_source *ts = new yk_source();
+    sc->io_dev=ts;
+    return ts->m_yk_video.parse_url(sc->yk_url);
+#else
+    return -1;
+#endif // USE_YK
+    return 0;
+}
+
+EXPORT_API int yk_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
+{
+#ifdef USE_YK
+//     source_context *sc = (source_context*)ctx;
+//     yk_source *ts = (yk_source*)sc->io_dev;
+// 
+//     if (!ts)
+//         return -1;
+// 
+//     std::vector<std::string> videos;
+//     if (ts->m_yk_video.parse_video_files(videos)==0)
+//     {
+//         int i=0;
+//         BOOST_FOREACH(std::string& video,videos)
+//         {
+//             yk_video_file_info v;
+//             v.source=video;
+//             v.index=i;
+//             ts->m_videos.push_back(v);
+//             ++i;
+//         }
+//     }
+//     else
+//         return -1;
+//     
+//     
+//     std::vector<yk_video_file_info> vfi = ts->video_list();
+// 
+//     yk_video_file_info &info = vfi.at(0);
+// 
+//     strcpy(name, info.source.c_str());
+//     *size=1;//videos.size();
+// 
+//     return videos.size();
+#else
+    return -1;
+#endif // USE_YK
+}
+
+EXPORT_API int64_t yk_read_data(void *ctx, char* buff, int64_t offset, size_t buf_size)
+{
+#ifdef USE_YK
+//     source_context *sc = (source_context*)ctx;
+//     torrent_source *ts = (torrent_source*)sc->io_dev;
+	size_t readbytes = 0;
+// 
+//     if (!ts->read_data(buff, offset, buf_size, readbytes))
+//         return -1;
+// 
+	return readbytes;
+#else
+	return -1;
+#endif // USE_YK
+}
+
+EXPORT_API int64_t yk_read_seek(void *ctx, int64_t offset, int whence)
+{
+#ifdef USE_YK
+//     source_context *sc = (source_context*)ctx;
+//     torrent_source *ts = (torrent_source*)sc->io_dev;
+// 
+//     // 如果返回true, 则表示数据不够, 需要缓冲.
+//     if (ts->read_seek(offset, whence))
+//     {
+//         printf("!!!!!!!!!!! data is not enough: %lld, whence: %d !!!!!!!!!!!\n", offset, whence);
+//         sc->info.not_enough = 1;
+//     }
+// 
+//     // 此处的返回值无意义.
+    return 0;
+
+#else
+    return -1;
+#endif // USE_YK
+}
+
+EXPORT_API void yk_close(void *ctx)
+{
+#ifdef USE_YK
+//     source_context *sc = (source_context*)ctx;
+//     torrent_source *ts = (torrent_source*)sc->io_dev;
+//     ts->close();
+#endif // USE_YK
+}
+
+EXPORT_API void yk_destory(void *ctx)
+{
+#ifdef USE_YK
+//     source_context *sc = (source_context*)ctx;
+//     torrent_source *ts = (torrent_source*)sc->io_dev;
+//     ts->close();
+//     delete ts;
+#endif // USE_YK
 }
 
 #ifdef  __cplusplus

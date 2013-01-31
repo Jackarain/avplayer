@@ -21,6 +21,7 @@
 #define MEDIA_TYPE_BT	1
 #define MEDIA_TYPE_HTTP 2
 #define MEDIA_TYPE_RTSP 3
+#define MEDIA_TYPE_YK	4
 
 // 渲染模式.
 #define RENDER_DDRAW	0

@@ -44,7 +44,7 @@ typedef struct source_context
 	 * size 输入name缓冲区长度, 输出视频大小.
 	 * 返回torrent中的视频媒体个数, 返回-1表示出错.
 	 */
-	int (*bt_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
+	int (*video_media_info)(void *ctx, char *name, int64_t *pos, int64_t *size);
 	int64_t (*read_data)(void *ctx, char* buff, int64_t offset, size_t buf_size);
 	int64_t (*read_seek)(void *ctx, int64_t offset, int whence);
 	void (*close)(void *ctx);

@@ -631,12 +631,24 @@ void player_impl::init_torrent_source(source_context *sc)
 {
 	sc->init_source = bt_init_source;
 	sc->read_data = bt_read_data;
-	sc->bt_media_info = bt_media_info;
+	sc->video_media_info = bt_media_info;
 	sc->read_seek = bt_read_seek;
 	sc->close = bt_close;
 	sc->destory = bt_destory;
 	sc->offset = 0;
 	sc->save_path = strdup(".");
+}
+
+void player_impl::init_yk_source(source_context *sc)
+{
+    sc->init_source = yk_init_source;
+    sc->read_data = yk_read_data;
+    sc->video_media_info = yk_media_info;
+    sc->read_seek = yk_read_seek;
+    sc->close = yk_close;
+    sc->destory = yk_destory;
+    sc->offset = 0;
+    sc->save_path = strdup(".");
 }
 
 void player_impl::init_audio(ao_context *ao)
@@ -854,7 +866,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename, len, 0);
 			if (!m_source)
 			{
-				::logger("allocate media source failed, type is http.\n");
+				::logger("allocate media source failed, type is youku.\n");
 				break;
 			}
 

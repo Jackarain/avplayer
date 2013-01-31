@@ -145,6 +145,9 @@ public:
 	// 返回当前窗口句柄.
 	HWND get_window_handle();
 
+    // 解析yk相关视频文件(暂不支持视频组)
+    void parse_yk_videos(const std::string& vid);
+
 private:
 	// 窗口绘制相关.
 	void fill_rectange(HWND hWnd, HDC hdc, RECT win_rect, RECT client_rect);
@@ -158,6 +161,7 @@ private:
 	// 播放器相关的函数.
 	void init_file_source(source_context *sc);
 	void init_torrent_source(source_context *sc);
+	void init_yk_source(source_context *sc);
 	void init_audio(ao_context *ao);
 	void init_video(vo_context *vo, int render_type = RENDER_D3D);
 
