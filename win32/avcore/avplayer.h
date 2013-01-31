@@ -135,7 +135,7 @@ public:
 	void free_media_list(char **list, int size);
 
 	// 返回当前窗口句柄.
-	HWND get_wnd();
+	HWND get_window_handle();
 
 private:
 	player_impl *m_impl;

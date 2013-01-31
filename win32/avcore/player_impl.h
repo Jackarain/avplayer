@@ -143,7 +143,7 @@ public:
 	std::map<std::string, std::string>& play_list();
 
 	// 返回当前窗口句柄.
-	HWND GetWnd();
+	HWND get_window_handle();
 
 private:
 	// 窗口绘制相关.

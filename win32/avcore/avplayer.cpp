@@ -154,8 +154,8 @@ void avplayer::free_media_list(char **list, int size)
 	delete[] list;
 }
 
-HWND avplayer::get_wnd()
+HWND avplayer::get_window_handle()
 {
-	return m_impl->GetWnd();
+	return m_impl->get_window_handle();
 }
 
