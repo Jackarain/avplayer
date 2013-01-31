@@ -1179,7 +1179,7 @@ std::map<std::string, std::string>& player_impl::play_list()
 	return m_media_list;
 }
 
-HWND player_impl::GetWnd()
+HWND player_impl::get_window_handle()
 {
 	return m_hwnd;
 }
