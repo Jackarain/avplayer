@@ -123,6 +123,11 @@ int avplayer::video_height()
 	return m_impl->video_height();
 }
 
+double avplayer::buffering()
+{
+	return m_impl->buffering();
+}
+
 int avplayer::media_count()
 {
 	return m_impl->play_list().size();

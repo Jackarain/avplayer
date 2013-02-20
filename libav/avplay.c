@@ -604,7 +604,7 @@ int initialize(avplay *play, source_context *sc)
 
 		for (i = 0; ; i++)
 		{
-			int ret = play->m_source_ctx->bt_media_info(play->m_source_ctx, name, &pos, &size);
+			int ret = play->m_source_ctx->video_media_info(play->m_source_ctx, name, &pos, &size);
 			if (ret == -1)
 				break;
 			if (i == 0)

@@ -210,6 +210,10 @@
 				RelativePath=".\source.h"
 				>
 			</File>
+			<File
+				RelativePath=".\yk_source.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

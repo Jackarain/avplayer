@@ -133,6 +133,9 @@ public:
 	// 当前播放视频的宽, 单位像素.
 	int video_height();
 
+	// 当前缓冲进度, 单位百分比.
+	double buffering();
+
 	// 返回当前播放列表, key对应的是打开的媒体文件名.
 	// value是打开的媒体文件下的视频文件.
 	// 比如说打开一个bt种子文件名为avtest.torrent, 在这
@@ -144,6 +147,9 @@ public:
 
 	// 返回当前窗口句柄.
 	HWND get_window_handle();
+
+    // 解析yk相关视频文件(暂不支持视频组)
+    void parse_yk_videos(const std::string& vid);
 
 private:
 	// 窗口绘制相关.
@@ -158,6 +164,7 @@ private:
 	// 播放器相关的函数.
 	void init_file_source(source_context *sc);
 	void init_torrent_source(source_context *sc);
+	void init_yk_source(source_context *sc);
 	void init_audio(ao_context *ao);
 	void init_video(vo_context *vo, int render_type = RENDER_D3D);
 
