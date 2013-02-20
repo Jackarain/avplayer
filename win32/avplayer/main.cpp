@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 void play_thread(void *param)
 {
 	avplayer *play = (avplayer*)param;
-	play->play(0.5f);
+	play->play();
 	play->wait_for_completion();
 	// play->load_subtitle("d:\\media\\dfsschs2.srt");
 	// 一直等待直到播放完成.
