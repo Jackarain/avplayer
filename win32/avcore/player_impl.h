@@ -133,6 +133,9 @@ public:
 	// 当前播放视频的宽, 单位像素.
 	int video_height();
 
+	// 当前缓冲进度, 单位百分比.
+	double buffering();
+
 	// 返回当前播放列表, key对应的是打开的媒体文件名.
 	// value是打开的媒体文件下的视频文件.
 	// 比如说打开一个bt种子文件名为avtest.torrent, 在这

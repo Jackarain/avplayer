@@ -1186,6 +1186,13 @@ int player_impl::video_height()
 	return m_avplay->m_video_ctx->height;
 }
 
+double player_impl::buffering()
+{
+	if (!m_avplay)
+		return 0.0f;
+	return ::buffering(m_avplay);
+}
+
 std::map<std::string, std::string>& player_impl::play_list()
 {
 	return m_media_list;
