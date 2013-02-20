@@ -7,10 +7,14 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
+#ifdef _MSVC
 #ifdef SOURCE_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
+#endif
+#else
+#define EXPORT_API
 #endif
 
 namespace libyk

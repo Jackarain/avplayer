@@ -19,6 +19,7 @@ include_directories(source/)
 include_directories(audio/)
 
 option(bt "support bt protocol" ON)
+option(yk "support youku video" ON)
 
 add_subdirectory(libav)
 add_subdirectory(video)
@@ -27,6 +28,10 @@ add_subdirectory(source)
 
 if(bt)
 	add_subdirectory(libtorrent)
+endif()
+
+if(yk)
+	add_subdirectory(libyk)
 endif()
 
 if(UNIX)

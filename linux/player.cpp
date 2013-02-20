@@ -47,7 +47,7 @@ void player::init_torrent_source(source_context* sc)
 {
 	sc->init_source = bt_init_source;
 	sc->read_data = bt_read_data;
-	sc->bt_media_info = bt_media_info;
+	sc->video_media_info = bt_media_info;
 	sc->close = bt_close;
 	sc->destory = bt_destory;
 	sc->offset = 0;

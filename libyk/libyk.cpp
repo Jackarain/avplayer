@@ -141,12 +141,12 @@ std::string libykvideo::location(const std::string& url)
     boost::to_lower<std::string>(header);
     size_t pos=header.find("location: ")+1;
     if (!pos)
-        return false;
+        return "";
     
     header=header.substr((pos-1)+strlen("location: "));
     pos=header.find("\r\n")+1;
     if (!pos)
-        return false;
+        return "";
     return header.substr(0,pos-1);    
 }
 }
