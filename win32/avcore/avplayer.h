@@ -118,6 +118,9 @@ public:
 	// 当前播放视频的宽, 单位像素.
 	int video_height();
 
+	// 当前缓冲进度, 单位百分比.
+	double buffering();
+
 	// 返回当前播放列表中的媒体文件数.
 	int media_count();
 
