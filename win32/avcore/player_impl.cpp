@@ -860,6 +860,19 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			init_torrent_source(m_source);
 		}
 
+		if (media_type == MEDIA_TYPE_YK)
+		{
+			m_source = alloc_media_source(MEDIA_TYPE_YK, filename, 0, 0);
+			if (!m_source)
+			{
+				::logger("allocate media source failed, type is yk.\n");
+				break;
+			}
+
+			// 初始化yk媒体源.
+			init_yk_source(m_source);
+		}
+
 		if (media_type == MEDIA_TYPE_HTTP)
 		{
 			len = strlen(filename) + 1;

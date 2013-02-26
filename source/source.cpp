@@ -233,6 +233,7 @@ EXPORT_API int yk_init_source(void *ctx)
 EXPORT_API int yk_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
 {
 #ifdef USE_YK
+	return -1;
 //     source_context *sc = (source_context*)ctx;
 //     yk_source *ts = (yk_source*)sc->io_dev;
 // 

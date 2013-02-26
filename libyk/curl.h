@@ -1,6 +1,6 @@
 #pragma once
 
-#include <curl/curl.h>
+// #include <curl/curl.h>
 #include <string>
 
 #define CURL_MAX_RETRY_COUNT    3
@@ -10,11 +10,16 @@
 class curl
 {
 public:
-    curl(bool header=false,bool use_ssl=true);
-    ~curl();
+	curl(bool header=false,bool use_ssl=true) {}
+	~curl() {}
 
 public:
-    std::string curl_send_request(const std::string& url,const void* body=NULL,size_t bodylen=0,bool breset=false);
+    std::string curl_send_request(const std::string& url,const void* body=NULL,size_t bodylen=0,bool breset=false)
+	{
+		return "";
+	}
+
+/*
     CURLcode    curl_get_errcode();
 
 private:
@@ -27,5 +32,6 @@ protected:
 private:
     long          timeout_;
     CURLcode      curl_code_;
+*/
 };
 

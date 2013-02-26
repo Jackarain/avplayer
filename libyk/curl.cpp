@@ -1,5 +1,6 @@
 #include "curl.h"
 
+/*
 size_t curl::write_memcb_(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
@@ -78,3 +79,4 @@ CURLcode curl::curl_get_errcode()
 {
     return curl_code_;
 }
+*/

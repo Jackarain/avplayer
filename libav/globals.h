@@ -16,6 +16,7 @@ struct AVFrame;
 #define MEDIA_TYPE_BT	1
 #define MEDIA_TYPE_HTTP 2
 #define MEDIA_TYPE_RTSP 3
+#define MEDIA_TYPE_YK	4
 
 /* 媒体文件信息. */
 typedef struct media_info
@@ -80,6 +81,7 @@ typedef struct source_context
 	download_info info;
 	/* 当前退出标识, 退出时为true */
 	int abort;
+	char *yk_url;
 } source_context;
 
 /* 视频播放结构定义. */
