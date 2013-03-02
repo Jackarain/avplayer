@@ -1,35 +1,38 @@
 #include "libyk.h"
 #include "codepage.h"
-#include "curl.h"
 
 namespace libyk {
 
 libykvideo::libykvideo()
-{
+{}
 
-}
 libykvideo::~libykvideo()
-{
+{}
 
-}
-int libykvideo::parse_url(const std::string& url)
+bool libykvideo::parse_url(const std::string& url)
 {
-    std::string yk_url=url;
-    size_t pos=yk_url.find("http://v.youku.com/v_show/id_")+1;
-    if (!pos)
-        return -1;
-        
-    std::string vid=yk_url.substr((pos-1)+strlen("http://v.youku.com/v_show/id_"));
-    if (vid.length()>13)
-        vid=vid.substr(0,13);
-    else
-        return -1;
-    
-    vid_=vid;
-        
-    return 0;
+	std::string prefix_youku_url = "http://v.youku.com/v_show/id_";
+	const int vid_length = 13;
+
+	// 检查url是否是youku的视频链接.
+	std::string::size_type pos = url.find(prefix_youku_url);
+	if (pos == std::string::npos)
+		return false;
+
+	// 得到视频id.
+    std::string vid = url.substr(pos + prefix_youku_url.length());
+	if (vid.length() >= vid_length)
+		vid = vid.substr(0, vid_length);
+	else
+		return false;
+
+	// 得到视频id.
+    vid_ = vid;
+
+    return true;
 }
 
+/*
 int libykvideo::parse_video_files(std::vector<std::string>& videos,const std::string& password)
 {
 
@@ -149,5 +152,8 @@ std::string libykvideo::location(const std::string& url)
         return false;
     return header.substr(0,pos-1);    
 }
+
+*/
+
 }
 
