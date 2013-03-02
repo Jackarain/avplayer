@@ -2,7 +2,7 @@
 #include "codepage.h"
 #include "curl.h"
 
-namespace libyk{
+namespace libyk {
 
 libykvideo::libykvideo()
 {
