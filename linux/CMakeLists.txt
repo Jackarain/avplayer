@@ -1,6 +1,6 @@
 find_package(SDL  REQUIRED)
 find_package(X11)
-find_package( Boost 1.51 COMPONENTS filesystem)
+find_package( Boost 1.50 COMPONENTS filesystem)
 
 include_directories(${SDL_INCLUDE_DIR})
 
