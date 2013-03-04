@@ -4,7 +4,11 @@
 namespace libyk {
 
 libykvideo::libykvideo()
-{}
+	: m_http_stream(m_io_service)
+{
+	// 设置为ssl不认证模式.
+	m_http_stream.check_certificate(false);
+}
 
 libykvideo::~libykvideo()
 {}
@@ -32,7 +36,7 @@ bool libykvideo::parse_url(const std::string& url)
     return true;
 }
 
-int libykvideo::parse_video_files(std::vector<std::string> &videos, const std::string &password)
+bool libykvideo::parse_video_files(std::vector<std::string> &videos, const std::string &password)
 {
     if (m_vid.empty())
         return -1;
@@ -43,11 +47,27 @@ int libykvideo::parse_video_files(std::vector<std::string> &videos, const std::s
     std::string query = prefix_query_url + m_vid;
 
 	// 添加passwd.
-    query.append(password.empty() ? "" : "&watch_password=" + password);
+    query += password.empty() ? "" : "&watch_password=" + password;
 
+	// 请求json字符串, 然后解析.
+	boost::system::error_code ec;
+	m_http_stream.open(query, ec);
+	if (ec && ec != boost::asio::error::eof)
+	{
+		std::cerr << ec.message().c_str() << std::endl;
+		// 查询url失败.
+		return false;
+	}
+
+	do {
+		std::vector<char> buffer;
+		std::vector<char> buffer2;
+		buffer = buffer + buffer2;
+		// std::size_t bytes = m_http_stream.read_some(ec);
+	} while (!ec);
 
 	// 为了编译通过!!
-	return 0;
+	return false;
 
 	// 查询.
 

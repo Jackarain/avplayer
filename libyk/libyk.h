@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+#include "avhttp.hpp"
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
@@ -28,7 +30,7 @@ namespace libyk
 		// 解析优酷视频url.
 		bool parse_url(const std::string &url);
 		// 解析url中的视频文件.
-		int parse_video_files(std::vector<std::string> &videos, const std::string &password = "");
+		bool parse_video_files(std::vector<std::string> &videos, const std::string &password = "");
 
 	private:
 		bool parse_json(const std::string &data, boost::property_tree::wptree &root);
@@ -36,6 +38,8 @@ namespace libyk
 
 	private:
 		std::string m_vid;
+		boost::asio::io_service m_io_service;
+		avhttp::http_stream m_http_stream;
 	};
 }
 
