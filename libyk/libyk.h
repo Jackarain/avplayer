@@ -27,6 +27,7 @@ namespace libyk
 	public:
 		// 解析优酷视频url.
 		bool parse_url(const std::string &url);
+		// 解析url中的视频文件.
 		int parse_video_files(std::vector<std::string> &videos, const std::string &password = "");
 
 	private:
@@ -34,7 +35,7 @@ namespace libyk
 		std::string location(const std::string &url);
 
 	private:
-		std::string vid_;
+		std::string m_vid;
 	};
 }
 

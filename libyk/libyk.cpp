@@ -27,30 +27,38 @@ bool libykvideo::parse_url(const std::string& url)
 		return false;
 
 	// 得到视频id.
-    vid_ = vid;
+    m_vid = vid;
 
     return true;
 }
 
-/*
-int libykvideo::parse_video_files(std::vector<std::string>& videos,const std::string& password)
+int libykvideo::parse_video_files(std::vector<std::string> &videos, const std::string &password)
 {
-
-    if (vid_.empty())
-        return -1;
-        
-    std::string req="https://openapi.youku.com/v2/videos/files.json?client_id=e57bc82b1a9dcd2f&client_secret=a361608273b857415ee91a8285a16b4a&video_id="+vid_;
-
-    req.append(password.empty()?"":"&watch_password="+password);
-
-    curl p;
-    boost::property_tree::wptree root;
-    if (!parse_json(p.curl_send_request(req),root))
+    if (m_vid.empty())
         return -1;
 
-    boost::property_tree::wptree files=root.get_child(L"files");
+	std::string prefix_query_url = "https://openapi.youku.com/v2/videos/files.json?client_id=e57bc82b1a9dcd2f&client_secret=a361608273b857415ee91a8285a16b4a&video_id=";
 
-    boost::property_tree::wptree type;
+	// 添加id.
+    std::string query = prefix_query_url + m_vid;
+
+	// 添加passwd.
+    query.append(password.empty() ? "" : "&watch_password=" + password);
+
+
+	// 为了编译通过!!
+	return 0;
+
+	// 查询.
+
+//     curl p;
+//     boost::property_tree::wptree root;
+//     if (!parse_json(p.curl_send_request(query), root))
+//         return -1;
+
+//     boost::property_tree::wptree files=root.get_child(L"files");
+// 
+//     boost::property_tree::wptree type;
 
     // 暂时不播放高清和超清视频
     /*
@@ -84,27 +92,28 @@ int libykvideo::parse_video_files(std::vector<std::string>& videos,const std::st
 
     }
     */
-    try
-    {
-        type=files.get_child(L"flv");
-        BOOST_FOREACH(boost::property_tree::wptree::value_type& v,type.get_child(L"segs"))
-        {
-            boost::property_tree::wptree value=v.second;
-            std::string relocation=location(codepage::w2utf(value.get<std::wstring>(L"url")));
-            if (!relocation.empty())
-                videos.push_back(relocation);
-            else
-                return -1;
-        }
-        return 0;
-    }
-    catch(...)
-    {
-        return -1;
-    }
+//     try
+//     {
+//         type=files.get_child(L"flv");
+//         BOOST_FOREACH(boost::property_tree::wptree::value_type& v,type.get_child(L"segs"))
+//         {
+//             boost::property_tree::wptree value=v.second;
+//             std::string relocation=location(codepage::w2utf(value.get<std::wstring>(L"url")));
+//             if (!relocation.empty())
+//                 videos.push_back(relocation);
+//             else
+//                 return -1;
+//         }
+//         return 0;
+//     }
+//     catch(...)
+//     {
+//         return -1;
+//     }
 
 }
 
+/*
 bool libykvideo::parse_json(const std::string& data,boost::property_tree::wptree &root)
 {
     if (data.empty())
