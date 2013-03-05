@@ -7,24 +7,17 @@
 
 #include <vector>
 #include <string>
-
-#include "avhttp.hpp"
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
 #include <boost/noncopyable.hpp>
-
 
 namespace libyk
 {
+	class youku_impl;
 	// 优酷视频访问实现.
-	class libykvideo : public boost::noncopyable
+	class youku : public boost::noncopyable
 	{
 	public:
-		libykvideo();
-		~libykvideo();
+		youku();
+		virtual ~youku();
 
 	public:
 		// 解析优酷视频url.
@@ -33,13 +26,11 @@ namespace libyk
 		bool parse_video_files(std::vector<std::string> &videos, const std::string &password = "");
 
 	private:
-		bool parse_json(const std::string &data, boost::property_tree::wptree &root);
-		std::string location(const std::string &url);
+// 		bool parse_json(const std::string &data, boost::property_tree::wptree &root);
+// 		std::string location(const std::string &url);
 
 	private:
-		std::string m_vid;
-		boost::asio::io_service m_io_service;
-		avhttp::http_stream m_http_stream;
+		youku_impl *m_impl;		
 	};
 }
 
