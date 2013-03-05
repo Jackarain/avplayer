@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;.\libtorrent;..\..\third_party\openssl\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_DYN_LINK;TORRENT_USE_OPENSSL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".;.\libtorrent;..\..\third_party\openssl\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_DYN_LINK;TORRENT_USE_OPENSSL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -163,10 +163,42 @@
 			<File
 				RelativePath="..\src\asio.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\asio_ssl.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\assert.cpp"
