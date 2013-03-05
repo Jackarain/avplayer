@@ -1,4 +1,5 @@
 #include <cstddef>
+#include "utf8.h"
 #include "youku_impl.h"
 
 namespace libyk {
@@ -53,7 +54,7 @@ bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::
 	// 添加passwd.
     query += password.empty() ? "" : "&watch_password=" + password;
 
-	// 请求json字符串, 然后解析.
+	// 打开连接开始请求.
 	boost::system::error_code ec;
 	m_http_stream.open(query, ec);
 	if (ec && ec != boost::asio::error::eof)
@@ -63,6 +64,7 @@ bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::
 		return false;
 	}
 
+	// 请求json字符串, 然后解析.
 	boost::asio::streambuf response;
 	std::ostringstream oss;
 
@@ -71,6 +73,55 @@ bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::
 	{
 		oss << &response;
 	}
+
+	// 转为宽字符串.
+	std::wstring utf = utf8_wide(oss.str());
+	std::wstringstream stream;
+	stream << utf;
+
+	// 解析json字符串.
+	boost::property_tree::wptree root;
+	try {
+		boost::property_tree::read_json<boost::property_tree::wptree>(stream, root);
+		try {
+			boost::property_tree::wptree errinfo = root.get_child(L"error");
+			int err = errinfo.get<int>(L"code");
+			// 输出json中包含的错误代码.
+			std::cerr << "error code: " << err << std::endl;
+			return false;
+		}
+		catch (std::exception &)
+		{}
+
+		// 得到文件表.
+		boost::property_tree::wptree files = root.get_child(L"files");
+		boost::property_tree::wptree type;
+
+		// 说明: 在得到对应的视频文件表后, 然后解析segs表, 在这个表中, 包含了视频分段信息.
+		// 注意m3u8是没有视频分段信息的, 它只有一个m3u8的地址url+duration信息. ok, 在
+		// 得到了这些信息后, 我们就可以按此下载数据提供给播放器播放, so, 现在要做的是解析
+		// 他们.
+
+		// 得到hd2文件表.
+
+		// 得到mp4文件表.
+
+		// 得到3gp文件表.
+
+		// 得到3gphd文件表.
+
+		// 得到flv文件表.
+
+		// 得到m3u8文件表.
+
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+		return false;
+	}
+
+	// boost::property_tree::parse_json();
 
 	// 为了编译通过!!
 	return false;

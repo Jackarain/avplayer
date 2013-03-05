@@ -1,5 +1,4 @@
 #include "libyk.h"
-#include "codepage.h"
 #include "youku_impl.h"
 
 namespace libyk {
@@ -11,7 +10,9 @@ youku::youku()
 }
 
 youku::~youku()
-{}
+{
+	delete m_impl;
+}
 
 bool youku::parse_url(const std::string &url)
 {
