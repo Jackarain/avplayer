@@ -118,7 +118,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;USE_TORRENT;USE_YK;SOURCE_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -136,7 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="ssleay32.lib libeay32.lib libpthreadGC2.a"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\third_party\openssl\libs;..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
