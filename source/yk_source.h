@@ -1,46 +1,29 @@
-//
-// yk_source.h
-// ~~~~~~~~~~~
-//
-// Copyright (c) 2013 InvXp (invidentxp@gmail.com)
-//
+#pragma once
 
-#ifndef __YK_SOURCE_H__
-#define __YK_SOURCE_H__
+#include <iostream>
+#include "ins.h"
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
-
-#include <boost/thread/mutex.hpp>
-
-#include <stdint.h>
 #include "av_source.h"
-
-#include <string>
-#include <vector>
-
 #include "libyk.h"
 
-using namespace libyk;
 
 // yk中的视频信息.
 struct yk_video_file_info 
 {
-	int index;				// id.
-	std::string title;		// 视频文件名.
-	std::string source;		// 视频源地址
+	int index;						// id.
+	std::string title;				// 视频文件名.
+	std::string source;				// 视频源地址
 	uint64_t data_size;		// 视频大小.
 	uint64_t base_offset;	// 视频在yk中的偏移.
-	int status;				// 当前播放状态.
+	int status;						// 当前播放状态.
 };
 
 class yk_source
 	: public av_source
 {
 public:
-	yk_source();
-	virtual ~yk_source();
+	yk_source(void);
+	virtual ~yk_source(void);
 
 public:
 	// 打开.
@@ -60,29 +43,17 @@ public:
 	virtual bool get_current_video(yk_video_file_info& vfi) const;
 
 	// 当前视频列表.
-	virtual std::vector<yk_video_file_info> video_list() const { return m_videos; }
+	virtual std::vector<yk_video_file_info> video_list() const;
 
 	// 重置读取数据.
 	virtual void reset();
 
-public:
-	libykvideo m_yk_video;
-	std::vector<yk_video_file_info> m_videos;
+	// 解析url.
+	bool parse_url(const std::string &url);
+
 
 private:
-
-	// 当前播放的视频.
-	yk_video_file_info m_current_video;
-
-	// yk中所有视频信息.
-
-	// 用于控制重置读取数据.
-	bool m_reset;
-
-	// 关闭控制.
+	libyk::youku m_yk_video;
 	bool m_abort;
-	boost::mutex m_abort_mutex;
+	bool m_reset;
 };
-
-#endif // __YK_SOURCE_H__
-

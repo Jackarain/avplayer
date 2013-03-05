@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="source"
 	ProjectGUID="{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
-	RootNamespace="source"
+	RootNamespace="exec"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\openssl\include;..\libtorrent\include;..\third_party\include;..\libav;..\libyk"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS;USE_TORRENT;USE_YK"
+				AdditionalIncludeDirectories="..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;USE_TORRENT;USE_YK;SOURCE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -61,11 +61,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpthreadGC2.a libeay32.lib ssleay32.lib"
+				AdditionalDependencies="ssleay32.lib libeay32.lib libpthreadGC2.a"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib;..\third_party\openssl\libs"
+				AdditionalLibraryDirectories="..\third_party\openssl\libs;..\third_party\ffmpeg\lib"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -97,7 +97,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -118,8 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\openssl\include;..\libtorrent\include;..\third_party\include;..\libav"
-				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;_WINDOWS;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ASIO_ENABLE_CANCELIO;TORRENT_USE_OPENSSL;SOURCE_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -137,11 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libpthreadGC2.a libeay32.lib ssleay32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\third_party\ffmpeg\lib;..\third_party\openssl\libs"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -181,6 +178,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\asio.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\file_source.cpp"
 				>
 			</File>
@@ -215,9 +216,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\torrent_source.h"
+				>
+			</File>
+			<File
 				RelativePath=".\yk_source.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="资源文件"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 	</Files>
 	<Globals>

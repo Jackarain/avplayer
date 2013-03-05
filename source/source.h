@@ -7,6 +7,7 @@
 
 #ifndef __SOURCE_H__
 #define __SOURCE_H__
+
 #ifdef _MSC_VER
 #ifdef SOURCE_EXPORTS
 #define EXPORT_API __declspec(dllexport)

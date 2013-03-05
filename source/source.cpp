@@ -223,7 +223,7 @@ EXPORT_API int yk_init_source(void *ctx)
     source_context *sc = (source_context*)ctx;
     yk_source *ts = new yk_source();
     sc->io_dev=ts;
-    return ts->m_yk_video.parse_url(sc->yk_url);
+	return ts->parse_url(sc->yk_url) ? 0 : -1;
 #else
     return -1;
 #endif // USE_YK
