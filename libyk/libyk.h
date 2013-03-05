@@ -1,3 +1,10 @@
+//
+// yk_source.h
+// ~~~~~~~~~~~
+//
+// Copyright (c) 2013 InvXp (invidentxp@gmail.com)
+//
+
 #ifndef __LIBYK_H__
 #define __LIBYK_H__
 
