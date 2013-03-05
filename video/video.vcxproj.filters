@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="d3d_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="ddraw_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="opengl_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="soft_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="video_out.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="y4m_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="d3d_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="ddraw_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="ins.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="video_out.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="video_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="y4m_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="opengl_render.h">
+      <Filter>include</Filter>
+    </CustomBuild>
+    <CustomBuild Include="soft_render.h">
+      <Filter>include</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{86f1dcfd-f9c2-4b7d-beb1-b0f016aa5d6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4cb23453-7e42-4c9b-8a20-c60abb16a27f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

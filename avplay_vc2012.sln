@@ -5,8 +5,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "video", "video\video.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "audio", "audio\audio.vcxproj", "{BC5E9C1A-C689-4298-A8EA-2856457DAC28}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcxproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libav", "libav\libav.vcxproj", "{457C2989-509D-4132-B08A-1695342BB9DB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtorrent", "libtorrent\include\libtorrent.vcxproj", "{0795F713-7B86-4250-8B4E-4F4663AF6956}"
@@ -16,6 +14,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avplayer", "win32\avplayer\avplayer.vcxproj", "{799B12DE-EED1-4EC7-9CAD-2ED5BCC81FAA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libyk", "libyk\libyk.vcxproj", "{46CD66DB-40A1-4677-91B4-F3226FAB8941}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcxproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +31,6 @@ Global
 		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Debug|Win32.Build.0 = Debug|Win32
 		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Release|Win32.ActiveCfg = Release|Win32
 		{BC5E9C1A-C689-4298-A8EA-2856457DAC28}.Release|Win32.Build.0 = Release|Win32
-		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.Build.0 = Debug|Win32
-		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.ActiveCfg = Release|Win32
-		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.Build.0 = Release|Win32
 		{457C2989-509D-4132-B08A-1695342BB9DB}.Debug|Win32.ActiveCfg = Debug|Win32
 		{457C2989-509D-4132-B08A-1695342BB9DB}.Debug|Win32.Build.0 = Debug|Win32
 		{457C2989-509D-4132-B08A-1695342BB9DB}.Release|Win32.ActiveCfg = Release|Win32
@@ -55,6 +51,10 @@ Global
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Debug|Win32.Build.0 = Debug|Win32
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Release|Win32.ActiveCfg = Release|Win32
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Release|Win32.Build.0 = Release|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.Build.0 = Debug|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.ActiveCfg = Release|Win32
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
