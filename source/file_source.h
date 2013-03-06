@@ -38,10 +38,10 @@ public:
    virtual bool open(void* ctx);
 
    // 读取数据.
-   virtual bool read_data(char* data, size_t size, size_t& read_size);
+   virtual bool read_data(char* data, size_t size, size_t &read_size);
 
    // seek操作.
-   virtual bool read_seek(uint64_t offset, int whence);
+   virtual int64_t read_seek(uint64_t offset, int whence);
 
    // 关闭.
    virtual void close();

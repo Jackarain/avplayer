@@ -71,10 +71,10 @@ public:
 	virtual bool open(void* ctx);
 
 	// 读取数据.
-	virtual bool read_data(char* data, size_t size, size_t& read_size);
+	virtual bool read_data(char* data, size_t size, size_t &read_size);
 
 	// seek操作, 此处返回true, 表示数据不够, 需要缓冲.
-	virtual bool read_seek(uint64_t offset, int whence);
+	virtual int64_t read_seek(uint64_t offset, int whence);
 
 	// 关闭.
 	virtual void close();
@@ -82,6 +82,9 @@ public:
 	// 设置或获得当前播放的视频文件.
 	virtual bool set_current_video(int index);
 	virtual bool get_current_video(video_file_info& vfi) const;
+
+	// 判断某个偏移位置是否数据已经下载.
+	virtual bool has_data(uint64_t offset);
 
 	// 当前视频列表.
 	virtual std::vector<video_file_info> video_list() const { return m_videos; }

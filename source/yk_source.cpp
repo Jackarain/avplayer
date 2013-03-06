@@ -21,9 +21,9 @@ bool yk_source::read_data(char* data, size_t size, size_t& read_size)
 	return false;
 }
 
-bool yk_source::read_seek(uint64_t offset, int whence)
+int64_t yk_source::read_seek(uint64_t offset, int whence)
 {
-	return false;
+	return -1;
 }
 
 void yk_source::close()

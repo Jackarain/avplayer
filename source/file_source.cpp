@@ -6,6 +6,10 @@
 static const int BUFFER_SIZE = (1 << 21);
 static const int AVG_READ_SIZE = (BUFFER_SIZE >> 1);
 
+#ifndef AVSEEK_SIZE
+#define AVSEEK_SIZE 0x10000
+#endif
+
 #ifdef WIN32
 static
 uint64_t file_size(const char *filename)
@@ -66,7 +70,7 @@ bool file_source::open(void* ctx)
 	return true;
 }
 
-bool file_source::read_data(char* data, size_t size, size_t& read_size)
+bool file_source::read_data(char* data, size_t size, size_t &read_size)
 {
 	static char read_buffer[AVG_READ_SIZE];
 
@@ -90,7 +94,7 @@ bool file_source::read_data(char* data, size_t size, size_t& read_size)
 	return true;
 }
 
-bool file_source::read_seek(uint64_t offset, int whence)
+int64_t file_source::read_seek(uint64_t offset, int whence)
 {
 	// 参数检查.
 	if (offset > m_file_size || !m_file)
@@ -99,16 +103,16 @@ bool file_source::read_seek(uint64_t offset, int whence)
 	if (m_open_data->is_multithread)
 		pthread_mutex_lock(&m_mutex);
 
+	int64_t ret = m_file_size;
+
 	// 进行seek操作.
-	int ret = fseek(m_file, offset, whence);
+	if (whence != AVSEEK_SIZE)
+		ret = fseek(m_file, offset, whence);
 
 	if (m_open_data->is_multithread)
 		pthread_mutex_unlock(&m_mutex);
 
-	if (ret == 0)
-		return true;
-
-	return false;
+	return ret;
 }
 
 void file_source::close()

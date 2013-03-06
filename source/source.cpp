@@ -80,11 +80,7 @@ EXPORT_API int64_t file_read_seek(void *ctx, int64_t offset, int whence)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->priv;
-
-	if (fs->read_seek(offset, whence))
-		return 0;
-
-	return -1;
+	return fs->read_seek(offset, whence);
 }
 
 EXPORT_API void file_close(void *ctx)
@@ -213,15 +209,18 @@ EXPORT_API int64_t bt_read_seek(void *ctx, int64_t offset, int whence)
 	torrent_source *ts = (torrent_source*)sc->priv;
 
 	// 如果返回true, 则表示数据不够, 需要缓冲.
-	if (ts->read_seek(offset, whence))
+	int64_t ret = ts->read_seek(offset, whence);
+
+	if (whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END)
 	{
-		// 表示seek位置没有数据, 上层应该根据dl_info.not_enough判断是否暂时进行缓冲.
-		printf("!!!!!!!!!!! data is not enough: %lld, whence: %d !!!!!!!!!!!\n", offset, whence);
-		sc->dl_info.not_enough = 1;
+		if (!ts->has_data(ret))
+		{
+			// 表示seek位置没有数据, 上层应该根据dl_info.not_enough判断是否暂时进行缓冲.
+			sc->dl_info.not_enough = 1;
+		}
 	}
 
-	// 此处的返回值无意义, 返回0表示总是seek成功.
-	return 0;
+	return ret;
 
 #else
 	return -1;
