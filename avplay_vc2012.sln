@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libyk", "libyk\libyk.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcxproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demux", "demux\demux.vcxproj", "{FF475010-1F91-42B3-92C1-E8B2B42B7529}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,10 @@ Global
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Debug|Win32.Build.0 = Debug|Win32
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.ActiveCfg = Release|Win32
 		{C3812E93-D5DE-4275-9E57-62513C4FAC32}.Release|Win32.Build.0 = Release|Win32
+		{FF475010-1F91-42B3-92C1-E8B2B42B7529}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FF475010-1F91-42B3-92C1-E8B2B42B7529}.Debug|Win32.Build.0 = Debug|Win32
+		{FF475010-1F91-42B3-92C1-E8B2B42B7529}.Release|Win32.ActiveCfg = Release|Win32
+		{FF475010-1F91-42B3-92C1-E8B2B42B7529}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

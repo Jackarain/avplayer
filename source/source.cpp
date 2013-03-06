@@ -33,7 +33,7 @@ void ansi_wide(std::string &ansi, std::wstring &wide)
 	mbstowcs((wchar_t*)wide.c_str(), ansi.c_str(), size);
 }
 
-EXPORT_API int file_init_source(void *ctx)
+EXPORT_API int file_init_source(struct source_context *ctx)
 {
 	source_context *sc = (source_context*)ctx;
 
@@ -63,7 +63,7 @@ EXPORT_API int file_init_source(void *ctx)
 	return fs->open((void*)od) ? 0 : -1;
 }
 
-EXPORT_API int64_t file_read_data(void *ctx, char* buff, size_t buf_size)
+EXPORT_API int64_t file_read_data(struct source_context *ctx, char* buff, size_t buf_size)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->priv;
@@ -76,21 +76,21 @@ EXPORT_API int64_t file_read_data(void *ctx, char* buff, size_t buf_size)
 	return -1;
 }
 
-EXPORT_API int64_t file_read_seek(void *ctx, int64_t offset, int whence)
+EXPORT_API int64_t file_read_seek(struct source_context *ctx, int64_t offset, int whence)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->priv;
 	return fs->read_seek(offset, whence);
 }
 
-EXPORT_API void file_close(void *ctx)
+EXPORT_API void file_close(struct source_context *ctx)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->priv;
 	fs->close();
 }
 
-EXPORT_API void file_destory(void *ctx)
+EXPORT_API void file_destory(struct source_context *ctx)
 {
 	source_context *sc = (source_context*)ctx;
 	file_source *fs = (file_source *)sc->priv;
@@ -102,7 +102,7 @@ EXPORT_API void file_destory(void *ctx)
 	}
 }
 
-EXPORT_API int bt_init_source(void *ctx)
+EXPORT_API int bt_init_source(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
@@ -186,7 +186,7 @@ EXPORT_API int bt_init_source(void *ctx)
 #endif // USE_TORRENT
 }
 
-EXPORT_API int64_t bt_read_data(void *ctx, char* buff, size_t buf_size)
+EXPORT_API int64_t bt_read_data(struct source_context *ctx, char* buff, size_t buf_size)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
@@ -202,7 +202,7 @@ EXPORT_API int64_t bt_read_data(void *ctx, char* buff, size_t buf_size)
 #endif // USE_TORRENT
 }
 
-EXPORT_API int64_t bt_read_seek(void *ctx, int64_t offset, int whence)
+EXPORT_API int64_t bt_read_seek(struct source_context *ctx, int64_t offset, int whence)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
@@ -227,7 +227,7 @@ EXPORT_API int64_t bt_read_seek(void *ctx, int64_t offset, int whence)
 #endif // USE_TORRENT
 }
 
-EXPORT_API void bt_close(void *ctx)
+EXPORT_API void bt_close(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
@@ -242,7 +242,7 @@ EXPORT_API void bt_close(void *ctx)
 #endif // USE_TORRENT
 }
 
-EXPORT_API void bt_destory(void *ctx)
+EXPORT_API void bt_destory(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
 	source_context *sc = (source_context*)ctx;
@@ -263,7 +263,7 @@ EXPORT_API void bt_destory(void *ctx)
 }
 
 
-EXPORT_API int yk_init_source(void *ctx)
+EXPORT_API int yk_init_source(struct source_context *ctx)
 {
 #ifdef USE_YK
     source_context *sc = (source_context*)ctx;
@@ -329,7 +329,7 @@ EXPORT_API int yk_init_source(void *ctx)
     return 0;
 }
 
-EXPORT_API int yk_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
+EXPORT_API int yk_media_info(struct source_context *ctx, char *name, int64_t *pos, int64_t *size)
 {
 #ifdef USE_YK
 	return -1;
@@ -369,7 +369,7 @@ EXPORT_API int yk_media_info(void *ctx, char *name, int64_t *pos, int64_t *size)
 #endif // USE_YK
 }
 
-EXPORT_API int64_t yk_read_data(void *ctx, char* buff, size_t buf_size)
+EXPORT_API int64_t yk_read_data(struct source_context *ctx, char* buff, size_t buf_size)
 {
 #ifdef USE_YK
 //     source_context *sc = (source_context*)ctx;
@@ -385,7 +385,7 @@ EXPORT_API int64_t yk_read_data(void *ctx, char* buff, size_t buf_size)
 #endif // USE_YK
 }
 
-EXPORT_API int64_t yk_read_seek(void *ctx, int64_t offset, int whence)
+EXPORT_API int64_t yk_read_seek(struct source_context *ctx, int64_t offset, int whence)
 {
 #ifdef USE_YK
 //     source_context *sc = (source_context*)ctx;
@@ -406,7 +406,7 @@ EXPORT_API int64_t yk_read_seek(void *ctx, int64_t offset, int whence)
 #endif // USE_YK
 }
 
-EXPORT_API void yk_close(void *ctx)
+EXPORT_API void yk_close(struct source_context *ctx)
 {
 #ifdef USE_YK
 //     source_context *sc = (source_context*)ctx;
@@ -415,7 +415,7 @@ EXPORT_API void yk_close(void *ctx)
 #endif // USE_YK
 }
 
-EXPORT_API void yk_destory(void *ctx)
+EXPORT_API void yk_destory(struct source_context *ctx)
 {
 #ifdef USE_YK
 //     source_context *sc = (source_context*)ctx;

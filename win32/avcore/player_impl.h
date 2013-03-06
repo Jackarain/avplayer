@@ -169,7 +169,7 @@ private:
 	void init_video(vo_context *vo, int render_type = RENDER_D3D);
 
 	// 实时处理视频渲染的视频数据, 在这里完成比较加字幕, 加水印等操作.
-	static int draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts);
+	static int draw_frame(struct vo_context *ctx, AVFrame* data, int pix_fmt, double pts);
 
 private:
 	avplay_logger m_log;
@@ -189,7 +189,7 @@ private:
 	ao_context *m_audio;
 	vo_context *m_video;
 
-	int (*m_draw_frame)(void *ctx, AVFrame* data, int pix_fmt, double pts);
+	int (*m_draw_frame)(struct vo_context *ctx, AVFrame* data, int pix_fmt, double pts);
 
 	// 媒体文件信息.
 	std::map<std::string, std::string> m_media_list;

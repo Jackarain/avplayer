@@ -494,7 +494,7 @@ ao_context* alloc_audio_render()
 
 void free_audio_render(ao_context *ctx)
 {
-	if (ctx->audio_dev)
+	if (ctx->priv)
 		ctx->destory_audio(ctx);
 	free(ctx);
 }
@@ -771,7 +771,7 @@ void configure(avplay *play, void* param, int type)
 {
 	if (type == AUDIO_RENDER)
 	{
-		if (play->m_ao_ctx && play->m_ao_ctx->audio_dev)
+		if (play->m_ao_ctx && play->m_ao_ctx->priv)
 			free_audio_render(play->m_ao_ctx);
 		play->m_ao_ctx = (ao_context*)param;
 	}

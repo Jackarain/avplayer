@@ -665,7 +665,7 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 #ifdef USE_Y4M_OUT
 		if (render_type == RENDER_Y4M || check == -1)
 		{
-			ret = y4m_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ret = y4m_init_video(vo, 10, 10, PIX_FMT_YUV420P);
 			y4m_destory_render(vo);
 			if (ret == 0)
 			{
@@ -686,7 +686,7 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 
 		if (render_type == RENDER_D3D || check == -1)
 		{
-			ret = d3d_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ret = d3d_init_video(vo, 10, 10, PIX_FMT_YUV420P);
 			d3d_destory_render(vo);
 			if (ret == 0)
 			{
@@ -706,7 +706,7 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 
 		if (render_type == RENDER_DDRAW || check == -1)
 		{
-			ret = ddraw_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ret = ddraw_init_video(vo, 10, 10, PIX_FMT_YUV420P);
 			ddraw_destory_render(vo);
 			if (ret == 0)
 			{
@@ -726,7 +726,7 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 
 		if (render_type == RENDER_OGL || check == -1)
 		{
-			ret = ogl_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ret = ogl_init_video(vo, 10, 10, PIX_FMT_YUV420P);
 			ogl_destory_render(vo);
 			if (ret == 0)
 			{
@@ -746,7 +746,7 @@ void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
 
 		if (render_type == RENDER_SOFT || check == -1)
 		{
-			ret = gdi_init_video((void*)vo, 10, 10, PIX_FMT_YUV420P);
+			ret = gdi_init_video(vo, 10, 10, PIX_FMT_YUV420P);
 			gdi_destory_render(vo);
 			if (ret == 0)
 			{
@@ -1223,7 +1223,7 @@ BOOL player_impl::load_subtitle(const char *subtitle)
 	return TRUE;
 }
 
-int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
+int player_impl::draw_frame(struct vo_context *ctx, AVFrame* data, int pix_fmt, double pts)
 {
 	vo_context *vo = (vo_context*)ctx;
 	player_impl *this_ptr = (player_impl*)vo->user_ctx;

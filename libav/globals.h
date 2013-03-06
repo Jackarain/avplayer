@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 struct AVFrame;
+struct AVPacket;
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
@@ -84,12 +85,12 @@ typedef struct rtsp_source_info
 /* MEDIA_TYPE_YK文件信息. */
 typedef enum youku_source_type
 {
-	youku_hd2,
-	youku_mp4,
-	youku_3gp,
-	youku_3gphd,
-	youku_flv,
-	youku_m3u8
+	youku_hd2,		/* youku高清flv分段的数据. */
+	youku_mp4,		/* youku的mp4分段的数据. */
+	youku_3gp,		/* youku的3gp分段的数据. */
+	youku_3gphd,	/* youku的3gphd分段的数据. */
+	youku_flv,		/* youku的flv分段的数据. */
+	youku_m3u8		/* youku的m3u8数据. */
 } youku_source_type;
 
 typedef struct yk_source_info
@@ -129,27 +130,27 @@ typedef struct source_context
 	 * init_source 函数用于初始化数据source部件, 因为视频数据的来源可能不同, 则具体实现
 	 *	也可能不同, 所以, 初化时也会不同.
 	 */
-	int (*init_source)(void *ctx);
+	int (*init_source)(struct source_context *source_ctx);
 
 	/*
 	 * read_data 函数用于读取指定大小的数据, 返回已经读取的数据大小.
 	 */
-	int64_t (*read_data)(void *ctx, char* buff, size_t buf_size);
+	int64_t (*read_data)(struct source_context *source_ctx, char* buff, size_t buf_size);
 
 	/*
 	 * 跳转读取数据的位置.
 	 */
-	int64_t (*read_seek)(void *ctx, int64_t offset, int whence);
+	int64_t (*read_seek)(struct source_context *source_ctx, int64_t offset, int whence);
 
 	/*
 	 * 关闭数据读取源.
 	 */
-	void (*close)(void *ctx);
+	void (*close)(struct source_context *source_ctx);
 
 	/*
 	 * 销毁数据读取源.
 	 */
-	void (*destory)(void *ctx);
+	void (*destory)(struct source_context *source_ctx);
 
 	/*
 	 * priv是保存内部用于访问实际数据的对象指针.
@@ -190,34 +191,122 @@ typedef struct source_context
 
 
 /*
+ * 数据源的类型.
+ */
+typedef enum source_type
+{
+	unkown_source_type,		/* 未知的类型. */
+	source_type_flv,	/* 普通的flv. */
+} source_type;
+
+/* unkown_type的信息, 由demux内部去实现分析. */
+// typedef struct unkown_demux_info
+// {
+// 
+// } unkown_demux_info;
+
+
+// typedef union demux_info
+// {
+// 
+// };
+
+/*
+ * demuxer结构定义.
+ */
+typedef struct demux_context
+{
+	/*
+	 * 初始化demux.
+	 * demux_ctx 是demux_context本身的指针.
+	 * source_ctx 是指向一个source_ctx指针的指针, demuxer使用外部的source_ctx读取数据时使用.
+	 * 返回0表示成功, -1表示失败.
+	 */
+	int (*init_demux)(struct demux_context *demux_ctx, void **source_ctx);
+
+	/*
+	 * 读取一个packet到pkt中.
+	 * demux_ctx 是demux_context本身的指针.
+	 * ptk 是一个用于读取packet已经被av_init_packet初始化的指针.
+	 * 返回0表示ok, 小于0表示失败或者已经到了文件尾.
+	 */
+	int (*read_packet)(struct demux_context *demux_ctx, AVPacket *pkt);
+
+	/*
+	 * seek_packet 是用于seek到指定的timestamp位置.
+	 * demux_ctx 是demux_context本身的指针.
+	 * timestamp 是指定的时间位置.
+	 * 返回0表示ok, 其它值表示失败.
+	 */
+	int (*packet_seek)(struct demux_context *demux_ctx, int64_t timestamp);
+
+	/*
+	 * 查询指定媒体类型的index.
+	 * demux_ctx 是demux_context本身的指针.
+	 * type 是指定的类型信息.
+	 * 返回指定类型的index信息, -1表示失败.
+	 */
+	int (*stream_index)(struct demux_context *demux_ctx, int type);
+
+	/*
+	 * destory 用于销毁当前demux_context.
+	 */
+	void (*destory)(struct demux_context *demux_ctx);
+
+	/*
+	 * priv是保存内部用于实现demuxer对象指针.
+	 */
+	void *priv;
+
+	/*
+	 * 指定的类型, 可以取source_type或youku_source_type中的类型.
+	 * 备注: 目前实现的type, 只有以下几个:
+	 */
+	int type;
+
+	/*
+	 * demux信息, 用于保存一些demux时需要用到的信息, 以及和外部通信的信息.
+	 */
+	// demux_info info;
+
+	/*
+	 * 当前退出标识, 退出时为true.
+	 */
+	int abort;
+
+} demux_context;
+
+
+/*
  * 视频播放结构定义.
  */
 typedef struct vo_context
 {
-	int (*init_video)(void* ctx, int w, int h, int pix_fmt);
-	int (*render_one_frame)(void *ctx, AVFrame* data, int pix_fmt, double pts);
-	void (*re_size)(void *ctx, int width, int height);
-	void (*aspect_ratio)(void *ctx, int srcw, int srch, int enable_aspect);
-	int (*use_overlay)(void *ctx);
-	void (*destory_video)(void *ctx);
+	int (*init_video)(struct vo_context *vo_ctx, int w, int h, int pix_fmt);
+	int (*render_one_frame)(struct vo_context *vo_ctx, AVFrame* data, int pix_fmt, double pts);
+	void (*re_size)(struct vo_context *vo_ctx, int width, int height);
+	void (*aspect_ratio)(struct vo_context *vo_ctx, int srcw, int srch, int enable_aspect);
+	int (*use_overlay)(struct vo_context *vo_ctx);
+	void (*destory_video)(struct vo_context *vo_ctx);
 	void *video_dev;
 	void *user_data;	/* for window hwnd. */
 	void *user_ctx;		/* for user context. */
 	float fps;			/* fps */
 } vo_context;
 
+
 /*
  * 音频播放输出结构定义.
  */
 typedef struct ao_context
 {
-	int (*init_audio)(void *ctx, uint32_t channels, uint32_t bits_per_sample,
+	int (*init_audio)(struct ao_context *ao_ctx, uint32_t channels, uint32_t bits_per_sample,
 		uint32_t sample_rate, int format);
-	int (*play_audio)(void *ctx, uint8_t *data, uint32_t size);
-	void (*audio_control)(void *ctx, double l, double r);
-	void (*mute_set)(void *ctx, int s);
-	void (*destory_audio)(void *ctx);
-	void *audio_dev;
+	int (*play_audio)(struct ao_context *ao_ctx, uint8_t *data, uint32_t size);
+	void (*audio_control)(struct ao_context *ao_ctx, double l, double r);
+	void (*mute_set)(struct ao_context *ao_ctx, int s);
+	void (*destory_audio)(struct ao_context *ao_ctx);
+	void *priv;
 } ao_context;
 
 #endif /* __AVPLAYER_GLOBALS_H__ */
