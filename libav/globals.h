@@ -52,14 +52,15 @@ typedef struct media_info
 /* MEDIA_TYPE_BT文件信息. */
 typedef struct bt_source_info
 {
-	char *torrent_data;				/* torrent种子数据缓冲, 在source外部分配和释放.	*/
-	int torrent_length;				/* torrent种子数据缓冲长度. */
-	char save_path[MAX_URI_PATH];	/* 视频下载保存位置. */
+	char *torrent_data;					/* torrent种子数据缓冲, 在source外部分配和释放.	*/
+	int torrent_length;					/* torrent种子数据缓冲长度. */
+	char save_path[MAX_URI_PATH];		/* 视频下载保存位置. */
 
 	/*
 	 * torrent中包含的视频文件信息, 一个torrent种子中可能包含多个视频文件.
 	 * info其中包含了视频文件名, 视频文件在torrent中的偏移起始位置, 以及视频文
 	 * 件大小.
+	 * 内存在bt_init_source中分配, bt_close/bt_destory中释放.
 	 */
 	media_info *info;
 
@@ -68,8 +69,17 @@ typedef struct bt_source_info
 
 } bt_source_info;
 
-/* TODO: MEDIA_TYPE_HTTP文件信息, 暂无实现, 依赖ffmpeg内部实现. */
-/* TODO: MEDIA_TYPE_RTSP文件信息, 暂无实现, 依赖ffmpeg内部实现. */
+/* MEDIA_TYPE_HTTP文件信息, 暂无实现, 依赖ffmpeg内部实现. */
+typedef struct http_source_info
+{
+	char url[MAX_URI_PATH];
+} http_source_info;
+
+/* MEDIA_TYPE_RTSP文件信息, 暂无实现, 依赖ffmpeg内部实现. */
+typedef struct rtsp_source_info
+{
+	char url[MAX_URI_PATH];
+} rtsp_source_info;
 
 /* MEDIA_TYPE_YK文件信息. */
 typedef enum youku_source_type
@@ -104,9 +114,11 @@ typedef struct yk_source_info
  */
 typedef union source_info
 {
-	file_source_info file;	/* file_source_info类型. */
-	bt_source_info bt;		/* bt_source_info类型. */
-	yk_source_info yk;		/* yk_source_info类型. */
+	struct file_source_info file;	/* file_source_info类型. */
+	struct bt_source_info bt;		/* bt_source_info类型. */
+	struct yk_source_info yk;		/* yk_source_info类型. */
+	struct http_source_info http;	/* http_source_info类型. */
+	struct rtsp_source_info rtsp;	/* rtsp_source_info类型. */
 } source_info;
 
 
@@ -164,11 +176,6 @@ typedef struct source_context
 	source_info info;
 
 	/*
-	 * 记录当前播放数据偏移, 绝对位置.
-	 */
-	int64_t offset;
-
-	/*
 	 * 用于获得和控制下载.
 	 * 
 	 */
@@ -178,27 +185,6 @@ typedef struct source_context
 	 * 当前退出标识, 退出时为true.
 	 */
 	int abort;
-
-// 	/*
-// 	 * 如果类型是MEDIA_TYPE_BT, 则此指向bt种子数据.
-// 	 */
-// 	char *torrent_data;
-// 	int torrent_len;
-// 	char *save_path;	/* 在av_destory中释放. */
-
-// 	/* torrent中的媒体文件信息, 只有在打开
-// 	 * torrent之后, 这里面才可能有数据.
-// 	 */
-// 	media_info *media;
-
-// 	/*
-// 	 * 媒体文件信息个数, 主要为BT文件播放设计, 因为一个torrent中可
-// 	 * 能存在多个视频文件.
-// 	 */
-// 	int media_size;
-
-
-
 
 } source_context;
 

@@ -622,33 +622,28 @@ void player_impl::init_file_source(source_context *sc)
 {
 	sc->init_source = file_init_source;
 	sc->read_data = file_read_data;
+	sc->read_seek = file_read_seek;
 	sc->close = file_close;
 	sc->destory = file_destory;
-	sc->offset = 0;
 }
 
 void player_impl::init_torrent_source(source_context *sc)
 {
 	sc->init_source = bt_init_source;
 	sc->read_data = bt_read_data;
-	sc->video_media_info = bt_media_info;
+	sc->read_seek = bt_read_seek;
 	sc->read_seek = bt_read_seek;
 	sc->close = bt_close;
 	sc->destory = bt_destory;
-	sc->offset = 0;
-	sc->save_path = strdup(".");
 }
 
 void player_impl::init_yk_source(source_context *sc)
 {
     sc->init_source = yk_init_source;
     sc->read_data = yk_read_data;
-    sc->video_media_info = yk_media_info;
     sc->read_seek = yk_read_seek;
     sc->close = yk_close;
     sc->destory = yk_destory;
-    sc->offset = 0;
-    sc->save_path = strdup(".");
 }
 
 void player_impl::init_audio(ao_context *ao)
@@ -911,12 +906,10 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
 		if (media_type == MEDIA_TYPE_BT)
 		{
-			int i = 0;
-			media_info *media = m_avplay->m_source_ctx->media;
-			for (; i < m_avplay->m_source_ctx->media_size; i++)
+			bt_source_info *bt_info = &m_avplay->m_source_ctx->info.bt;
+			for (int i = 0; i < bt_info->info_size; i++)
 			{
-				std::string name;
-				name = media->name;
+				std::string name = std::string(bt_info->info[i].file_name);
 				m_media_list.insert(std::make_pair(filename, name));
 			}
 		}
@@ -1277,13 +1270,13 @@ int player_impl::draw_frame(void *ctx, AVFrame* data, int pix_fmt, double pts)
 int player_impl::download_rate()
 {
 	if (m_source)
-		return m_source->info.speed;
+		return m_source->dl_info.speed;
 }
 
 void player_impl::set_download_rate(int k)
 {
 	if (m_source)
-		m_source->info.limit_speed = k;
+		m_source->dl_info.limit_speed = k;
 }
 
 void player_impl::toggle_mute()
