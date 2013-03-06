@@ -7,15 +7,12 @@
 #include "libyk.h"
 
 
-// ykÖĞµÄÊÓÆµĞÅÏ¢.
-struct yk_video_file_info 
+// ykä¸­çš„è§†é¢‘ä¿¡æ¯.
+struct open_yk_data 
 {
-	int index;						// id.
-	std::string title;				// ÊÓÆµÎÄ¼şÃû.
-	std::string source;				// ÊÓÆµÔ´µØÖ·
-	uint64_t data_size;		// ÊÓÆµ´óĞ¡.
-	uint64_t base_offset;	// ÊÓÆµÔÚykÖĞµÄÆ«ÒÆ.
-	int status;						// µ±Ç°²¥·Å×´Ì¬.
+	std::string url;		// æ’­æ”¾youkuçš„url.
+	int type;				// å½“å‰è¯·æ±‚æ’­æ”¾çš„ç±»å‹, æœ‰hd2,mp4,3gp,3gphd,flv,m3u8.
+	std::string save_path;	// ä¸‹è½½çš„youkuè§†é¢‘ä¿å­˜ä½ç½®.
 };
 
 class yk_source
@@ -26,29 +23,29 @@ public:
 	virtual ~yk_source(void);
 
 public:
-	// ´ò¿ª.
+	// æ‰“å¼€.
 	virtual bool open(void* ctx);
 
-	// ¶ÁÈ¡Êı¾İ.
-	virtual bool read_data(char* data, uint64_t offset, size_t size, size_t& read_size);
+	// è¯»å–æ•°æ®.
+	virtual bool read_data(char* data, size_t size, size_t& read_size);
 
-	// seek²Ù×÷, ´Ë´¦·µ»Øtrue, ±íÊ¾Êı¾İ²»¹», ĞèÒª»º³å.
+	// seekæ“ä½œ, æ­¤å¤„è¿”å›true, è¡¨ç¤ºæ•°æ®ä¸å¤Ÿ, éœ€è¦ç¼“å†².
 	virtual bool read_seek(uint64_t offset, int whence);
 
-	// ¹Ø±Õ.
+	// å…³é—­.
 	virtual void close();
 
-	// ÉèÖÃ»ò»ñµÃµ±Ç°²¥·ÅµÄÊÓÆµÎÄ¼ş.
+	// è®¾ç½®æˆ–è·å¾—å½“å‰æ’­æ”¾çš„è§†é¢‘æ–‡ä»¶.
 	virtual bool set_current_video(int index);
-	virtual bool get_current_video(yk_video_file_info& vfi) const;
+	virtual bool get_current_video(open_yk_data& vfi) const;
 
-	// µ±Ç°ÊÓÆµÁĞ±í.
-	virtual std::vector<yk_video_file_info> video_list() const;
+	// å½“å‰è§†é¢‘åˆ—è¡¨.
+	virtual std::vector<open_yk_data> video_list() const;
 
-	// ÖØÖÃ¶ÁÈ¡Êı¾İ.
+	// é‡ç½®è¯»å–æ•°æ®.
 	virtual void reset();
 
-	// ½âÎöurl.
+	// è§£æurl.
 	bool parse_url(const std::string &url);
 
 

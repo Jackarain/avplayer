@@ -38,7 +38,10 @@ public:
    virtual bool open(void* ctx);
 
    // 读取数据.
-   virtual bool read_data(char* data, uint64_t offset, size_t size, size_t& read_size);
+   virtual bool read_data(char* data, size_t size, size_t& read_size);
+
+   // seek操作.
+   virtual bool read_seek(uint64_t offset, int whence);
 
    // 关闭.
    virtual void close();
@@ -48,7 +51,7 @@ private:
    open_file_data *m_open_data;
 
    // 文件指针.
-   FILE* m_file;
+   FILE *m_file;
 
    // 文件大小.
    uint64_t m_file_size;

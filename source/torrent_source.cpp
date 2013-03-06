@@ -84,6 +84,7 @@ bool torrent_source::open(void* ctx)
 			video_file_info vfi;
 			vfi.filename = convert_to_native(i->filename());
 			vfi.base_offset = i->offset;
+			vfi.offset = i->offset;
 			vfi.data_size = i->size;
 			vfi.index = index++;
 			vfi.status = 0;
@@ -145,7 +146,7 @@ bool torrent_source::open(void* ctx)
 	return true;
 }
 
-bool torrent_source::read_data(char* data, uint64_t offset, size_t size, size_t& read_size)
+bool torrent_source::read_data(char* data, size_t size, size_t& read_size)
 {
 	if (!m_read_op || !data || m_videos.size() == 0)
 		return false;
@@ -153,17 +154,17 @@ bool torrent_source::read_data(char* data, uint64_t offset, size_t size, size_t&
 	bool ret = false;
 	int piece_offset = 0;
 
-	// 此处有bug, 必须在read_data函数退出后, 才能destroy.
+	// 必须保证read_data函数退出后, 才能destroy这个对象!!!
 	read_size = 0;
 	m_reset = false;
 
 	// 读取数据越界.
-	if (offset >= m_current_video.data_size)
+	if (m_current_video.offset >= m_current_video.base_offset + m_current_video.data_size ||
+		m_current_video.offset < m_current_video.base_offset)
 		return false;
 
-	// 修正偏移.
-	offset += m_current_video.base_offset;
-	const torrent_info& info = m_torrent_handle.get_torrent_info();
+	uint64_t &offset = m_current_video.offset;
+	const torrent_info &info = m_torrent_handle.get_torrent_info();
 	piece_offset = offset / info.piece_length();
 
 	boost::mutex::scoped_lock lock(m_abort_mutex);
@@ -177,6 +178,8 @@ bool torrent_source::read_data(char* data, uint64_t offset, size_t size, size_t&
 			if (ret)
 			{
 				read_size = rs;
+				// 修正当前偏移位置.
+				m_current_video.offset + rs;
 				break;
 			}
 			else
@@ -207,8 +210,11 @@ bool torrent_source::read_seek(uint64_t offset, int whence)
 	if (!m_read_op || m_videos.size() == 0)
 		return false;
 
-	if (offset >= m_current_video.data_size)
+	if (offset >= m_current_video.data_size || offset < 0)
 		return false;
+
+	// 修正当前偏移为请求的偏移.
+	m_current_video.offset = offset;
 
 	// 在这里检查请求seek时, 所在位置的分块或下一个块是否已经下载, 如果未下载, 则通知上层进入暂停缓冲逻辑.
 	if (whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END)
@@ -243,19 +249,22 @@ bool torrent_source::set_current_video(int index)
 	// 检查是否初始化及参数是否有效.
 	if (!m_open_data)
 		return false;
+
 	if (index >= m_videos.size() || index < 0)
 		return false;
+
 	// 设置为当前视频.
 	m_current_video = m_videos[index];
 
 	return true;
 }
 
-bool torrent_source::get_current_video(video_file_info& vfi) const
+bool torrent_source::get_current_video(video_file_info &vfi) const
 {
 	if (!m_open_data)
 		return false;
-	// 设置为当前视频.
+
+	// 返回当前视频.
 	vfi = m_current_video;
 
 	return true;

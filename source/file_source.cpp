@@ -1,4 +1,3 @@
-
 #include <string.h>
 
 #include "ins.h"
@@ -46,68 +45,77 @@ file_source::~file_source()
 
 bool file_source::open(void* ctx)
 {
-   // 保存ctx.
-   m_open_data =(open_file_data*)ctx;
+	// 保存ctx.
+	m_open_data =(open_file_data*)ctx;
 
-   // 打开文件.
+	// 打开文件.
 	if (access(m_open_data->filename.c_str(), 0) == -1)
 		return false;
 
-   // 获得文件大小.
-   m_file_size = file_size(m_open_data->filename.c_str());
+	// 获得文件大小.
+	m_file_size = file_size(m_open_data->filename.c_str());
 
-   // 打开文件.
-   m_file = fopen(m_open_data->filename.c_str(), "rb");
-   if (!m_file)
-      return false;
-   // 设置缓冲区大小.
-   setvbuf(m_file, NULL, _IOFBF, BUFFER_SIZE);
+	// 打开文件.
+	m_file = fopen(m_open_data->filename.c_str(), "rb");
+	if (!m_file)
+		return false;
 
-   return true;
+	// 设置缓冲区大小.
+	setvbuf(m_file, NULL, _IOFBF, BUFFER_SIZE);
+
+	return true;
 }
 
-bool file_source::read_data(char* data, uint64_t offset, size_t size, size_t& read_size)
+bool file_source::read_data(char* data, size_t size, size_t& read_size)
 {
-   static char read_buffer[AVG_READ_SIZE];
+	static char read_buffer[AVG_READ_SIZE];
 
-   // 根据参数加锁.
-   if (m_open_data->is_multithread)
+	// 根据参数加锁.
+	if (m_open_data->is_multithread)
 		pthread_mutex_lock(&m_mutex);
-
-   read_size = 0;
-
-   // 读取数据越界.
-   if (offset >= m_file_size)
-	{
-		if (m_open_data->is_multithread)
-			pthread_mutex_unlock(&m_mutex);
-		return false;
-	}
 
 	if (!m_file)
 	{
 		if (m_open_data->is_multithread)
 			pthread_mutex_unlock(&m_mutex);
-		return true;
+		return false;
 	}
 
-	// 从文件中读取数据.
-	// 移到偏移位置.
-	fseek(m_file, offset, SEEK_SET);
 	// 开始读取数据.
 	read_size = fread(data, 1, size, m_file);
 
 	if (m_open_data->is_multithread)
 		pthread_mutex_unlock(&m_mutex);
 
-   return true;
+	return true;
+}
+
+bool file_source::read_seek(uint64_t offset, int whence)
+{
+	// 参数检查.
+	if (offset > m_file_size || !m_file)
+		return false;
+
+	if (m_open_data->is_multithread)
+		pthread_mutex_lock(&m_mutex);
+
+	// 进行seek操作.
+	int ret = fseek(m_file, offset, whence);
+
+	if (m_open_data->is_multithread)
+		pthread_mutex_unlock(&m_mutex);
+
+	if (ret == 0)
+		return true;
+
+	return false;
 }
 
 void file_source::close()
 {
-   if (m_file)
-   {
-      fclose(m_file);
-      m_file = NULL;
-   }
+	if (m_file)
+	{
+		fclose(m_file);
+		m_file = NULL;
+	}
 }

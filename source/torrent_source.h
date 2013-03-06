@@ -37,21 +37,26 @@ fs::path::default_name_check(fs::no_check);
 // 打开torrent时种子数据.
 struct open_torrent_data 
 {
-	bool is_file;           // 是否是种子文件.
-	std::string filename;   // 种子文件名.
-	boost::shared_ptr<char> torrent_data;  // 种子数据.
-	int data_size;                         // 种子数据大小.
-	std::string save_path;                 // 保存路径.
+	bool is_file;							// 是否是种子文件.
+	std::string filename;					// 种子文件名.
+	boost::shared_ptr<char> torrent_data;	// 种子数据.
+	int data_size;							// 种子数据大小.
+	std::string save_path;					// 保存路径.
 };
 
 // torrent中的视频信息.
 struct video_file_info 
 {
-	int index;              // id.
-	std::string filename;   // 视频文件名.
-	boost::uint64_t data_size;    // 视频大小.
-	boost::uint64_t base_offset;  // 视频在torrent中的偏移.
-	int status;             // 当前播放状态.
+	video_file_info()
+		: offset(-1)	// m_offset标识为-1, 当初始化时应该修正为base_offset.
+	{}
+
+	int index;						// id.
+	std::string filename;			// 视频文件名.
+	boost::uint64_t data_size;		// 视频大小.
+	boost::uint64_t base_offset;	// 视频在torrent中的偏移.
+	uint64_t offset;				// 数据访问的偏移, 相对于base_offset.
+	int status;						// 当前播放状态.
 };
 
 class torrent_source
@@ -66,7 +71,7 @@ public:
 	virtual bool open(void* ctx);
 
 	// 读取数据.
-	virtual bool read_data(char* data, uint64_t offset, size_t size, size_t& read_size);
+	virtual bool read_data(char* data, size_t size, size_t& read_size);
 
 	// seek操作, 此处返回true, 表示数据不够, 需要缓冲.
 	virtual bool read_seek(uint64_t offset, int whence);

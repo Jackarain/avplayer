@@ -23,7 +23,7 @@ public:
    virtual bool open(void *ctx) = 0;
 
    // 读取数据.
-   virtual bool read_data(char *data, uint64_t offset, size_t size, size_t& read_size) = 0;
+   virtual bool read_data(char *data, size_t size, size_t& read_size) = 0;
 
    // seek操作.
    virtual bool read_seek(uint64_t offset, int whence) { return false; }
