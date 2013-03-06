@@ -838,8 +838,6 @@ void wait_for_threads(avplay *play)
 		pthread_join(play->m_audio_render_thrd, &status);
 	if (play->m_video_index != -1)
 		pthread_join(play->m_video_render_thrd, &status);
-	/* 更改播放状态. */
-	play->m_play_status = stoped;
 }
 
 void av_stop(avplay *play)
@@ -897,6 +895,9 @@ void av_stop(avplay *play)
 		av_free(play->m_avio_ctx);
 		play->m_avio_ctx = NULL;
 	}
+	/* 更改播放状态. */
+	play->m_play_status = stoped;
+
 	avformat_network_deinit();
 }
 
