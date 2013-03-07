@@ -12,6 +12,8 @@
 
 struct AVFrame;
 struct AVPacket;
+enum AVMediaType;
+enum AVCodecID;
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
@@ -246,7 +248,15 @@ typedef struct demux_context
 	 * type 是指定的类型信息.
 	 * 返回指定类型的index信息, -1表示失败.
 	 */
-	int (*stream_index)(struct demux_context *demux_ctx, int type);
+	int (*stream_index)(struct demux_context *demux_ctx, enum AVMediaType type);
+
+	/*
+	 * 查询指定index上的AVCodecID信息.
+	 * demux_ctx 是demux_context本身的指针.
+	 * index 是指定的index信息, 可由stream_index查询得到.
+	 * 返回指定的index的AVCodecID信息.
+	 */
+	enum AVCodecID (*query_avcodec_id)(struct demux_context *demux_ctx, int index);
 
 	/*
 	 * destory 用于销毁当前demux_context.
