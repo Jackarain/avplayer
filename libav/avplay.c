@@ -509,7 +509,7 @@ vo_context* alloc_video_render(void *user_data)
 
 void free_video_render(vo_context *ctx)
 {
-	if (ctx->video_dev)
+	if (ctx->priv)
 		ctx->destory_video(ctx);
 	free(ctx);
 }
@@ -777,7 +777,7 @@ void configure(avplay *play, void* param, int type)
 	}
 	if (type == VIDEO_RENDER)
 	{
-		if (play->m_vo_ctx && play->m_vo_ctx->video_dev)
+		if (play->m_vo_ctx && play->m_vo_ctx->priv)
 			free_video_render(play->m_vo_ctx);
 		play->m_vo_ctx = (vo_context*)param;
 	}

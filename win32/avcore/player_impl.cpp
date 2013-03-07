@@ -507,7 +507,7 @@ LRESULT player_impl::win_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 			RECT window;
 			GetClientRect(hwnd, &window);
 			if (m_avplay && m_avplay->m_vo_ctx &&
-				m_video->video_dev)
+				m_video->priv)
 			{
 				m_video->re_size(m_video, LOWORD(lparam), HIWORD(lparam));
 			}
@@ -531,7 +531,7 @@ void player_impl::win_paint(HWND hwnd, HDC hdc)
 {
 	if (m_avplay &&
 		 m_avplay->m_vo_ctx &&
-		 m_video->video_dev &&
+		 m_video->priv &&
 		 m_video->use_overlay(m_video) != -1)
 	{
 		RECT client_rect;

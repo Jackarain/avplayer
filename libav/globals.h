@@ -298,7 +298,7 @@ typedef struct vo_context
 	void (*aspect_ratio)(struct vo_context *vo_ctx, int srcw, int srch, int enable_aspect);
 	int (*use_overlay)(struct vo_context *vo_ctx);
 	void (*destory_video)(struct vo_context *vo_ctx);
-	void *video_dev;
+	void *priv;
 	void *user_data;	/* for window hwnd. */
 	void *user_ctx;		/* for user context. */
 	float fps;			/* fps */
