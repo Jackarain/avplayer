@@ -10,4 +10,26 @@
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="demux.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="unkown_demux.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="demux.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="demuxer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="internal.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="unkown_demux.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
