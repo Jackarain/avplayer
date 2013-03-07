@@ -14,6 +14,7 @@ struct AVFrame;
 struct AVPacket;
 enum AVMediaType;
 enum AVCodecID;
+struct AVRational;
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
@@ -221,6 +222,24 @@ typedef union demux_info
 } demux_info;
 
 /*
+ * 媒体文件的基本信息, 这些信息都从demux解析获得, 由libav使用.
+ */
+typedef struct media_base_info
+{
+	int has_video;	/* 是否有视频信息, -1表示没有. */
+	int has_audio;	/* 是否有音频信息, -1表示没有. */
+
+	int64_t video_start_time;	/* 视频起始时间信息. */
+	int64_t audio_start_time;	/* 音频起始时间信息. */
+
+	AVRational *video_time_base;	/* 视频基本时间. */
+	AVRational *audio_time_base;	/* 音频基本时间. */
+
+	AVRational *video_frame_rate;	/* 视频帧率. */
+	AVRational *audio_frame_rate;	/* 音频帧率. */
+} media_base_info;
+
+/*
  * demuxer结构定义.
  */
 typedef struct demux_context
@@ -285,6 +304,11 @@ typedef struct demux_context
 	 * demux信息, 用于保存一些demux时需要用到的信息, 以及和外部通信的信息.
 	 */
 	demux_info info;
+
+	/*
+	 * 包含一些基本的视频信息.
+	 */
+	media_base_info base_info;
 
 	/*
 	 * 当前退出标识, 退出时为true.

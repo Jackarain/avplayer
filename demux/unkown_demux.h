@@ -13,10 +13,12 @@
 #endif
 
 #include "demuxer.h"
+#include "globals.h"
 
 struct unkown_demux_data
 {
-	std::string file_name;
+	std::string file_name;				// 文件名.
+	source_context **source_ctx;		// 指向外部传入的source_context指针, 内部可操作, 但由外部释放.
 };
 
 class unkown_demux : public demuxer
@@ -51,6 +53,58 @@ public:
 	// 关闭.
 	virtual void close();
 
+	// 是否中止.
+	inline bool is_abort() { return m_abort; }
+
+	// 获得视频的基本信息.
+	media_base_info base_info();
+
+protected:
+
+	// 中止解码回调.
+	static int decode_interrupt_cb(void *ctx);
+
+	// 从source中读取数据.
+	static int read_data(void *opaque, uint8_t *buf, int buf_size);
+
+	// 向source中写入数据.
+	static int write_data(void *opaque, uint8_t *buf, int buf_size);
+
+	// 在source中进行seek.
+	static int64_t seek_data(void *opaque, int64_t offset, int whence);
+
+	// 查询指定的index.
+	int query_index(enum AVMediaType type, AVFormatContext *ctx);
+
+	// 复制AVRational.
+	inline void AVRational_copy(AVRational &src, AVRational &dst)
+	{
+		dst.den = src.den;
+		dst.num = src.num;
+	}
+
+
+protected:
+	// 参数信息.
+	unkown_demux_data m_unkown_demux_data;
+
+	// 使用FFmpeg的AVFormatContext来读取AVPacket.
+	AVFormatContext *m_format_ctx;
+
+	// 数据IO上下文指针.
+	AVIOContext *m_avio_ctx;
+
+	// source_context指针.
+	source_context *m_source_ctx;
+
+	// 视频的基本信息.
+	media_base_info m_base_info;
+
+	// 数据缓冲.
+	unsigned char *m_io_buffer;
+
+	// 是否中止.
+	bool m_abort;
 };
 
 #endif // __UNKOWN_DEMUX_H__

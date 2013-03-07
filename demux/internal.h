@@ -26,6 +26,8 @@ extern "C"
 }
 
 #include <string>
+#include <iostream>
+
 #include <boost/any.hpp>
 
 #ifdef _MSC_VER

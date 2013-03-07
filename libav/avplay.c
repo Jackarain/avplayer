@@ -555,7 +555,7 @@ int initialize(avplay *play, source_context *sc)
 		/* 分配io上下文. */
 		play->m_avio_ctx = avio_alloc_context(play->m_io_buffer, 
 			IO_BUFFER_SIZE, 0, (void*)play, read_packet, NULL, seek_packet);
-		if (!play->m_io_buffer)
+		if (!play->m_avio_ctx)
 		{
 			printf("Create io context failed!\n");
 			av_free(play->m_io_buffer);
