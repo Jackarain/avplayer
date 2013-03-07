@@ -30,6 +30,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avplayer", "win32\avplayer\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libyk", "libyk\libyk.vcproj", "{46CD66DB-40A1-4677-91B4-F3226FAB8941}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demux", "demux\demux.vcproj", "{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -68,6 +70,10 @@ Global
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Debug|Win32.Build.0 = Debug|Win32
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Release|Win32.ActiveCfg = Release|Win32
 		{46CD66DB-40A1-4677-91B4-F3226FAB8941}.Release|Win32.Build.0 = Release|Win32
+		{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}.Debug|Win32.Build.0 = Debug|Win32
+		{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}.Release|Win32.ActiveCfg = Release|Win32
+		{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
