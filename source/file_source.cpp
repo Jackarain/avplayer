@@ -47,10 +47,10 @@ file_source::~file_source()
 		delete m_open_data;
 }
 
-bool file_source::open(void* ctx)
+bool file_source::open(boost::any ctx)
 {
 	// 保存ctx.
-	m_open_data =(open_file_data*)ctx;
+	m_open_data = boost::any_cast<open_file_data*>(ctx);
 
 	// 打开文件.
 	if (access(m_open_data->filename.c_str(), 0) == -1)

@@ -10,7 +10,7 @@ yk_source::~yk_source(void)
 {
 }
 
-bool yk_source::open(void* ctx)
+bool yk_source::open(boost::any ctx)
 {
 	return false;
 }

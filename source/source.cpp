@@ -58,7 +58,7 @@ EXPORT_API int file_init_source(struct source_context *ctx)
 	od->is_multithread = false;
 
 	// 打开文件.
-	return fs->open((void*)od) ? 0 : -1;
+	return fs->open(od) ? 0 : -1;
 }
 
 EXPORT_API int64_t file_read_data(struct source_context *ctx, char* buff, size_t buf_size)
@@ -153,7 +153,7 @@ EXPORT_API int bt_init_source(struct source_context *ctx)
 	ctx->priv = (void*)ts;
 
 	// 打开种子.
-	if (ts->open((void*)otd))
+	if (ts->open(otd))
 	{
 		// 更新视频信息, 保存到bt_info当中.
 		std::vector<video_file_info> vfi = ts->video_list();
@@ -307,7 +307,7 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 	yd->type = yk_info.type;
 
 	// 打开视频.
-	if (ys->open((void*)yd))
+	if (ys->open(yd))
 		return 0;
 	return -1;
 

@@ -29,13 +29,10 @@ torrent_source::~torrent_source()
 	close();
 }
 
-bool torrent_source::open(void* ctx)
+bool torrent_source::open(boost::any ctx)
 {
-	if (!ctx)
-		return false;
-
 	// 保存打开指针.
-	m_open_data.reset((open_torrent_data*)ctx);
+	m_open_data.reset(boost::any_cast<open_torrent_data*>(ctx));
 
 	// 开启下载对象.
 	add_torrent_params p;

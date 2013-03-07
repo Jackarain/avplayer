@@ -12,6 +12,8 @@
 # pragma once
 #endif
 
+#include <boost/any.hpp>
+
 class av_source
 {
 public:
@@ -20,7 +22,7 @@ public:
 
 public:
    // 打开.
-   virtual bool open(void *ctx) = 0;
+	virtual bool open(boost::any ctx) = 0;
 
    // 读取数据.
    virtual bool read_data(char *data, size_t size, size_t &read_size) = 0;

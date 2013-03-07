@@ -34,7 +34,7 @@ public:
 
 public:
    // 打开.
-   virtual bool open(void* ctx);
+   virtual bool open(boost::any ctx);
 
    // 读取数据.
    virtual bool read_data(char* data, size_t size, size_t &read_size);
