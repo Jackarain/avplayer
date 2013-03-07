@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "d3d_render.h"
 #include "dxerr9.h"
 #pragma comment(lib, "DxErr9.lib")

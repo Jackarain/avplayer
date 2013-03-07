@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "globals.h"
 #include "video_out.h"
 #include "d3d_render.h"

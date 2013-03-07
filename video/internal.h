@@ -1,12 +1,12 @@
 //
-// ins.h
-// ~~~~~
+// internal.h
+// ~~~~~~~~~~
 //
 // Copyright (c) 2011 Jack (jack.wgm@gmail.com)
 //
 
-#ifndef __INS_H__
-#define __INS_H__
+#ifndef __INTERNAL_H__
+#define __INTERNAL_H__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
@@ -39,4 +39,4 @@ extern "C"
 #include <MMSystem.h>
 #include <dsound.h>
 
-#endif // __INS_H__
+#endif // __INTERNAL_H__

@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "dsound_render.h"
 #include <math.h>
 

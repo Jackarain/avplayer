@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 
 // 使用gdi+渲染.
 #include <gdiplus.h>
