@@ -7,6 +7,7 @@
 
 #ifndef __VIDEO_OUT_H__
 #define __VIDEO_OUT_H__
+
 #ifdef _MSC_VER
 #ifdef VIDEO_EXPORTS
 #define EXPORT_API __declspec(dllexport)
