@@ -65,7 +65,7 @@ bool torrent_source::open(boost::any ctx)
 
 	int index = 0;
 	// 遍历视频文件.
-	file_storage fs = p.ti->files();
+	const file_storage &fs = p.ti->files();
 	for (file_storage::iterator i = fs.begin();
 		i != fs.end(); i++)
 	{
