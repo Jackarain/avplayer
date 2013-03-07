@@ -13,6 +13,8 @@
 #endif
 
 // 内部使用的头文件.
-
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
 
 #endif // __INTERNAL_H__
