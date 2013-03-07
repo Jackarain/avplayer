@@ -49,6 +49,7 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -125,6 +126,7 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -184,6 +186,10 @@
 				RelativePath=".\demux.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\unkown_demux.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -195,7 +201,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\demuxer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\internal.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unkown_demux.h"
 				>
 			</File>
 		</Filter>

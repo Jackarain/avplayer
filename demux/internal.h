@@ -12,9 +12,24 @@
 # pragma once
 #endif
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable : 4244)
+#endif // _MS_VER
+
 // 内部使用的头文件.
+extern "C"
+{
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
+}
+
+#include <string>
+#include <boost/any.hpp>
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif // _MS_VER
 
 #endif // __INTERNAL_H__

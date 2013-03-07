@@ -247,7 +247,7 @@ typedef struct demux_context
 	 * timestamp 是指定的时间位置.
 	 * 返回0表示ok, 其它值表示失败.
 	 */
-	int (*packet_seek)(struct demux_context *demux_ctx, int64_t timestamp);
+	int (*seek_packet)(struct demux_context *demux_ctx, int64_t timestamp);
 
 	/*
 	 * 查询指定媒体类型的index.
