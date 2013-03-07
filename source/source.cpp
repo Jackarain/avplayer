@@ -35,10 +35,8 @@ void ansi_wide(std::string &ansi, std::wstring &wide)
 
 EXPORT_API int file_init_source(struct source_context *ctx)
 {
-	source_context *sc = (source_context*)ctx;
-
 	// 得到文件信息的引用, 方便取出文件名信息.
-	file_source_info &file = sc->info.file;
+	file_source_info &file = ctx->info.file;
 
 	// 检查文件名长度是否有效.
 	if (strlen(file.file_name) <= 0)
@@ -48,7 +46,7 @@ EXPORT_API int file_init_source(struct source_context *ctx)
 	file_source *fs = new file_source();
 
 	// 保存到priv指针.
-	sc->priv = (void*)fs;
+	ctx->priv = (void*)fs;
 
 	// new open_file_data 由file_source内部管理内存.
 	open_file_data *od = new open_file_data;
@@ -65,8 +63,7 @@ EXPORT_API int file_init_source(struct source_context *ctx)
 
 EXPORT_API int64_t file_read_data(struct source_context *ctx, char* buff, size_t buf_size)
 {
-	source_context *sc = (source_context*)ctx;
-	file_source *fs = (file_source *)sc->priv;
+	file_source *fs = (file_source *)ctx->priv;
 	size_t read_size = 0;
 
 	bool ret = fs->read_data(buff, buf_size, read_size);
@@ -78,37 +75,33 @@ EXPORT_API int64_t file_read_data(struct source_context *ctx, char* buff, size_t
 
 EXPORT_API int64_t file_read_seek(struct source_context *ctx, int64_t offset, int whence)
 {
-	source_context *sc = (source_context*)ctx;
-	file_source *fs = (file_source *)sc->priv;
+	file_source *fs = (file_source *)ctx->priv;
 	return fs->read_seek(offset, whence);
 }
 
 EXPORT_API void file_close(struct source_context *ctx)
 {
-	source_context *sc = (source_context*)ctx;
-	file_source *fs = (file_source *)sc->priv;
+	file_source *fs = (file_source *)ctx->priv;
 	fs->close();
 }
 
 EXPORT_API void file_destory(struct source_context *ctx)
 {
-	source_context *sc = (source_context*)ctx;
-	file_source *fs = (file_source *)sc->priv;
+	file_source *fs = (file_source *)ctx->priv;
 	if (fs)
 	{
 		fs->close();
 		delete fs;
-		sc->priv = NULL;
+		ctx->priv = NULL;
 	}
 }
 
 EXPORT_API int bt_init_source(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
-	source_context *sc = (source_context*)ctx;
 	torrent_source *ts = new torrent_source();
 	open_torrent_data *otd = new open_torrent_data;
-	bt_source_info &bt_info = sc->info.bt;
+	bt_source_info &bt_info = ctx->info.bt;
 
 	// 保存torrent种子数据.
 	otd->is_file = false;
@@ -157,7 +150,7 @@ EXPORT_API int bt_init_source(struct source_context *ctx)
 	}
 
 	// 保存到priv指针.
-	sc->priv = (void*)ts;
+	ctx->priv = (void*)ts;
 
 	// 打开种子.
 	if (ts->open((void*)otd))
@@ -189,8 +182,7 @@ EXPORT_API int bt_init_source(struct source_context *ctx)
 EXPORT_API int64_t bt_read_data(struct source_context *ctx, char* buff, size_t buf_size)
 {
 #ifdef USE_TORRENT
-	source_context *sc = (source_context*)ctx;
-	torrent_source *ts = (torrent_source*)sc->priv;
+	torrent_source *ts = (torrent_source*)ctx->priv;
 	size_t readbytes = 0;
 
 	if (!ts->read_data(buff, buf_size, readbytes))
@@ -205,8 +197,7 @@ EXPORT_API int64_t bt_read_data(struct source_context *ctx, char* buff, size_t b
 EXPORT_API int64_t bt_read_seek(struct source_context *ctx, int64_t offset, int whence)
 {
 #ifdef USE_TORRENT
-	source_context *sc = (source_context*)ctx;
-	torrent_source *ts = (torrent_source*)sc->priv;
+	torrent_source *ts = (torrent_source*)ctx->priv;
 
 	// 如果返回true, 则表示数据不够, 需要缓冲.
 	int64_t ret = ts->read_seek(offset, whence);
@@ -216,7 +207,7 @@ EXPORT_API int64_t bt_read_seek(struct source_context *ctx, int64_t offset, int 
 		if (!ts->has_data(ret))
 		{
 			// 表示seek位置没有数据, 上层应该根据dl_info.not_enough判断是否暂时进行缓冲.
-			sc->dl_info.not_enough = 1;
+			ctx->dl_info.not_enough = 1;
 		}
 	}
 
@@ -230,10 +221,9 @@ EXPORT_API int64_t bt_read_seek(struct source_context *ctx, int64_t offset, int 
 EXPORT_API void bt_close(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
-	source_context *sc = (source_context*)ctx;
-	torrent_source *ts = (torrent_source*)sc->priv;
+	torrent_source *ts = (torrent_source*)ctx->priv;
 	ts->close();
-	bt_source_info &bt_info = sc->info.bt;
+	bt_source_info &bt_info = ctx->info.bt;
 	if (bt_info.info)
 	{
 		free(bt_info.info);
@@ -245,19 +235,18 @@ EXPORT_API void bt_close(struct source_context *ctx)
 EXPORT_API void bt_destory(struct source_context *ctx)
 {
 #ifdef USE_TORRENT
-	source_context *sc = (source_context*)ctx;
-	torrent_source *ts = (torrent_source*)sc->priv;
+	torrent_source *ts = (torrent_source*)ctx->priv;
 	if (ts)
 	{
 		ts->close();
-		bt_source_info &bt_info = sc->info.bt;
+		bt_source_info &bt_info = ctx->info.bt;
 		if (bt_info.info)
 		{
 			free(bt_info.info);
 			bt_info.info = NULL;
 		}
 		delete ts;
-		sc->priv = NULL;
+		ctx->priv = NULL;
 	}
 #endif // USE_TORRENT
 }
@@ -266,8 +255,7 @@ EXPORT_API void bt_destory(struct source_context *ctx)
 EXPORT_API int yk_init_source(struct source_context *ctx)
 {
 #ifdef USE_YK
-    source_context *sc = (source_context*)ctx;
-	yk_source_info &yk_info = sc->info.yk;
+	yk_source_info &yk_info = ctx->info.yk;
 
 	// 检查参数有效性.
 	if (!strlen(yk_info.url))
@@ -277,7 +265,7 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 	open_yk_data *yd = new open_yk_data;
 
 	// 更新priv, 把yk_source对象保存到priv中.
-    sc->priv = (void*)ys;
+    ctx->priv = (void*)ys;
 
 	// 保存url.
 	yd->url = std::string(yk_info.url);
