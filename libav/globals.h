@@ -198,20 +198,27 @@ typedef struct source_context
 typedef enum source_type
 {
 	unkown_source_type,		/* 未知的类型. */
-	source_type_flv,	/* 普通的flv. */
+	source_type_flv,		/* 普通的flv, 一个小示例. */
 } source_type;
 
 /* unkown_type的信息, 由demux内部去实现分析. */
-// typedef struct unkown_demux_info
-// {
-// 
-// } unkown_demux_info;
+typedef struct unkown_demux_info
+{
+	char file_name[MAX_URI_PATH];	/* 文件名. */
+} unkown_demux_info;
 
+/* source_type_flv的信息, 由demux使用. */
+typedef struct flv_demux_info
+{
+	int unused;						/* 暂时没有有用的信息. */
+} flv_demux_info;
 
-// typedef union demux_info
-// {
-// 
-// };
+/* 包含具体的demux_info的信息共用. */
+typedef union demux_info
+{
+	unkown_demux_info unkown;	/* 未知的文件格式. */
+	flv_demux_info flv;			/* flv格式. */
+} demux_info;
 
 /*
  * demuxer结构定义.
@@ -224,7 +231,7 @@ typedef struct demux_context
 	 * source_ctx 是指向一个source_ctx指针的指针, demuxer使用外部的source_ctx读取数据时使用.
 	 * 返回0表示成功, -1表示失败.
 	 */
-	int (*init_demux)(struct demux_context *demux_ctx, void **source_ctx);
+	int (*init_demux)(struct demux_context *demux_ctx, source_context **source_ctx);
 
 	/*
 	 * 读取一个packet到pkt中.
@@ -277,7 +284,7 @@ typedef struct demux_context
 	/*
 	 * demux信息, 用于保存一些demux时需要用到的信息, 以及和外部通信的信息.
 	 */
-	// demux_info info;
+	demux_info info;
 
 	/*
 	 * 当前退出标识, 退出时为true.
