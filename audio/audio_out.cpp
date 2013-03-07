@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "globals.h"
 #include "wave_render.h"
 #include "dsound_render.h"

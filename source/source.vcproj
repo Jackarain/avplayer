@@ -216,6 +216,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\internal.h"
+				>
+			</File>
+			<File
 				RelativePath=".\source.h"
 				>
 			</File>

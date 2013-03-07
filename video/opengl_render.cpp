@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "opengl_render.h"
 
 

@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include <stdio.h>
 #include "y4m_render.h"
 

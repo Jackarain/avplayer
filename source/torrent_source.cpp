@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 
 #ifdef USE_TORRENT
 #include <fstream>

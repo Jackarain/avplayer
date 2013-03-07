@@ -219,7 +219,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ins.h"
+				RelativePath=".\internal.h"
 				>
 			</File>
 			<File

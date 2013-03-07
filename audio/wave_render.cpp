@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "wave_render.h"
 #include <math.h>
 

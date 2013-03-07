@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "ins.h"
+#include "internal.h"
 #include "file_source.h"
 
 static const int BUFFER_SIZE = (1 << 21);
