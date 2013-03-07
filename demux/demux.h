@@ -2,7 +2,7 @@
 // demux.h
 // ~~~~~~~
 //
-// Copyright (c) 2011 Jack (jack.wgm@gmail.com)
+// Copyright (c) 2013 Jack (jack.wgm@gmail.com)
 //
 
 #ifndef __DEMUX_H__
