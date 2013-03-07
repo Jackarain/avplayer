@@ -180,7 +180,7 @@ bool torrent_source::read_data(char* data, size_t size, size_t &read_size)
 			{
 				read_size = rs;
 				// 修正当前偏移位置.
-				m_current_video.offset + rs;
+				m_current_video.offset += rs;
 				break;
 			}
 			else
