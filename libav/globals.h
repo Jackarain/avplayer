@@ -247,6 +247,9 @@ typedef struct media_base_info
 
 	AVRational video_frame_rate;	/* 视频帧率. */
 	AVRational audio_frame_rate;	/* 音频帧率. */
+
+	int64_t duration;				/* 视频时长信息. */
+
 } media_base_info;
 
 /*
