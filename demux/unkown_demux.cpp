@@ -223,6 +223,16 @@ void unkown_demux::close()
 {
 }
 
+int unkown_demux::read_pause()
+{
+	return -1;
+}
+
+int unkown_demux::read_play()
+{
+	return -1;
+}
+
 int unkown_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
 {
 	unsigned int i;

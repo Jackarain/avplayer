@@ -42,6 +42,12 @@ public:
 	// 成功返回true.
 	virtual bool query_avcodec_id(int index, enum AVCodecID &codec_id) = 0;
 
+	// 读取暂停, 主要为RTSP这种网络媒体协议.
+	virtual int read_pause() { return -1; }
+
+	// 同上, 恢复播放.
+	virtual int read_play() { return -1; }
+
 	// 关闭.
 	virtual void close() = 0;
 };

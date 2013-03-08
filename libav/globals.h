@@ -156,6 +156,16 @@ typedef struct source_context
 	int64_t (*read_seek)(struct source_context *source_ctx, int64_t offset, int whence);
 
 	/*
+	 * 读取暂停, 主要为RTSP这种网络媒体协议.
+	 */
+	int (*read_pause)(struct source_context *source_ctx);
+
+	/*
+	 * 同上, 恢复播放.
+	 */
+	int (*read_play)(struct source_context *source_ctx);
+
+	/*
 	 * 关闭数据读取源.
 	 */
 	void (*close)(struct source_context *source_ctx);
