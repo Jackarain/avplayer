@@ -72,8 +72,6 @@ bool file_source::open(boost::any ctx)
 
 bool file_source::read_data(char* data, size_t size, size_t &read_size)
 {
-	static char read_buffer[AVG_READ_SIZE];
-
 	// 根据参数加锁.
 	if (m_open_data->is_multithread)
 		pthread_mutex_lock(&m_mutex);
