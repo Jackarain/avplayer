@@ -14,7 +14,17 @@ struct AVFrame;
 struct AVPacket;
 enum AVMediaType;
 enum AVCodecID;
+
+/* 折中方案, 在不依然FFmpeg的项目, 因为未包含"libavutil\rational.h", 所以使用自定义AVRational. */
+#ifndef AVUTIL_RATIONAL_H
+typedef struct AVRational{
+	int num; ///< numerator
+	int den; ///< denominator
+} AVRational;
+#endif
+
 struct AVRational;
+
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
@@ -232,11 +242,11 @@ typedef struct media_base_info
 	int64_t video_start_time;	/* 视频起始时间信息. */
 	int64_t audio_start_time;	/* 音频起始时间信息. */
 
-	AVRational *video_time_base;	/* 视频基本时间. */
-	AVRational *audio_time_base;	/* 音频基本时间. */
+	AVRational video_time_base;	/* 视频基本时间. */
+	AVRational audio_time_base;	/* 音频基本时间. */
 
-	AVRational *video_frame_rate;	/* 视频帧率. */
-	AVRational *audio_frame_rate;	/* 音频帧率. */
+	AVRational video_frame_rate;	/* 视频帧率. */
+	AVRational audio_frame_rate;	/* 音频帧率. */
 } media_base_info;
 
 /*
@@ -306,7 +316,7 @@ typedef struct demux_context
 	demux_info info;
 
 	/*
-	 * 包含一些基本的视频信息.
+	 * 包含一些基本的视频信息, 由demux模块维护.
 	 */
 	media_base_info base_info;
 
