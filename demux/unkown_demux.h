@@ -77,7 +77,7 @@ protected:
 	int query_index(enum AVMediaType type, AVFormatContext *ctx);
 
 	// ¸´ÖÆAVRational.
-	inline void AVRational_copy(AVRational &src, AVRational &dst)
+	inline void avrational_copy(AVRational &src, AVRational &dst)
 	{
 		dst.den = src.den;
 		dst.num = src.num;

@@ -175,8 +175,8 @@ bool unkown_demux::open(boost::any ctx)
 	{
 		m_base_info.audio_frame_rate = new AVRational;
 		m_base_info.audio_time_base = new AVRational;
-		AVRational_copy(m_format_ctx->streams[m_base_info.has_audio]->r_frame_rate, *m_base_info.audio_frame_rate);
-		AVRational_copy(m_format_ctx->streams[m_base_info.has_audio]->time_base, *m_base_info.audio_time_base);
+		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->r_frame_rate, *m_base_info.audio_frame_rate);
+		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->time_base, *m_base_info.audio_time_base);
 		m_base_info.audio_start_time = m_format_ctx->streams[m_base_info.has_audio]->start_time;
 	}
 
@@ -185,8 +185,8 @@ bool unkown_demux::open(boost::any ctx)
 	{
 		m_base_info.video_frame_rate = new AVRational;
 		m_base_info.video_time_base = new AVRational;
-		AVRational_copy(m_format_ctx->streams[m_base_info.has_video]->r_frame_rate, *m_base_info.video_frame_rate);
-		AVRational_copy(m_format_ctx->streams[m_base_info.has_video]->time_base, *m_base_info.video_time_base);
+		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->r_frame_rate, *m_base_info.video_frame_rate);
+		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->time_base, *m_base_info.video_time_base);
 		m_base_info.video_start_time = m_format_ctx->streams[m_base_info.has_video]->start_time;
 	}
 
