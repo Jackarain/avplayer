@@ -1,4 +1,4 @@
-#include "ins.h"
+#include "internal.h"
 #include "ddraw_render.h"
 
 directx_fourcc dx_fourcc[] =

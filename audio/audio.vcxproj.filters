@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="audio_out.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="dsound_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="wave_render.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="audio_out.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="audio_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="dsound_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="audiocvt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="ins.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="wave_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{3f430ef3-f6c8-4b69-9fd5-ca52f8e8993f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{6de7fcce-612b-4e9f-b117-1119979a7a23}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

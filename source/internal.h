@@ -1,6 +1,6 @@
 //
-// ins.h
-// ~~~~~
+// internal.h
+// ~~~~~~~~~~
 //
 // Copyright (c) 2011 Jack (jack.wgm@gmail.com)
 //
@@ -23,8 +23,8 @@
 // * $Id: ins.h 98 2011-08-19 16:08:52Z jack $
 //
 
-#ifndef __INS_H__
-#define __INS_H__
+#ifndef __INTERNAL_H__
+#define __INTERNAL_H__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
@@ -54,4 +54,4 @@
 
 
 
-#endif // __INS_H__
+#endif // __INTERNAL_H__

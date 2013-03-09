@@ -76,9 +76,18 @@ int main(int argc, char* argv[])
 		std::string str = filename;
 		std::string is_url = str.substr(0, 7);
 		if (is_url == "http://")
-		{
-			if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP))
-				return -1;
+	    {
+			std::string::size_type pos = str.find("http://v.youku.com/v_show/id_");
+			if (pos == std::string::npos)
+		    {
+                if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP))
+                    return -1;
+		    }
+			else
+		    {
+                if (!win.open(filename.c_str(), MEDIA_TYPE_YK))
+                    return -1;
+		    }
 		}
 		else if (is_url == "rtsp://")
 		{
@@ -126,22 +135,5 @@ void play_thread(void *param)
 	avplayer *play = (avplayer*)param;
 	play->play();
 	play->wait_for_completion();
-	// play->load_subtitle("d:\\media\\dfsschs2.srt");
-	// 一直等待直到播放完成.
-// 	Sleep(5000);
-// 	play->stop();
-// 	play->close();
-
-// 	// 播放完成后, 处理各种事件.
-// 
-// 	printf("+++++++++++++++ play completed! ++++++++++++++\n");
-// 	return ;
-// 
-// 	for (;;)
-// 	{
-// 		double d = play->duration();
-// 		double cur_time = play->curr_play_time();
-// 		printf("-----------time: %0.2f, duration: %0.2f---------\n", cur_time, d - cur_time);
-// 		Sleep(200);
-// 	}
+	play->close();
 }

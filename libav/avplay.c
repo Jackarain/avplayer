@@ -299,28 +299,34 @@ int put_queue(av_queue *q, void *p)
 static
 media_info* find_media_info(source_context *sc, int index)
 {
-	media_info *mi = sc->media;
-	int i = 0;
-	if (index > sc->media_size)
+	bt_source_info *bt_info = &sc->info.bt;
+
+	// 检查参数有效性.
+	if (sc->type != MEDIA_TYPE_BT || index < 0 || index > bt_info->info_size)
 		return NULL;
-	for (; i < index; i++)
-		mi++;
-	return mi;
+
+	// 返回对应的media_info信息.
+	return &bt_info->info[index];
 }
 
 static
 int read_packet(void *opaque, uint8_t *buf, int buf_size)
 {
-	int read_bytes = 0;
+	int ret = 0;
 	avplay *play = (avplay*)opaque;
+
+	// 已被中止.
 	if (play->m_abort)
 		return 0;
-	read_bytes = play->m_source_ctx->read_data(play->m_source_ctx, 
-		buf, play->m_source_ctx->offset, buf_size);
-	if (read_bytes == -1)
+
+	// 读取数据.
+	ret = play->m_source_ctx->read_data(play->m_source_ctx, buf, buf_size);
+
+	// 读取失败, 跳过, 这样就可以继续缓冲数据或者跳回前面播放.
+	if (ret == -1)
 		return 0;
-	play->m_source_ctx->offset += read_bytes;
-	return read_bytes;
+
+	return ret;
 }
 
 static
@@ -334,92 +340,19 @@ static
 int64_t seek_packet(void *opaque, int64_t offset, int whence)
 {
 	avplay *play = (avplay*)opaque;
-	int64_t old_off = play->m_source_ctx->offset;
 
 	if (play->m_abort)
 		return -1;
 
 	// 如果存在read_seek函数实现, 则调用相应的函数实现, 处理相关事件.
 	if (play->m_source_ctx && play->m_source_ctx->read_seek)
+		offset = play->m_source_ctx->read_seek(play->m_source_ctx, offset, whence);
+	else
+		assert(0);
+
+	if (play->m_source_ctx->dl_info.not_enough)
 	{
-		play->m_source_ctx->read_seek(play->m_source_ctx, offset, whence);
-	}
-
-	// 在下面计算修改offset, 于是在read_data的时候, 通过参数offset提供指定位置.
-	switch (whence)
-	{
-	case SEEK_SET:
-		{
-			media_info *mi = find_media_info(
-				play->m_source_ctx, play->m_current_play_index);
-			if (!mi)
-				assert(0);
-			/* 从当前文件的起始位置开始计算. */
-			play->m_source_ctx->offset = mi->start_pos + offset;
-		}
-		break;
-	case SEEK_CUR:
-		/* 直接根据当前位置计算offset. */
-		offset += play->m_source_ctx->offset;
-		play->m_source_ctx->offset = offset;
-		break;
-	case SEEK_END:
-		{
-			int64_t size = 0;
-
-			if (play->m_source_ctx->type != MEDIA_TYPE_BT)
-			{
-				size = play->m_source_ctx->media->file_size;
-			}
-			else if (play->m_source_ctx->type == MEDIA_TYPE_BT)
-			{
-				/* 找到正在播放的文件. */
-				media_info *mi = find_media_info(play->m_source_ctx, play->m_current_play_index);
-				if (mi)
-					size = mi->file_size;
-				else
-					assert(0);
-				/* 计算文件尾的位置. */
-				size += mi->start_pos;
-			}
-			/* 计算当前位置. */
-			offset += size;
-			/* 保存当前位置. */
-			play->m_source_ctx->offset = offset;
-		}
-		break;
-	case AVSEEK_SIZE:
-		{
-			int64_t size = 0;
-
-			if (play->m_source_ctx->type != MEDIA_TYPE_BT)
-			{
-				size = play->m_source_ctx->media->file_size;
-			}
-			else if (play->m_source_ctx->type == MEDIA_TYPE_BT)
-			{
-				/* 找到正在播放的文件. */
-				media_info *mi = find_media_info(play->m_source_ctx, play->m_current_play_index);
-				if (mi)
-					size = mi->file_size;
-				else
-					assert(0);
-				if (mi)
-					size = mi->file_size;
-			}
-			offset = size;
-		}
-		break;
-// 	case AVSEEK_FORCE:
-// 		{
-// 
-// 		}
-// 		break;
-	default:
-		{
-			assert(0);
-		}
-		break;
+		// TODO: 判断是否数据足够, 如果不足以播放, 则暂停播放.
 	}
 
 	return offset;
@@ -464,61 +397,77 @@ int open_decoder(AVCodecContext *ctx)
 
 source_context* alloc_media_source(int type, const char *data, int len, int64_t size)
 {
-	struct source_context *ptr = malloc(sizeof(source_context));
-
-	/* 清空结构体. */
-	memset(ptr, 0, sizeof(source_context));
+	/* 分配一个source_context结构. */
+	struct source_context *ptr = calloc(1, sizeof(source_context));
 
 	/* 参数赋值. */
 	ptr->type = type;
 
-	if (type != MEDIA_TYPE_BT)
+	if (type == MEDIA_TYPE_FILE)
 	{
-		/* 保存文件路径或url信息. */
-		ptr->media = calloc(1, sizeof(media_info));
-		ptr->media->start_pos = 0;
-		ptr->media->file_size = size;
-
-		/* 保存文件名. */
-		ptr->media->name = strdup(data);
-
-		/*
-		 * 媒体文件数为1, 只有打开bt种子时, bt中存在多个视频文件,
-		 * media_size才可能大于1.
-		 */
-		ptr->media_size = 1;
+		file_source_info *file_info = &ptr->info.file;
+		strcpy(file_info->file_name, (const char*)data);	/* 保存文件名. */
+	}
+	else if (type == MEDIA_TYPE_BT)
+	{
+		bt_source_info *bt_info = &ptr->info.bt;
+		bt_info->torrent_data = (char*)malloc(len);
+		memcpy(bt_info->torrent_data, data, len);			/* 保存torrent数据. */
+		bt_info->torrent_length = len;
+	}
+	else if (type == MEDIA_TYPE_YK)
+	{
+		yk_source_info *yk_info = &ptr->info.yk;
+		strcpy(yk_info->url, data);							/* 保存url. */
+	}
+	else if (type == MEDIA_TYPE_HTTP)
+	{
+		http_source_info *http_info = &ptr->info.http;
+		strcpy(http_info->url, data);						/* 保存url. */
+	}
+	else if (type == MEDIA_TYPE_RTSP)
+	{
+		rtsp_source_info *rtsp_info = &ptr->info.rtsp;
+		strcpy(rtsp_info->url, data);						/* 保存url. */
 	}
 	else
 	{
-		/* 保存种子文件数据. */
-		ptr->torrent_data = calloc(1, len);
-		memcpy(ptr->torrent_data, data, len);
-		ptr->torrent_len = len;
+		assert(0);
 	}
 
 	return ptr;
 }
 
+void set_download_path(avplay *play, const char *save_path)
+{
+	if (play->m_source_ctx->type == MEDIA_TYPE_BT)
+	{
+		bt_source_info *bt_info = &play->m_source_ctx->info.bt;
+		strcpy(bt_info->save_path, save_path);
+	}
+	else if	(play->m_source_ctx->type == MEDIA_TYPE_YK)
+	{
+		yk_source_info *yk_info = &play->m_source_ctx->info.yk;
+		strcpy(yk_info->save_path, save_path);
+	}
+}
+
+void set_youku_type(avplay *play, int type)
+{
+	play->m_source_ctx->info.yk.type = type;
+}
+
 void free_media_source(source_context *ctx)
 {
-	int i = 0;
-
-	/* 释放io对象. */
-	if (ctx->io_dev)
+	/* 释放priv指针. */
+	if (ctx->priv)
 		ctx->destory(ctx);
 
-	/* 释放data. */
-	if (ctx->torrent_data)
-		free(ctx->torrent_data);
-
-	/* 释放media_info. */
-	for (; i < ctx->media_size; i++)
+	/* 释放bt类型中的torrent内存. */
+	if (ctx->type == MEDIA_TYPE_BT)
 	{
-		if (ctx->media[i].name)
-			free(ctx->media[i].name);
+		free(ctx->info.bt.torrent_data);
 	}
-	if (ctx->media)
-		free(ctx->media);
 
 	/* 最后释放整个source_context. */
 	free(ctx);
@@ -545,7 +494,7 @@ ao_context* alloc_audio_render()
 
 void free_audio_render(ao_context *ctx)
 {
-	if (ctx->audio_dev)
+	if (ctx->priv)
 		ctx->destory_audio(ctx);
 	free(ctx);
 }
@@ -560,7 +509,7 @@ vo_context* alloc_video_render(void *user_data)
 
 void free_video_render(vo_context *ctx)
 {
-	if (ctx->video_dev)
+	if (ctx->priv)
 		ctx->destory_video(ctx);
 	free(ctx);
 }
@@ -593,35 +542,7 @@ int initialize(avplay *play, source_context *sc)
 		return -1;
 	}
 
-	/* 获得媒体文件列表. */
-	if (sc->type == MEDIA_TYPE_BT)
-	{
-		char name[2048] = {0};
-		int64_t size = 2048;
-		int64_t pos = 0;
-		int i = 0;
-		media_info *media = NULL;
-
-		for (i = 0; ; i++)
-		{
-			int ret = play->m_source_ctx->video_media_info(play->m_source_ctx, name, &pos, &size);
-			if (ret == -1)
-				break;
-			if (i == 0)
-			{
-				play->m_source_ctx->media = malloc(sizeof(media_info) * ret);
-				play->m_source_ctx->media_size = ret;
-				media = play->m_source_ctx->media;
-			}
-			media[i].file_size = size;
-			media[i].start_pos = pos;
-			media[i].name = strdup(name);
-			pos = i + 1;
-			size = 2048;
-		}
-	}
-
-	if (sc->type == MEDIA_TYPE_BT || sc->type == MEDIA_TYPE_FILE)
+	if (sc->type == MEDIA_TYPE_BT || sc->type == MEDIA_TYPE_FILE || sc->type == MEDIA_TYPE_YK)
 	{
 		/* 分配用于io的缓冲. */
 		play->m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
@@ -634,7 +555,7 @@ int initialize(avplay *play, source_context *sc)
 		/* 分配io上下文. */
 		play->m_avio_ctx = avio_alloc_context(play->m_io_buffer, 
 			IO_BUFFER_SIZE, 0, (void*)play, read_packet, NULL, seek_packet);
-		if (!play->m_io_buffer)
+		if (!play->m_avio_ctx)
 		{
 			printf("Create io context failed!\n");
 			av_free(play->m_io_buffer);
@@ -660,13 +581,28 @@ int initialize(avplay *play, source_context *sc)
 	}
 	else
 	{
-		/* 判断url是否为空. */
-		if (!play->m_source_ctx->media->name || !play->m_source_ctx->media_size)
+		/* 得到相应的url. */
+		char url[MAX_URI_PATH];
+		if (play->m_source_ctx->type == MEDIA_TYPE_HTTP)
+		{
+			strcpy(url, play->m_source_ctx->info.http.url);
+		}
+		else if (play->m_source_ctx->type == MEDIA_TYPE_RTSP)
+		{
+			strcpy(url, play->m_source_ctx->info.rtsp.url);
+		}
+		else
+		{
+			goto FAILED_FLG;
+		}
+
+		/* 空串, 跳到错误. */
+		if (strlen(url) == 0)
 			goto FAILED_FLG;
 
 		/* HTTP和RTSP直接使用ffmpeg来处理.	*/
 		ret = avformat_open_input(&play->m_format_ctx, 
-			play->m_source_ctx->media->name, iformat, NULL);
+			url, iformat, NULL);
 		if (ret < 0)
 		{
 			printf("av_open_input_stream call failed!\n");
@@ -764,8 +700,13 @@ int av_start(avplay *play, double fact, int index)
 
 	/* 保存正在播放的索引号. */
 	play->m_current_play_index = index;
-	if (index > play->m_source_ctx->media_size)
-		return -1;
+
+	if (play->m_source_ctx->type == MEDIA_TYPE_BT)
+	{
+		if (index >	play->m_source_ctx->info.bt.info_size || index < 0)
+			return -1;
+	}
+
 	/* 保存起始播放时间. */
 	play->m_start_time = fact;
 
@@ -830,13 +771,13 @@ void configure(avplay *play, void* param, int type)
 {
 	if (type == AUDIO_RENDER)
 	{
-		if (play->m_ao_ctx && play->m_ao_ctx->audio_dev)
+		if (play->m_ao_ctx && play->m_ao_ctx->priv)
 			free_audio_render(play->m_ao_ctx);
 		play->m_ao_ctx = (ao_context*)param;
 	}
 	if (type == VIDEO_RENDER)
 	{
-		if (play->m_vo_ctx && play->m_vo_ctx->video_dev)
+		if (play->m_vo_ctx && play->m_vo_ctx->priv)
 			free_video_render(play->m_vo_ctx);
 		play->m_vo_ctx = (vo_context*)param;
 	}
@@ -848,7 +789,7 @@ void configure(avplay *play, void* param, int type)
 			return ;
 		if (play->m_source_ctx)
 		{
-			if (play->m_source_ctx && play->m_source_ctx->io_dev)
+			if (play->m_source_ctx && play->m_source_ctx->priv)
 				play->m_source_ctx->close(play->m_source_ctx);
 			free_media_source(play->m_source_ctx);
 			play->m_source_ctx = (source_context*)param;
@@ -897,8 +838,6 @@ void wait_for_threads(avplay *play)
 		pthread_join(play->m_audio_render_thrd, &status);
 	if (play->m_video_index != -1)
 		pthread_join(play->m_video_render_thrd, &status);
-	/* 更改播放状态. */
-	play->m_play_status = stoped;
 }
 
 void av_stop(avplay *play)
@@ -956,6 +895,9 @@ void av_stop(avplay *play)
 		av_free(play->m_avio_ctx);
 		play->m_avio_ctx = NULL;
 	}
+	/* 更改播放状态. */
+	play->m_play_status = stoped;
+
 	avformat_network_deinit();
 }
 
@@ -1045,10 +987,8 @@ void av_destory(avplay *play)
 	if (play->m_play_status != stoped && play->m_play_status != inited)
 	{
 		/* 关闭数据源. */
-		if (play->m_source_ctx && play->m_source_ctx->io_dev)
+		if (play->m_source_ctx && play->m_source_ctx->priv)
 			play->m_source_ctx->close(play->m_source_ctx);
-		if (play->m_source_ctx && play->m_source_ctx->save_path)
-			free(play->m_source_ctx->save_path);
 		av_stop(play);
 	}
 
@@ -1406,7 +1346,7 @@ void* read_pkt_thrd(void *param)
 	/* 销毁media_source. */
 	if (play->m_source_ctx)
 	{
-		if (play->m_source_ctx && play->m_source_ctx->io_dev)
+		if (play->m_source_ctx && play->m_source_ctx->priv)
 			play->m_source_ctx->close(play->m_source_ctx);
 		free_media_source(play->m_source_ctx);
 		play->m_source_ctx = NULL;

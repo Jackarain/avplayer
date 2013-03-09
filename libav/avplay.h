@@ -378,6 +378,21 @@ EXPORT_API int current_frame_rate(avplay *play);
 EXPORT_API double buffering(avplay *play);
 
 /*
+ * Set network media save path, for youku, bt... etc.
+ * @param play pointer to the player.
+ * @save_path pointer to save path.
+ */
+EXPORT_API void set_download_path(avplay *play, const char *save_path);
+
+/*
+ * Set youku vide type.
+ * @param play pointer to the player.
+ * @param type is: hd2,mp4,3gp,3gphd,flv,m3u8.
+ *                  0   1   2   3     4   5
+ */
+EXPORT_API void set_youku_type(avplay *play, int type);
+
+/*
  * Blurring algorithm to the input video.
  * @param frame pointer to the frame.
  * @param fw is the width of the video.

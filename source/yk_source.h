@@ -1,87 +1,56 @@
-//
-// yk_source.h
-// ~~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2013 InvXp (invidentxp@gmail.com)
-//
+#pragma once
 
-#ifndef __YK_SOURCE_H__
-#define __YK_SOURCE_H__
+#include <iostream>
+#include "internal.h"
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
-
-#include <boost/thread/mutex.hpp>
-
-#include <stdint.h>
 #include "av_source.h"
-
-#include <string>
-#include <vector>
-
 #include "libyk.h"
 
-using namespace libyk;
-// ykÖĞµÄÊÓÆµĞÅÏ¢.
-struct yk_video_file_info 
+
+// ykä¸­çš„è§†é¢‘ä¿¡æ¯.
+struct open_yk_data 
 {
-    int index;              // id.
-    std::string title;      // ÊÓÆµÎÄ¼şÃû.
-    std::string source;     // ÊÓÆµÔ´µØÖ·
-    uint64_t data_size;    // ÊÓÆµ´óĞ¡.
-    uint64_t base_offset;  // ÊÓÆµÔÚykÖĞµÄÆ«ÒÆ.
-    int status;             // µ±Ç°²¥·Å×´Ì¬.
+	std::string url;		// æ’­æ”¾youkuçš„url.
+	int type;				// å½“å‰è¯·æ±‚æ’­æ”¾çš„ç±»å‹, æœ‰hd2,mp4,3gp,3gphd,flv,m3u8.
+	std::string save_path;	// ä¸‹è½½çš„youkuè§†é¢‘ä¿å­˜ä½ç½®.
 };
 
 class yk_source
-    : public av_source
+	: public av_source
 {
 public:
-    yk_source();
-    virtual ~yk_source();
+	yk_source(void);
+	virtual ~yk_source(void);
 
 public:
-    // ´ò¿ª.
-    virtual bool open(void* ctx);
+	// æ‰“å¼€.
+	virtual bool open(boost::any ctx);
 
-    // ¶ÁÈ¡Êı¾İ.
-    virtual bool read_data(char* data, uint64_t offset, size_t size, size_t& read_size);
+	// è¯»å–æ•°æ®.
+	virtual bool read_data(char* data, size_t size, size_t& read_size);
 
-    // seek²Ù×÷, ´Ë´¦·µ»Øtrue, ±íÊ¾Êı¾İ²»¹», ĞèÒª»º³å.
-    virtual bool read_seek(uint64_t offset, int whence);
+	// seekæ“ä½œ, æ­¤å¤„è¿”å›true, è¡¨ç¤ºæ•°æ®ä¸å¤Ÿ, éœ€è¦ç¼“å†².
+	virtual int64_t read_seek(uint64_t offset, int whence);
 
-    // ¹Ø±Õ.
-    virtual void close();
+	// å…³é—­.
+	virtual void close();
 
-    // ÉèÖÃ»ò»ñµÃµ±Ç°²¥·ÅµÄÊÓÆµÎÄ¼ş.
-    virtual bool set_current_video(int index);
-    virtual bool get_current_video(yk_video_file_info& vfi) const;
+	// è®¾ç½®æˆ–è·å¾—å½“å‰æ’­æ”¾çš„è§†é¢‘æ–‡ä»¶.
+	virtual bool set_current_video(int index);
+	virtual bool get_current_video(open_yk_data& vfi) const;
 
-    // µ±Ç°ÊÓÆµÁĞ±í.
-    virtual std::vector<yk_video_file_info> video_list() const { return m_videos; }
+	// å½“å‰è§†é¢‘åˆ—è¡¨.
+	virtual std::vector<open_yk_data> video_list() const;
 
-    // ÖØÖÃ¶ÁÈ¡Êı¾İ.
-    virtual void reset();
-    
-public:
-    libykvideo                      m_yk_video;
-    std::vector<yk_video_file_info> m_videos;
- 
+	// é‡ç½®è¯»å–æ•°æ®.
+	virtual void reset();
+
+	// è§£æurl.
+	bool parse_url(const std::string &url);
+
+
 private:
-
-    // µ±Ç°²¥·ÅµÄÊÓÆµ.
-    yk_video_file_info m_current_video;
-
-    // ykÖĞËùÓĞÊÓÆµĞÅÏ¢.
-
-    // ÓÃÓÚ¿ØÖÆÖØÖÃ¶ÁÈ¡Êı¾İ.
-    bool m_reset;
-
-    // ¹Ø±Õ¿ØÖÆ.
-    bool m_abort;
-    boost::mutex m_abort_mutex;
+	libyk::youku m_yk_video;
+	bool m_abort;
+	bool m_reset;
 };
-
-#endif // __YK_SOURCE_H__
-

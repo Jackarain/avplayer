@@ -82,8 +82,8 @@ namespace libtorrent
 	TORRENT_EXTRA_EXPORT std::string convert_to_native(std::string const& s);
 	TORRENT_EXTRA_EXPORT std::string convert_from_native(std::string const& s);
 #else
-	inline std::string const& convert_to_native(std::string const& s) { return s; }
-	inline std::string const& convert_from_native(std::string const& s) { return s; }
+	TORRENT_EXTRA_EXPORT inline std::string const& convert_to_native(std::string const& s) { return s; }
+	TORRENT_EXTRA_EXPORT inline std::string const& convert_from_native(std::string const& s) { return s; }
 #endif		
 }
 
