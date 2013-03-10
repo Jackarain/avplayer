@@ -221,6 +221,16 @@ bool unkown_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 
 void unkown_demux::close()
 {
+	if (m_format_ctx)
+	{
+		avformat_close_input(&m_format_ctx);
+	}
+
+	if (m_io_buffer)
+	{
+		free(m_io_buffer);
+		m_io_buffer = NULL;
+	}
 }
 
 int unkown_demux::read_pause()
