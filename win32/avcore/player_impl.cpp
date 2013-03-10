@@ -655,7 +655,7 @@ void player_impl::init_audio(ao_context *ao)
 	ao->destory_audio = wave_destory_audio;
 }
 
-void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_D3D*/)
+void player_impl::init_video(vo_context *vo, int render_type/* = RENDER_SOFT*/)
 {
 	int ret = 0;
 	int check = 0;
