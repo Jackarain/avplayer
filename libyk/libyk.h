@@ -19,7 +19,7 @@
 namespace libyk
 {
 	class youku_impl;
-	// 优酷视频访问实现.
+	// 脫脜驴谩脢脫脝碌路脙脦脢脢碌脧脰.
 	class youku : public boost::noncopyable
 	{
 	public:
@@ -27,9 +27,9 @@ namespace libyk
 		virtual ~youku();
 
 	public:
-		// 解析优酷视频url.
+		// 陆芒脦枚脫脜驴谩脢脫脝碌url.
 		bool parse_url(const std::string &url);
-		// 解析url中的视频文件.
+		// 陆芒脦枚url脰脨碌脛脢脫脝碌脦脛录镁.
 		bool parse_video_files(std::vector<std::string> &videos, const std::string &password = "");
 
 	private:
