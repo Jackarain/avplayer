@@ -15,7 +15,7 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#define __STDC_CONSTANT_MACROS
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
@@ -38,20 +38,19 @@ void player::init_file_source(source_context* sc)
 {
 	sc->init_source = file_init_source;
 	sc->read_data = file_read_data;
+	sc->read_seek = file_read_seek;
 	sc->close = file_close;
 	sc->destory = file_destory;
-	sc->offset = 0;
 }
 
 void player::init_torrent_source(source_context* sc)
 {
 	sc->init_source = bt_init_source;
 	sc->read_data = bt_read_data;
-	sc->video_media_info = bt_media_info;
+	sc->read_seek = bt_read_seek;
+	sc->read_seek = bt_read_seek;
 	sc->close = bt_close;
 	sc->destory = bt_destory;
-	sc->offset = 0;
-	sc->save_path = ".";
 }
 
 int player::open(const char* movie, int media_type)
@@ -183,12 +182,10 @@ int player::open(const char* movie, int media_type)
 		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
 		if (media_type == MEDIA_TYPE_BT)
 		{
-			int i = 0;
-			media_info *media = m_avplay->m_source_ctx->media;
-			for (; i < m_avplay->m_source_ctx->media_size; i++)
+			bt_source_info *bt_info = &m_avplay->m_source_ctx->info.bt;
+			for (int i = 0; i < bt_info->info_size; i++)
 			{
-				std::string name;
-				name = media->name;
+				std::string name = std::string(bt_info->info[i].file_name);
 				m_media_list.insert(std::make_pair(filename, name));
 			}
 		}

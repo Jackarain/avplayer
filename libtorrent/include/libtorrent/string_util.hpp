@@ -33,6 +33,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_STRING_UTIL_HPP_INCLUDED
 #define TORRENT_STRING_UTIL_HPP_INCLUDED
 
+#include "libtorrent/config.hpp"
+
 namespace libtorrent
 {
 	TORRENT_EXTRA_EXPORT bool is_alpha(char c);
@@ -51,6 +53,10 @@ namespace libtorrent
 	// don't have it and it won't be available when building
 	// in strict ansi mode
 	char* allocate_string_copy(char const* str);
+
+	// returns p + x such that the pointer is 8 bytes aligned
+	// x cannot be greater than 7
+	void* align_pointer(void* p);
 
 }
 

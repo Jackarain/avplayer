@@ -226,9 +226,9 @@ The ``session`` class has the following synopsis::
 			size_t queue_size_limit_);
 		void set_alert_dispatch(boost::function<void(std::auto_ptr<alert>)> const& fun);
 
-		feed_handle session::add_feed(feed_settings const& feed);
-		void session::remove_feed(feed_handle h);
-		void session::get_feeds(std::vector<feed_handle>& f) const;
+		feed_handle add_feed(feed_settings const& feed);
+		void remove_feed(feed_handle h);
+		void get_feeds(std::vector<feed_handle>& f) const;
 
 		void add_extension(boost::function<
 			boost::shared_ptr<torrent_plugin>(torrent*)> ext);
@@ -565,6 +565,10 @@ If you pass in resume data, the paused state of the torrent when the resume data
 was saved will override the paused state you pass in here. You can override this
 by setting ``flag_override_resume_data``.
 
+If the torrent is auto-managed (``flag_auto_managed``), the torrent may be resumed
+at any point, regardless of how it paused. If it's important to manually control
+when the torrent is paused and resumed, don't make it auto managed.
+
 If ``flag_auto_managed`` is set, the torrent will be queued, started and seeded
 automatically by libtorrent. When this is set, the torrent should also be started
 as paused. The default queue order is the order the torrents were added. They
@@ -597,6 +601,10 @@ which means it will not make any piece requests. This state is typically entered
 on disk I/O errors, and if the torrent is also auto managed, it will be taken out
 of this state periodically. This mode can be used to avoid race conditions when
 adjusting priorities of pieces before allowing the torrent to start downloading.
+
+If the torrent is auto-managed (``flag_auto_managed``), the torrent will eventually
+be taken out of upload-mode, regardless of how it got there. If it's important to
+manually control when the torrent leaves upload mode, don't make it auto managed.
 
 ``flag_share_mode`` determines if the torrent should be added in *share mode* or not.
 Share mode indicates that we are not interested in downloading the torrent, but
@@ -1200,7 +1208,7 @@ add_feed()
 
 	::
 
-		feed_handle session::add_feed(feed_settings const& feed);
+		feed_handle add_feed(feed_settings const& feed);
 
 This adds an RSS feed to the session. The feed will be refreshed
 regularly and optionally add all torrents from the feed, as they
@@ -1259,7 +1267,7 @@ remove_feed()
 
 	::
 
-		void session::remove_feed(feed_handle h);
+		void remove_feed(feed_handle h);
 
 Removes a feed from being watched by the session. When this
 call returns, the feed handle is invalid and won't refer
@@ -1271,7 +1279,7 @@ get_feeds()
 
 	::
 
-		void session::get_feeds(std::vector<feed_handle>& f) const;
+		void get_feeds(std::vector<feed_handle>& f) const;
 
 Returns a list of all RSS feeds that are being watched by the session.
 
@@ -1425,6 +1433,7 @@ struct has the following members::
 		bool restrict_routing_ips;
 		bool restrict_search_ips;
 		bool extended_routing_table;
+		bool aggressive_lookups;
 	};
 
 ``max_peers_reply`` is the maximum number of peers the node will send in
@@ -1465,6 +1474,12 @@ The ``dht_settings`` struct used to contain a ``service_port`` member to control
 which port the DHT would listen on and send messages from. This field is deprecated
 and ignored. libtorrent always tries to open the UDP socket on the same port
 as the TCP socket.
+
+``aggressive_lookups`` slightly changes the lookup behavior in terms of how
+many outstanding requests we keep. Instead of having branch factor be a hard
+limit, we always keep *branch factor* outstanding requests to the closest nodes.
+i.e. every time we get results back with closer nodes, we query them right away.
+It lowers the lookup times at the cost of more outstanding queries.
 
 ``is_dht_running()`` returns true if the DHT support has been started and false
 otherwise.
@@ -2111,6 +2126,10 @@ ones with lower tier will always be tried before the one with higher tier number
 		int next_announce_in() const;
 		int min_announce_in() const;
 
+		int scrape_incomplete;
+		int scrape_complete;
+		int scrape_downloaded;
+
 		error_code last_error;
 
 		std::string message;
@@ -2140,6 +2159,13 @@ allowed to force another tracker update with this tracker.
 
 If the last time this tracker was contacted failed, ``last_error`` is the error
 code describing what error occurred.
+
+``scrape_incomplete``, ``scrape_complete`` and ``scrape_downloaded`` are either
+-1 or the scrape information this tracker last responded with. *incomplete* is
+the current number of downloaders in the swarm, *complete* is the current number
+of seeds in the swarm and *downloaded* is the cumulative number of completed
+downloads of this torrent, since the beginning of time (from this tracker's point
+of view).
 
 If the last time this tracker was contacted, the tracker returned a warning
 or error message, ``message`` contains that message.
@@ -2312,7 +2338,10 @@ Its declaration looks like this::
 			query_accurate_download_counters = 2,
 			query_last_seen_complete = 4,
 			query_pieces = 8,
-			query_verified_pieces = 16
+			query_verified_pieces = 16,
+			query_torrent_file = 32,
+			query_name = 64,
+			query_save_path = 128,
 		};
 
 		torrent_status status(boost::uint32_t flags = 0xffffffff);
@@ -2321,8 +2350,6 @@ Its declaration looks like this::
 		void get_peer_info(std::vector<peer_info>& v) const;
 		boost::intrusive_ptr<torrent_info> torrent_file() const;
 		bool is_valid() const;
-
-		std::string name() const;
 
 		enum save_resume_flags_t { flush_disk_cache = 1, save_info_dict = 2 };
 		void save_resume_data(int flags = 0) const;
@@ -2404,7 +2431,6 @@ Its declaration looks like this::
 
 		bool set_metadata(char const* buf, int size) const;
 
-		std::string save_path() const;
 		void move_storage(std::string const& save_path) const;
 		void move_storage(std::wstring const& save_path) const;
 		void rename_file(int index, std::string) const;
@@ -2584,16 +2610,6 @@ the operation is a lot cheaper, since libtorrent already keeps track of this int
 and no calculation is required.
 
 
-save_path()
------------
-
-	::
-
-		std::string save_path() const;
-
-``save_path()`` returns the path that was given to `async_add_torrent() add_torrent()`_ when this torrent
-was started.
-
 move_storage()
 --------------
 
@@ -2741,17 +2757,6 @@ will throw libtorrent_exception_. The second (optional) argument will be bitwise
 the source mask of this peer. Typically this is one of the source flags in peer_info_.
 i.e. ``tracker``, ``pex``, ``dht`` etc.
 
-
-name()
-------
-
-	::
-
-		std::string name() const;
-
-Returns the name of the torrent. i.e. the name from the metadata associated with it. In
-case the torrent was started without metadata, and hasn't completely received it yet,
-it returns the name given to it when added to the session. See ``session::add_torrent``.
 
 
 set_upload_limit() set_download_limit() upload_limit() download_limit()
@@ -3221,7 +3226,9 @@ Example code to pause and save resume data for all torrents and wait for the ale
 		}
 		
 		torrent_handle h = rd->handle;
-		std::ofstream out((h.save_path() + "/" + h.torrent_file()->name() + ".fastresume").c_str()
+		torrent_status st = h.status(torrent_handle::query_save_path | torrent_handle::query_name);
+		std::ofstream out((st.save_path
+			+ "/" + st.name + ".fastresume").c_str()
 			, std::ios_base::binary);
 		out.unsetf(std::ios_base::skipws);
 		bencode(std::ostream_iterator<char>(out), *rd->resume_data);
@@ -3283,6 +3290,16 @@ By default everything is included. The flags you can use to decide what to *incl
 * ``query_verified_pieces``
 	includes ``verified_pieces`` (only applies to torrents in *seed mode*).
 
+* ``query_torrent_file``
+	includes ``torrent_file``, which is all the static information from the .torrent file.
+
+* ``query_name``
+	includes ``name``, the name of the torrent. This is either derived from the .torrent
+	file, or from the ``&dn=`` magnet link argument or possibly some other source. If the
+	name of the torrent is not known, this is an empty string.
+
+* ``query_save_path``
+	includes ``save_path``, the path to the directory the files of the torrent are saved to.
 
 get_download_queue()
 --------------------
@@ -3467,6 +3484,10 @@ It contains the following fields::
 		float progress;
 		int progress_ppm;
 		std::string error;
+		std::string save_path;
+		std::string name;
+
+		boost::intrusive_ptr<const torrent_info> torrent_file;
 
 		boost::posix_time::time_duration next_announce;
 		boost::posix_time::time_duration announce_interval;
@@ -3638,6 +3659,19 @@ ip, a magnet link for instance).
 ``error`` may be set to an error message describing why the torrent was paused, in
 case it was paused by an error. If the torrent is not paused or if it's paused but
 not because of an error, this string is empty.
+
+``save_path`` is the path to the directory where this torrent's files are stored.
+It's typically the path as was given to `async_add_torrent() add_torrent()`_ when this torrent
+was started. This field is only included if the torrent status is queried with
+``torrent_handle::query_save_path``.
+
+``name`` is the name of the torrent. Typically this is derived from the .torrent file.
+In case the torrent was started without metadata, and hasn't completely received it yet,
+it returns the name given to it when added to the session. See ``session::add_torrent``.
+This field is only included if the torrent status is queried with ``torrent_handle::query_name``.
+
+``torrent_file`` is set to point to the ``torrent_info`` object for this torrent. It's
+only included if the torrent status is queried with ``torrent_handle::query_torrent_file``.
 
 ``next_announce`` is the time until the torrent will announce itself to the tracker. And
 ``announce_interval`` is the time the tracker want us to wait until we announce ourself
@@ -4566,6 +4600,7 @@ session_settings
 		bool ignore_resume_timestamps;
 		bool no_recheck_incomplete_resume;
 		bool anonymous_mode;
+		bool force_proxy;
 		int tick_interval;
 		int share_mode_target;
 
@@ -5313,14 +5348,17 @@ mode.
 ``anonymous_mode`` defaults to false. When set to true, the client tries
 to hide its identity to a certain degree. The peer-ID will no longer
 include the client's fingerprint. The user-agent will be reset to an
-empty string. Trackers will only be used if they are using a proxy
-server. The listen sockets are closed, and incoming connections will
-only be accepted through a SOCKS5 or I2P proxy (if a peer proxy is set up and
-is run on the same machine as the tracker proxy). Since no incoming connections
-are accepted, NAT-PMP, UPnP, DHT and local peer discovery are all turned off
-when this setting is enabled.
+empty string.
 
-If you're using I2P, it might make sense to enable anonymous mode as well.
+If you're using I2P, it might make sense to enable anonymous mode.
+
+``force_proxy`` disables any communication that's not going over a proxy.
+Enabling this requires a proxy to be configured as well, see ``set_proxy_settings``.
+The listen sockets are closed, and incoming connections will
+only be accepted through a SOCKS5 or I2P proxy (if a peer proxy is set up and
+is run on the same machine as the tracker proxy). This setting also
+disabled peer country lookups, since those are done via DNS lookups that
+aren't supported by proxies.
 
 ``tick_interval`` specifies the number of milliseconds between internal
 ticks. This is the frequency with which bandwidth quota is distributed to
@@ -6299,6 +6337,10 @@ e.g::
 		case read_piece_alert::alert_type:
 		{
 			read_piece_alert* p = (read_piece_alert*)a.get();
+			if (p->ec) {
+				// read_piece failed
+				break;
+			}
 			// use p
 			break;
 		}
@@ -6417,11 +6459,14 @@ is 0. If successful, ``buffer`` points to a buffer containing all the data
 of the piece. ``piece`` is the piece index that was read. ``size`` is the
 number of bytes that was read.
 
+If the operation fails, ec will indicat what went wrong.
+
 ::
 
 	struct read_piece_alert: torrent_alert
 	{
 		// ...
+		error_code ec;
 		boost::shared_ptr<char> buffer;
 		int piece;
 		int size;
@@ -6681,8 +6726,9 @@ the DHT.
 		int num_peers;
 	};
 
-The ``num_peers`` tells how many peers were returned from the tracker. This is
-not necessarily all new peers, some of them may already be connected.
+The ``num_peers`` tells how many peers the tracker returned in this response. This is
+not expected to be more thant the ``num_want`` settings. These are not necessarily
+all new peers, some of them may already be connected.
 
 tracker_warning_alert
 ---------------------
@@ -6883,7 +6929,7 @@ invalid_request_alert
 ---------------------
 
 This is a debug alert that is generated by an incoming invalid piece request.
-``ìp`` is the address of the peer and the ``request`` is the actual incoming
+``ip`` is the address of the peer and the ``request`` is the actual incoming
 request from the peer.
 
 ::
@@ -8167,13 +8213,13 @@ Here's a simple example of how to translate error codes::
 		static const char const* swedish[] =
 		{
 			"inget fel",
-			"en fil i torrenten kolliderar med en fil från en annan torrent",
+			"en fil i torrenten kolliderar med en fil fran en annan torrent",
 			"hash check misslyckades",
-			"torrent filen är inte en dictionary",
-			"'info'-nyckeln saknas eller är korrupt i torrentfilen",
-			"'info'-fältet är inte en dictionary",
-			"'piece length' fältet saknas eller är korrupt i torrentfilen",
-			"torrentfilen saknar namnfältet",
+			"torrent filen ar inte en dictionary",
+			"'info'-nyckeln saknas eller ar korrupt i torrentfilen",
+			"'info'-faltet ar inte en dictionary",
+			"'piece length' faltet saknas eller ar korrupt i torrentfilen",
+			"torrentfilen saknar namnfaltet",
 			"ogiltigt namn i torrentfilen (kan vara en attack)",
 			// ... more strings here
 		};

@@ -11,6 +11,8 @@ set(Boost_USE_STATIC_RUNTIME    ON)
 
 find_package( Boost 1.50 REQUIRED COMPONENTS thread filesystem)
 
+add_definitions(-D__STDC_CONSTANT_MACROS)
+
 #dont't define this, libbt need depreated api
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})

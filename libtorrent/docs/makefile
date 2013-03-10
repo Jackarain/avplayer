@@ -6,7 +6,6 @@ TARGETS = index \
 	udp_tracker_protocol \
 	dht_rss \
 	dht_store \
-	auth \
 	client_test \
 	manual \
 	building \
@@ -31,7 +30,12 @@ html: $(TARGETS:=.html) $(FIGURES:=.png)
 
 pdf: $(TARGETS:=.pdf) $(FIGURES:=.eps)
 
+epub: $(TARGETS:=.epub) $(FIGURES:=.png)
+
 all: html
+
+%.epub:%.rst
+	rst2epub $? $@
 
 %.pdf:%.rst
 	rst2pdf $? -o $@ --stylesheets stylesheet

@@ -15,7 +15,7 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#define __STDC_CONSTANT_MACROS
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,21 +39,21 @@ EXPORT_API int sdl_init_audio(void* ctx, uint32_t channels,
 {
 	ao_context *ao = (ao_context*)ctx;
 	sdl_audio_render* sdl = NULL;
-	ao->audio_dev = (void*)(sdl = new sdl_audio_render);
-	return sdl->init_audio((void*)ao->audio_dev, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
+	ao->priv = (void*)(sdl = new sdl_audio_render);
+	return sdl->init_audio((void*)ao->priv, channels, bits_per_sample, sample_rate, format) ? 0 : -1;
 }
 
 EXPORT_API int sdl_play_audio(void* ctx, uint8_t* data, uint32_t size)
 {
 	ao_context *ao = (ao_context*)ctx;
-	sdl_audio_render* sdl = (sdl_audio_render*)ao->audio_dev;
+	sdl_audio_render* sdl = (sdl_audio_render*)ao->priv;
 	return sdl->play_audio(data, size);
 }
 
 EXPORT_API void sdl_audio_control(void* ctx, double l, double r)
 {
 	ao_context *ao = (ao_context*)ctx;
-	sdl_audio_render* sdl = (sdl_audio_render*)ao->audio_dev;
+	sdl_audio_render* sdl = (sdl_audio_render*)ao->priv;
 	control_vol_t ctrl_vol = { l, r };
 	sdl->audio_control(CONTROL_SET_VOLUME, &ctrl_vol);
 }
@@ -61,7 +61,7 @@ EXPORT_API void sdl_audio_control(void* ctx, double l, double r)
 EXPORT_API void sdl_mute_set(void* ctx, int s)
 {
 	ao_context *ao = (ao_context*)ctx;
-	sdl_audio_render* sdl = (sdl_audio_render*)ao->audio_dev;
+	sdl_audio_render* sdl = (sdl_audio_render*)ao->priv;
 	control_vol_t ctrl_vol;
 	ctrl_vol.mute = s;
 	sdl->audio_control(CONTROL_MUTE_SET, &ctrl_vol);
@@ -70,12 +70,12 @@ EXPORT_API void sdl_mute_set(void* ctx, int s)
 EXPORT_API void sdl_destory_audio(void* ctx)
 {
 	ao_context *ao = (ao_context*)ctx;
-	sdl_audio_render* sdl = (sdl_audio_render*)ao->audio_dev;
+	sdl_audio_render* sdl = (sdl_audio_render*)ao->priv;
 	if (sdl)
 	{
 		sdl->destory_audio();
 		delete sdl;
-		ao->audio_dev = NULL;
+		ao->priv = NULL;
 	}
 }
 

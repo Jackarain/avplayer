@@ -238,8 +238,10 @@ namespace libtorrent
 			return url;
 
 		char msg[TORRENT_MAX_PATH*4];
-		snprintf(msg, sizeof(msg), "%s://%s%s%s:%d%s", protocol.c_str(), auth.c_str()
-			, auth.empty()?"":"@", host.c_str(), port
+		snprintf(msg, sizeof(msg), "%s://%s%s%s%s%s%s", protocol.c_str(), auth.c_str()
+			, auth.empty()?"":"@", host.c_str()
+			, port == -1 ? "" : ":"
+			, port == -1 ? "" : to_string(port).elems
 			, escape_path(path.c_str(), path.size()).c_str());
 		return msg;
 	}
@@ -450,7 +452,7 @@ namespace libtorrent
 		*out = '\0';
 	}
 
-	int hex_to_int(char in)
+	TORRENT_EXTRA_EXPORT int hex_to_int(char in)
 	{
 		if (in >= '0' && in <= '9') return int(in) - '0';
 		if (in >= 'A' && in <= 'F') return int(in) - 'A' + 10;
@@ -578,6 +580,32 @@ namespace libtorrent
 		static iconv_t iconv_handle = iconv_open("UTF-8", "");
 		if (iconv_handle == iconv_t(-1)) return s;
 		return iconv_convert_impl(s, iconv_handle);
+	}
+
+#elif defined TORRENT_WINDOWS
+
+	std::string convert_to_native(std::string const& s)
+	{
+		std::wstring ws;
+		libtorrent::utf8_wchar(s, ws);
+		std::string ret;
+		ret.resize(ws.size() * 4);
+		std::size_t size = WideCharToMultiByte(CP_ACP, 0, ws.c_str(), -1, &ret[0], ret.size(), NULL, NULL);
+		if (size == std::size_t(-1)) return s;
+		ret.resize(size);
+		return ret;
+	}
+
+	std::string convert_from_native(std::string const& s)
+	{
+		std::wstring ws;
+		ws.resize(s.size());
+		std::size_t size = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, &ws[0], ws.size());
+		if (size == std::size_t(-1)) return s;
+		ws.resize(size);
+		std::string ret;
+		libtorrent::wchar_utf8(ws, ret);
+		return ret;
 	}
 
 #elif TORRENT_USE_LOCALE

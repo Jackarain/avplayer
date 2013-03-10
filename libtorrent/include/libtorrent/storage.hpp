@@ -111,8 +111,8 @@ namespace libtorrent
 
 		virtual bool has_any_file() = 0;
 
-		virtual int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs);
-		virtual int writev(file::iovec_t const* bufs, int slot, int offset, int num_bufs);
+		virtual int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs, int flags = file::random_access);
+		virtual int writev(file::iovec_t const* bufs, int slot, int offset, int num_bufs, int flags = file::random_access);
 
 		virtual void hint_read(int, int, int) {}
 		// negative return value indicates an error
@@ -160,7 +160,9 @@ namespace libtorrent
 		// non-zero return value indicates an error
 		virtual bool delete_files() = 0;
 
+#ifndef TORRENT_NO_DEPRECATE
 		virtual void finalize_file(int) {}
+#endif
 
 		disk_buffer_pool* disk_pool() { return m_disk_pool; }
 		session_settings const& settings() const { return *m_settings; }
@@ -187,7 +189,9 @@ namespace libtorrent
 			, file_pool& fp, std::vector<boost::uint8_t> const& file_prio);
 		~default_storage();
 
+#ifndef TORRENT_NO_DEPRECATE
 		void finalize_file(int file);
+#endif
 		bool has_any_file();
 		bool rename_file(int index, std::string const& new_filename);
 		bool release_files();
@@ -198,8 +202,8 @@ namespace libtorrent
 		int write(char const* buf, int slot, int offset, int size);
 		int sparse_end(int start) const;
 		void hint_read(int slot, int offset, int len);
-		int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs);
-		int writev(file::iovec_t const* buf, int slot, int offset, int num_bufs);
+		int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs, int flags = file::random_access);
+		int writev(file::iovec_t const* buf, int slot, int offset, int num_bufs, int flags = file::random_access);
 		size_type physical_offset(int slot, int offset);
 		bool move_slot(int src_slot, int dst_slot);
 		bool swap_slots(int slot1, int slot2);
@@ -271,8 +275,8 @@ namespace libtorrent
 		int read(char*, int, int, int size) { return size; }
 		int write(char const*, int, int, int size) { return size; }
 		size_type physical_offset(int, int) { return 0; }
-		int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs);
-		int writev(file::iovec_t const* bufs, int slot, int offset, int num_bufs);
+		int readv(file::iovec_t const* bufs, int slot, int offset, int num_bufs, int flags = file::random_access);
+		int writev(file::iovec_t const* bufs, int slot, int offset, int num_bufs, int flags = file::random_access);
 		bool move_slot(int, int) { return false; }
 		bool swap_slots(int, int) { return false; }
 		bool swap_slots3(int, int, int) { return false; }
@@ -306,8 +310,6 @@ namespace libtorrent
 
 		boost::intrusive_ptr<torrent_info const> info() const { return m_info; }
 		void write_resume_data(entry& rd) const;
-
-		void async_finalize_file(int file);
 
 		void async_check_fastresume(lazy_entry const* resume_data
 			, boost::function<void(int, disk_io_job const&)> const& handler);
@@ -437,8 +439,6 @@ namespace libtorrent
 
 		size_type physical_offset(int piece_index, int offset);
 
-		void finalize_file(int index);
-
 		// returns the number of pieces left in the
 		// file currently being checked
 		int skip_file() const;
@@ -460,11 +460,11 @@ namespace libtorrent
 		int move_storage_impl(std::string const& save_path);
 
 		int allocate_slot_for_piece(int piece_index);
-#ifdef TORRENT_DEBUG
+#if defined TORRENT_DEBUG && !defined TORRENT_DISABLE_INVARIANT_CHECKS
 		void check_invariant() const;
+#endif
 #ifdef TORRENT_STORAGE_DEBUG
 		void debug_log() const;
-#endif
 #endif
 		boost::intrusive_ptr<torrent_info const> m_info;
 		file_storage const& m_files;

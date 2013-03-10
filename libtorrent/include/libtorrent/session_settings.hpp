@@ -758,11 +758,19 @@ namespace libtorrent
 		bool no_recheck_incomplete_resume;
 
 		// when this is true, libtorrent will take actions to make sure no
-		// privacy sensitive information is leaked out from the client. This
-		// mode is assumed to be combined with using a proxy for all your
-		// traffic. With this option, your true IP address will not be exposed
-		// nor anything that can tie your connection to your true IP
+		// privacy sensitive information is leaked out from the client.
+		// With this option, your IP address will not be exposed over
+		// the wire protocol. Other measures will also be taken to make it
+		// harder to track you.
 		bool anonymous_mode;
+
+		// when this is true, no connection will ever be made without going
+		// through a proxy. If you set up a proxy and prefer connections not
+		// supported by the proxy to fail, rather than circumventing it, set
+		// this to true. For instance, reverse DNS lookups can rarely be
+		// made via a proxy, so resolving peer countries is disabled with
+		// this switch.
+		bool force_proxy;
 
 		// the number of milliseconds between internal ticks. Should be no
 		// more than one second (i.e. 1000).
@@ -801,6 +809,10 @@ namespace libtorrent
 
 		// the max number of connections in the session
 		int connections_limit;
+
+		// the number of extra incoming connections allowed
+		// temporarily, in order to support replacing peers
+		int connections_slack;
 
 		// target delay, milliseconds
 		int utp_target_delay;
@@ -937,6 +949,22 @@ namespace libtorrent
 		// http_connection maximum receive buffer size
 		// limits torrent file size for URL torrents
 		int max_http_recv_buffer_size;
+
+		// enables/disables the share-mode extension
+		bool support_share_mode;
+
+		// if this is false, don't advertise support for
+		// the Tribler merkle tree piece message
+		bool support_merkle_torrents;
+
+		// if this is true, the number of redundant bytes
+		// is sent to the tracker
+		bool report_redundant_bytes;
+
+		// the version string to advertise for this client
+		// in the peer protocol handshake. If this is empty
+		// the user_agent is used
+		std::string handshake_client_version;
 	};
 
 #ifndef TORRENT_DISABLE_DHT
@@ -955,6 +983,7 @@ namespace libtorrent
 			, restrict_routing_ips(true)
 			, restrict_search_ips(true)
 			, extended_routing_table(true)
+			, aggressive_lookups(true)
 		{}
 		
 		// the maximum number of peers to send in a
@@ -1001,6 +1030,11 @@ namespace libtorrent
 		// table are enlarged, to make room for more nodes in order
 		// to lower the look-up times
 		bool extended_routing_table;
+
+		// makes lookups waste less time finding results,
+		// at the cost of being more likely to keep more
+		// outstanding requests
+		bool aggressive_lookups;
 	};
 #endif
 

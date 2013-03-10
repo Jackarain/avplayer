@@ -1,3 +1,14 @@
+	* fix library ABI to not depend on logging being enabled
+	* use hex encoding instead of base32 in create_magnet_uri
+	* include name, save_path and torrent_file in torrent_status, for improved performance
+	* separate anonymous mode and force-proxy mode, and tighten it up a bit
+	* add per-tracker scrape information to announce_entry
+	* report errors in read_piece_alert
+	* DHT memory optimization
+	* improve DHT lookup speed
+	* improve support for windows XP and earlier
+	* introduce global connection priority for improved swarm performance
+	* make files deleted alert non-discardable
 	* make built-in sha functions not conflict with libcrypto
 	* improve web seed hash failure case
 	* improve DHT lookup times
@@ -5,6 +16,55 @@
 	* optimized the torrent creator optimizer to scale significantly better with more files
 	* fix uTP edge case where udp socket buffer fills up
 	* fix nagle implementation in uTP
+
+	* fix long filename truncation on windows
+	* distinguish file open mode when checking files and downloading/seeding with bittorrent. updates storage interface
+	* improve file_storage::map_file when dealing with invalid input
+	* improve handling of invalid utf-8 sequences in strings in torrent files
+	* handle more cases of broken .torrent files
+	* fix bug filename collision resolver
+	* fix bug in filename utf-8 verification
+	* make need_save_resume() a bit more robust
+	* fixed sparse flag manipulation on windows
+	* fixed streaming piece picking issue
+
+0.16.8 release
+
+	* make rename_file create missing directories for new filename
+	* added missing python function: parse_magnet_uri
+	* fix alerts.all_categories in python binding
+	* fix torrent-abort issue which would cancel name lookups of other torrents
+	* make torrent file parser reject invalid path elements earlier
+	* fixed piece picker bug when using pad-files
+	* fix read-piece response for cancelled deadline-pieces
+	* fixed file priority vector-overrun
+	* fix potential packet allocation alignment issue in utp
+	* make 'close_redudnant_connections' cover more cases
+	* set_piece_deadline() also unfilters the piece (if its priority is 0)
+	* add work-around for bug in windows vista and earlier in GetOverlappedResult
+	* fix traversal algorithm leak in DHT
+	* fix string encoding conversions on windows
+	* take torrent_handle::query_pieces into account in torrent_handle::statue()
+	* honor trackers responding with 410
+	* fixed merkle tree torrent creation bug
+	* fixed crash with empty url-lists in torrent files
+	* added missing max_connections() function to python bindings
+
+0.16.7 release
+
+	* fix string encoding in error messages
+	* handle error in read_piece and set_piece_deadline when torrent is removed
+	* DHT performance improvement
+	* attempt to handle ERROR_CANT_WAIT disk error on windows
+	* improve peers exchanged over PEX
+	* fixed rare crash in ut_metadata extension
+	* fixed files checking issue
+	* added missing pop_alerts() to python bindings
+	* fixed typos in configure script, inversing some feature-enable/disable flags
+	* added missing flag_update_subscribe to python bindings
+	* active_dht_limit, active_tracker_limit and active_lsd_limit now interpret -1 as infinite
+
+0.16.6 release
 
 	* fixed verbose log error for NAT holepunching
 	* fix a bunch of typos in python bindings
