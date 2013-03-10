@@ -338,7 +338,6 @@ namespace libtorrent
 
 		// rely on default umask to filter x and w permissions
 		// for group and others
-		// TODO: copy the mode from the source file
 		int permissions = S_IRUSR | S_IWUSR
 			| S_IRGRP | S_IWGRP
 			| S_IROTH | S_IWOTH;
@@ -843,6 +842,47 @@ namespace libtorrent
 #endif
 	}
 
+#ifdef TORRENT_WINDOWS
+	struct overlapped_t
+	{
+		overlapped_t()
+		{
+			memset(&ol, 0, sizeof(ol));
+			ol.hEvent = CreateEvent(0, true, false, 0);
+		}
+		~overlapped_t()
+		{
+			if (ol.hEvent != INVALID_HANDLE_VALUE)
+				CloseHandle(ol.hEvent);
+		}
+		int wait(HANDLE file, error_code& ec)
+		{
+			if (WaitForSingleObject(ol.hEvent, INFINITE) == WAIT_FAILED)
+			{
+				ec.assign(GetLastError(), get_system_category());
+				return -1;
+			}
+
+			DWORD ret = -1;
+			if (GetOverlappedResult(file, &ol, &ret, false) == 0)
+			{
+				DWORD last_error = GetLastError();
+				if (last_error != ERROR_HANDLE_EOF)
+				{
+#ifndef TORRENT_MINGW
+					TORRENT_ASSERT(last_error != ERROR_CANT_WAIT);
+#endif
+					ec.assign(last_error, get_system_category());
+					return -1;
+				}
+			}
+			return ret;
+		}
+
+		OVERLAPPED ol;
+	};
+#endif // TORRENT_WINDOWS
+
 	file::file()
 #ifdef TORRENT_WINDOWS
 		: m_file_handle(INVALID_HANDLE_VALUE)
@@ -957,8 +997,13 @@ namespace libtorrent
 		if ((mode & file::sparse) && (mode & rw_mask) != read_only)
 		{
 			DWORD temp;
+			bool use_overlapped = m_open_mode & no_buffer;
+			overlapped_t ol;
 			::DeviceIoControl(m_file_handle, FSCTL_SET_SPARSE, 0, 0
-				, 0, 0, &temp, 0);
+				, 0, 0, &temp, use_overlapped ? &ol.ol : NULL);
+			error_code error;
+			if (use_overlapped)
+				ol.wait(m_file_handle, error);
 		}
 #else // TORRENT_WINDOWS
 
@@ -1158,6 +1203,50 @@ namespace libtorrent
 #endif
 	}
 
+#ifdef TORRENT_WINDOWS
+	bool is_sparse(HANDLE file, bool overlapped)
+	{
+		LARGE_INTEGER file_size;
+		if (!GetFileSizeEx(file, &file_size))
+			return -1;
+
+		overlapped_t ol;
+		if (ol.ol.hEvent == NULL) return -1;
+
+#ifdef TORRENT_MINGW
+typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
+	LARGE_INTEGER FileOffset;
+	LARGE_INTEGER Length;
+} FILE_ALLOCATED_RANGE_BUFFER, *PFILE_ALLOCATED_RANGE_BUFFER;
+#define FSCTL_QUERY_ALLOCATED_RANGES ((0x9 << 16) | (1 << 14) | (51 << 2) | 3)
+#endif
+		FILE_ALLOCATED_RANGE_BUFFER in;
+		in.FileOffset.QuadPart = 0;
+		in.Length.QuadPart = file_size.QuadPart;
+
+		FILE_ALLOCATED_RANGE_BUFFER out[2];
+
+		DWORD returned_bytes = 0;
+		BOOL ret = DeviceIoControl(file, FSCTL_QUERY_ALLOCATED_RANGES, (void*)&in, sizeof(in)
+			, out, sizeof(out), &returned_bytes, overlapped ? &ol.ol : NULL);
+
+		if (overlapped)
+		{
+			error_code ec;
+			returned_bytes = ol.wait(file, ec);
+			if (ec) return true;
+		}
+		else if (ret == FALSE)
+		{
+			int error = GetLastError();
+			return true;
+		}
+
+		// if we only have a single range in the file, we're not sparse
+		return returned_bytes != sizeof(FILE_ALLOCATED_RANGE_BUFFER);
+	}
+#endif
+
 	void file::close()
 	{
 #if defined TORRENT_WINDOWS || defined TORRENT_LINUX
@@ -1166,6 +1255,36 @@ namespace libtorrent
 
 #ifdef TORRENT_WINDOWS
 		if (m_file_handle == INVALID_HANDLE_VALUE) return;
+
+		// if this file is open for writing, has the sparse
+		// flag set, but there are no sparse regions, unset
+		// the flag
+		int rw_mode = m_open_mode & rw_mask;
+		bool use_overlapped = m_open_mode & no_buffer;
+		if ((rw_mode == read_write || rw_mode == write_only)
+			&& (m_open_mode & sparse)
+			&& !is_sparse(m_file_handle, use_overlapped))
+		{
+			overlapped_t ol;
+			// according to MSDN, clearing the sparse flag of a file only
+			// works on windows vista and later
+#ifdef TORRENT_MINGW
+	typedef struct _FILE_SET_SPARSE_BUFFER {
+		    BOOLEAN SetSparse;
+	} FILE_SET_SPARSE_BUFFER, *PFILE_SET_SPARSE_BUFFER;
+#endif
+			DWORD temp;
+			FILE_SET_SPARSE_BUFFER b;
+			b.SetSparse = FALSE;
+			int ret = ::DeviceIoControl(m_file_handle, FSCTL_SET_SPARSE, &b, sizeof(b)
+				, 0, 0, &temp, use_overlapped ? &ol.ol : NULL);
+			error_code ec;
+			if (use_overlapped)
+			{
+				ol.wait(m_file_handle, ec);
+			}
+		}
+
 		CloseHandle(m_file_handle);
 		m_file_handle = INVALID_HANDLE_VALUE;
 		m_path.clear();
@@ -1209,6 +1328,19 @@ namespace libtorrent
 
 	size_type file::readv(size_type file_offset, iovec_t const* bufs, int num_bufs, error_code& ec)
 	{
+#ifdef TORRENT_WINDOWS
+		if (m_file_handle == INVALID_HANDLE_VALUE)
+		{
+			ec = error_code(ERROR_INVALID_HANDLE, get_system_category());
+			return -1;
+		}
+#else
+		if (m_fd == -1)
+		{
+			ec = error_code(EBADF, get_system_category());
+			return -1;
+		}
+#endif
 		TORRENT_ASSERT((m_open_mode & rw_mask) == read_only || (m_open_mode & rw_mask) == read_write);
 		TORRENT_ASSERT(bufs);
 		TORRENT_ASSERT(num_bufs > 0);
@@ -1306,29 +1438,49 @@ namespace libtorrent
 		cur_seg->Buffer = 0;
 
 		OVERLAPPED ol;
+		memset(&ol, 0, sizeof(ol));
 		ol.Internal = 0;
 		ol.InternalHigh = 0;
 		ol.OffsetHigh = DWORD(file_offset >> 32);
 		ol.Offset = DWORD(file_offset & 0xffffffff);
 		ol.hEvent = CreateEvent(0, true, false, 0);
+		if (ol.hEvent == NULL)
+		{
+			ec.assign(GetLastError(), get_system_category());
+			return -1;
+		}
 
 		ret += size;
 		size = num_pages * m_page_size;
 		if (ReadFileScatter(m_file_handle, segment_array, size, 0, &ol) == 0)
 		{
 			DWORD last_error = GetLastError();
-			if (last_error != ERROR_IO_PENDING)
+			if (last_error != ERROR_IO_PENDING
+#ifndef TORRENT_MINGW
+				&& last_error != ERROR_CANT_WAIT
+#endif
+)
+			{
+				ec.assign(last_error, get_system_category());
+				CloseHandle(ol.hEvent);
+				return -1;
+			}
+			if (WaitForSingleObject(ol.hEvent, INFINITE) == WAIT_FAILED)
 			{
 				ec.assign(GetLastError(), get_system_category());
 				CloseHandle(ol.hEvent);
 				return -1;
 			}
 			DWORD num_read;
-			if (GetOverlappedResult(m_file_handle, &ol, &num_read, true) == 0)
+			if (GetOverlappedResult(m_file_handle, &ol, &num_read, false) == 0)
 			{
-				if (GetLastError() != ERROR_HANDLE_EOF)
+				DWORD last_error = GetLastError();
+				if (last_error != ERROR_HANDLE_EOF)
 				{
-					ec.assign(GetLastError(), get_system_category());
+#ifndef TORRENT_MINGW
+					TORRENT_ASSERT(last_error != ERROR_CANT_WAIT);
+#endif
+					ec.assign(last_error, get_system_category());
 					CloseHandle(ol.hEvent);
 					return -1;
 				}
@@ -1420,6 +1572,19 @@ namespace libtorrent
 
 	size_type file::writev(size_type file_offset, iovec_t const* bufs, int num_bufs, error_code& ec)
 	{
+#ifdef TORRENT_WINDOWS
+		if (m_file_handle == INVALID_HANDLE_VALUE)
+		{
+			ec = error_code(ERROR_INVALID_HANDLE, get_system_category());
+			return -1;
+		}
+#else
+		if (m_fd == -1)
+		{
+			ec = error_code(EBADF, get_system_category());
+			return -1;
+		}
+#endif
 		TORRENT_ASSERT((m_open_mode & rw_mask) == write_only || (m_open_mode & rw_mask) == read_write);
 		TORRENT_ASSERT(bufs);
 		TORRENT_ASSERT(num_bufs > 0);
@@ -1508,11 +1673,17 @@ namespace libtorrent
 		cur_seg->Buffer = 0;
 
 		OVERLAPPED ol;
+		memset(&ol, 0, sizeof(ol));
 		ol.Internal = 0;
 		ol.InternalHigh = 0;
 		ol.OffsetHigh = DWORD(file_offset >> 32);
 		ol.Offset = DWORD(file_offset & 0xffffffff);
 		ol.hEvent = CreateEvent(0, true, false, 0);
+		if (ol.hEvent == NULL)
+		{
+			ec.assign(GetLastError(), get_system_category());
+			return -1;
+		}
 
 		ret += size;
 		size_type file_size = 0;
@@ -1528,17 +1699,32 @@ namespace libtorrent
 
 		if (WriteFileGather(m_file_handle, segment_array, size, 0, &ol) == 0)
 		{
-			if (GetLastError() != ERROR_IO_PENDING)
+			DWORD last_error = GetLastError();
+			if (last_error != ERROR_IO_PENDING
+#ifndef TORRENT_MINGW
+				&& last_error != ERROR_CANT_WAIT
+#endif
+				)
 			{
-				TORRENT_ASSERT(GetLastError() != ERROR_BAD_ARGUMENTS);
+				TORRENT_ASSERT(last_error != ERROR_BAD_ARGUMENTS);
+				ec.assign(last_error, get_system_category());
+				CloseHandle(ol.hEvent);
+				return -1;
+			}
+			if (WaitForSingleObject(ol.hEvent, INFINITE) == WAIT_FAILED)
+			{
 				ec.assign(GetLastError(), get_system_category());
 				CloseHandle(ol.hEvent);
 				return -1;
 			}
 			DWORD num_written;
-			if (GetOverlappedResult(m_file_handle, &ol, &num_written, true) == 0)
+			if (GetOverlappedResult(m_file_handle, &ol, &num_written, false) == 0)
 			{
-				ec.assign(GetLastError(), get_system_category());
+				DWORD last_error = GetLastError();
+#ifndef TORRENT_MINGW
+				TORRENT_ASSERT(last_error != ERROR_CANT_WAIT);
+#endif
+				ec.assign(last_error, get_system_category());
 				CloseHandle(ol.hEvent);
 				return -1;
 			}
@@ -1787,25 +1973,53 @@ namespace libtorrent
 				return false;
 			}
 		}
-#if _WIN32_WINNT >= 0x501		
+
 		if ((m_open_mode & sparse) == 0)
 		{
-			// only allocate the space if the file
-			// is not fully allocated
-			DWORD high_dword = 0;
-			offs.LowPart = GetCompressedFileSize(m_path.c_str(), &high_dword);
-			offs.HighPart = high_dword;
-			ec.assign(GetLastError(), get_system_category());
-			if (ec) return false;
-			if (offs.QuadPart != s)
+			typedef DWORD (WINAPI *GetCompressedFileSizeW_t)(LPCWSTR lpFileName, LPDWORD lpFileSizeHigh);
+			typedef BOOL (WINAPI *SetFileValidData_t)(HANDLE hFile, LONGLONG ValidDataLength);
+
+			static GetCompressedFileSizeW_t GetCompressedFileSizeW = NULL;
+			static SetFileValidData_t SetFileValidData = NULL;
+
+			static bool failed_kernel32 = false;
+
+			if ((GetCompressedFileSizeW == NULL) && !failed_kernel32)
 			{
-				// if the user has permissions, avoid filling
-				// the file with zeroes, but just fill it with
-				// garbage instead
-				SetFileValidData(m_file_handle, offs.QuadPart);
+				HMODULE kernel32 = LoadLibraryA("kernel32.dll");
+				if (kernel32)
+				{
+					GetCompressedFileSizeW = (GetCompressedFileSizeW_t)GetProcAddress(kernel32, "GetCompressedFileSizeW");
+					SetFileValidData = (SetFileValidData_t)GetProcAddress(kernel32, "SetFileValidData");
+					if ((GetCompressedFileSizeW == NULL) || (SetFileValidData == NULL))
+					{ 
+						failed_kernel32 = true;
+					}
+				}
+				else
+				{
+					failed_kernel32 = true;
+				}
+			}
+
+			if (!failed_kernel32 && GetCompressedFileSizeW && SetFileValidData)
+			{
+				// only allocate the space if the file
+				// is not fully allocated
+				DWORD high_dword = 0;
+				offs.LowPart = GetCompressedFileSize(m_path.c_str(), &high_dword);
+				offs.HighPart = high_dword;
+				ec.assign(GetLastError(), get_system_category());
+				if (ec) return false;
+				if (offs.QuadPart != s)
+				{
+					// if the user has permissions, avoid filling
+					// the file with zeroes, but just fill it with
+					// garbage instead
+					SetFileValidData(m_file_handle, offs.QuadPart);
+				}
 			}
 		}
-#endif // _WIN32_WINNT >= 0x501
 #else // NON-WINDOWS
 		struct stat st;
 		if (fstat(m_fd, &st) != 0)
@@ -1904,24 +2118,6 @@ namespace libtorrent
 		}
 #endif // TORRENT_WINDOWS
 		return true;
-	}
-
-	void file::finalize()
-	{
-#ifdef TORRENT_WINDOWS
-		// according to MSDN, clearing the sparse flag of a file only
-		// works on windows vista and later
-#ifdef TORRENT_MINGW
-typedef struct _FILE_SET_SPARSE_BUFFER {
-	    BOOLEAN SetSparse;
-} FILE_SET_SPARSE_BUFFER, *PFILE_SET_SPARSE_BUFFER;
-#endif
-		DWORD temp;
-		FILE_SET_SPARSE_BUFFER b;
-		b.SetSparse = FALSE;
-		::DeviceIoControl(m_file_handle, FSCTL_SET_SPARSE, &b, sizeof(b)
-			, 0, 0, &temp, 0);
-#endif
 	}
 
 	size_type file::get_size(error_code& ec) const

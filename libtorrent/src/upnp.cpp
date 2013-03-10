@@ -148,7 +148,8 @@ void upnp::discover_device_impl(mutex::scoped_lock& l)
 	if (ec)
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), "broadcast failed: %s. Aborting.", ec.message().c_str());
+		snprintf(msg, sizeof(msg), "broadcast failed: %s. Aborting."
+			, convert_from_native(ec.message()).c_str());
 		log(msg, l);
 		disable(ec, l);
 		return;
@@ -355,7 +356,7 @@ void upnp::on_reply(udp::endpoint const& from, char* buffer
 		{
 			char msg[200];
 			snprintf(msg, sizeof(msg), "when receiving response from: %s: %s"
-				, print_endpoint(from).c_str(), ec.message().c_str());
+				, print_endpoint(from).c_str(), convert_from_native(ec.message()).c_str());
 			log(msg, l);
 		}
 		else
@@ -389,7 +390,7 @@ void upnp::on_reply(udp::endpoint const& from, char* buffer
 			{
 				char msg[200];
 				snprintf(msg, sizeof(msg), "when receiving response from: %s: %s"
-					, print_endpoint(from).c_str(), ec.message().c_str());
+					, print_endpoint(from).c_str(), convert_from_native(ec.message()).c_str());
 				log(msg, l);
 			}
 			else
@@ -474,12 +475,13 @@ void upnp::on_reply(udp::endpoint const& from, char* buffer
 		// we don't have this device in our list. Add it
 		boost::tie(protocol, auth, d.hostname, d.port, d.path)
 			= parse_url_components(d.url, ec);
+		if (d.port == -1) d.port = protocol == "http" ? 80 : 443;
 
 		if (ec)
 		{
 			char msg[200];
 			snprintf(msg, sizeof(msg), "invalid URL %s from %s: %s"
-				, d.url.c_str(), print_endpoint(from).c_str(), ec.message().c_str());
+				, d.url.c_str(), print_endpoint(from).c_str(), convert_from_native(ec.message()).c_str());
 			log(msg, l);
 			return;
 		}
@@ -856,7 +858,7 @@ void upnp::on_upnp_xml(error_code const& e
 	{
 		char msg[200];
 		snprintf(msg, sizeof(msg), "error while fetching control url from: %s: %s"
-			, d.url.c_str(), e.message().c_str());
+			, d.url.c_str(), convert_from_native(e.message()).c_str());
 		log(msg, l);
 		d.disabled = true;
 		return;
@@ -876,7 +878,7 @@ void upnp::on_upnp_xml(error_code const& e
 	{
 		char msg[200];
 		snprintf(msg, sizeof(msg), "error while fetching control url from: %s: %s"
-			, d.url.c_str(), p.message().c_str());
+			, d.url.c_str(), convert_from_native(p.message()).c_str());
 		log(msg, l);
 		d.disabled = true;
 		return;
@@ -932,6 +934,7 @@ void upnp::on_upnp_xml(error_code const& e
 	{
 		boost::tie(protocol, auth, d.hostname, d.port, d.path)
 			= parse_url_components(d.url, ec);
+		if (d.port == -1) d.port = protocol == "http" ? 80 : 443;
 		d.control_url = protocol + "://" + d.hostname + ":"
 			+ to_string(d.port).elems + s.control_url;
 	}
@@ -945,12 +948,13 @@ void upnp::on_upnp_xml(error_code const& e
 
 	boost::tie(protocol, auth, d.hostname, d.port, d.path)
 		= parse_url_components(d.control_url, ec);
+	if (d.port == -1) d.port = protocol == "http" ? 80 : 443;
 
 	if (ec)
 	{
 		char msg[200];
 		snprintf(msg, sizeof(msg), "failed to parse URL '%s': %s"
-			, d.control_url.c_str(), ec.message().c_str());
+			, d.control_url.c_str(), convert_from_native(ec.message()).c_str());
 		log(msg, l);
 		d.disabled = true;
 		return;
@@ -1148,7 +1152,8 @@ void upnp::on_upnp_get_ip_address_response(error_code const& e
 	if (e && e != asio::error::eof)
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), "error while getting external IP address: %s", e.message().c_str());
+		snprintf(msg, sizeof(msg), "error while getting external IP address: %s"
+			, convert_from_native(e.message()).c_str());
 		log(msg, l);
 		if (num_mappings() > 0) update_map(d, 0, l);
 		return;
@@ -1164,7 +1169,8 @@ void upnp::on_upnp_get_ip_address_response(error_code const& e
 	if (p.status_code() != 200)
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), "error while getting external IP address: %s", p.message().c_str());
+		snprintf(msg, sizeof(msg), "error while getting external IP address: %s"
+			, convert_from_native(p.message()).c_str());
 		log(msg, l);
 		if (num_mappings() > 0) update_map(d, 0, l);
 		return;
@@ -1225,7 +1231,7 @@ void upnp::on_upnp_map_response(error_code const& e
 	{
 		char msg[200];
 		snprintf(msg, sizeof(msg), "error while adding port map: %s"
-			, e.message().c_str());
+			, convert_from_native(e.message()).c_str());
 		log(msg, l);
 		d.disabled = true;
 		return;
@@ -1386,7 +1392,8 @@ void upnp::on_upnp_unmap_response(error_code const& e
 	if (e && e != asio::error::eof)
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), "error while deleting portmap: %s", e.message().c_str());
+		snprintf(msg, sizeof(msg), "error while deleting portmap: %s"
+			, convert_from_native(e.message()).c_str());
 		log(msg, l);
 	}
 	else if (!p.header_finished())
@@ -1396,7 +1403,8 @@ void upnp::on_upnp_unmap_response(error_code const& e
 	else if (p.status_code() != 200)
 	{
 		char msg[200];
-		snprintf(msg, sizeof(msg), "error while deleting portmap: %s", p.message().c_str());
+		snprintf(msg, sizeof(msg), "error while deleting portmap: %s"
+			, convert_from_native(p.message()).c_str());
 		log(msg, l);
 	}
 	else

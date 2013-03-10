@@ -68,6 +68,8 @@ namespace libtorrent
 	TORRENT_EXTRA_EXPORT void convert_path_to_posix(std::string& path);
 
 	TORRENT_EXTRA_EXPORT std::string read_until(char const*& str, char delim, char const* end);
+	TORRENT_EXTRA_EXPORT int hex_to_int(char in);
+
 	TORRENT_EXPORT std::string to_hex(std::string const& s);
 	TORRENT_EXPORT bool is_hex(char const *in, int len);
 	TORRENT_EXPORT void to_hex(char const *in, int len, char* out);
@@ -78,12 +80,12 @@ namespace libtorrent
 	TORRENT_EXTRA_EXPORT std::string convert_from_wstring(std::wstring const& s);
 #endif
 	
-#if TORRENT_USE_ICONV || TORRENT_USE_LOCALE
+#if TORRENT_USE_ICONV || TORRENT_USE_LOCALE || defined TORRENT_WINDOWS
 	TORRENT_EXTRA_EXPORT std::string convert_to_native(std::string const& s);
 	TORRENT_EXTRA_EXPORT std::string convert_from_native(std::string const& s);
 #else
-	TORRENT_EXTRA_EXPORT inline std::string const& convert_to_native(std::string const& s) { return s; }
-	TORRENT_EXTRA_EXPORT inline std::string const& convert_from_native(std::string const& s) { return s; }
+	inline std::string const& convert_to_native(std::string const& s) { return s; }
+	inline std::string const& convert_from_native(std::string const& s) { return s; }
 #endif		
 }
 

@@ -916,7 +916,7 @@ namespace libtorrent
 		return ret;
 	}
 
-#ifdef TORRENT_DEBUG
+#if defined TORRENT_DEBUG && !defined TORRENT_DISABLE_INVARIANT_CHECKS
 	void disk_io_thread::check_invariant() const
 	{
 		int cached_write_blocks = 0;
@@ -1411,7 +1411,7 @@ namespace libtorrent
 		, 0 // release_files
 		, 0 // delete_files
 		, 0 // check_fastresume
-		, read_operation + cancel_on_abort // check_files
+		, cancel_on_abort // check_files
 		, 0 // save_resume_data
 		, 0 // rename_file
 		, 0 // abort_thread
@@ -1420,7 +1420,9 @@ namespace libtorrent
 		, cancel_on_abort // update_settings
 		, read_operation + cancel_on_abort // read_and_hash
 		, read_operation + cancel_on_abort // cache_piece
+#ifndef TORRENT_NO_DEPRECATE
 		, 0 // finalize_file
+#endif
 	};
 
 	bool should_cancel_on_abort(disk_io_job const& j)
@@ -1963,14 +1965,10 @@ namespace libtorrent
 #endif
 					break;
 				}
+#ifndef TORRENT_NO_DEPRECATE
 				case disk_io_job::finalize_file:
-				{
-#ifdef TORRENT_DISK_STATS
-					m_log << log_time() << " finalize_file " << j.piece << std::endl;
-#endif
-					j.storage->finalize_file(j.piece);
 					break;
-				}
+#endif
 				case disk_io_job::read:
 				{
 					if (test_error(j))

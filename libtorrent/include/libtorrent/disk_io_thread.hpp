@@ -101,7 +101,9 @@ namespace libtorrent
 			, update_settings
 			, read_and_hash
 			, cache_piece
+#ifndef TORRENT_NO_DEPRECATE
 			, finalize_file
+#endif
 		};
 
 		action_t action;
@@ -257,7 +259,7 @@ namespace libtorrent
 
 		void thread_fun();
 
-#ifdef TORRENT_DEBUG
+#if defined TORRENT_DEBUG && !defined TORRENT_DISABLE_INVARIANT_CHECKS
 		void check_invariant() const;
 #endif
 		

@@ -57,6 +57,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma warning(pop)
 #endif
 
+#include "libtorrent/ip_voter.hpp"
 #include "libtorrent/torrent_handle.hpp"
 #include "libtorrent/entry.hpp"
 #include "libtorrent/socket.hpp"
@@ -214,15 +215,14 @@ namespace libtorrent
 				std::pair<int, int> listen_port_range
 				, fingerprint const& cl_fprint
 				, char const* listen_interface
-				, boost::uint32_t alert_mask
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-				, std::string const& logpath
-#endif
-				);
+				, boost::uint32_t alert_mask);
 			virtual ~session_impl();
 			void update_dht_announce_interval();
 			void init();
 			void start_session();
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+			void set_log_path(std::string const& p) { m_logpath = p; }
+#endif
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 			void add_extension(boost::function<boost::shared_ptr<torrent_plugin>(
@@ -280,8 +280,9 @@ namespace libtorrent
 			void remove_feed(feed_handle h);
 			void get_feeds(std::vector<feed_handle>* f) const;
 
-			boost::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash);
-			boost::weak_ptr<torrent> find_torrent(std::string const& uuid);
+			boost::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash) const;
+			boost::weak_ptr<torrent> find_torrent(std::string const& uuid) const;
+			boost::weak_ptr<torrent> find_disconnect_candidate_torrent() const;
 
 			peer_id const& get_peer_id() const { return m_peer_id; }
 
@@ -509,8 +510,12 @@ namespace libtorrent
 
 			// implements dht_observer
 			virtual void set_external_address(address const& ip
+				, address const& source);
+
+			void set_external_address(address const& ip
 				, int source_type, address const& source);
-			address const& external_address() const { return m_external_address; }
+
+			external_ip const& external_address() const;
 
 			bool can_write_to_disk() const
 			{ return m_disk_thread.can_write(); }
@@ -518,7 +523,7 @@ namespace libtorrent
 			// used when posting synchronous function
 			// calls to session_impl and torrent objects
 			mutable libtorrent::mutex mut;
-			mutable libtorrent::condition cond;
+			mutable libtorrent::condition_variable cond;
 
 			void inc_disk_queue(int channel)
 			{
@@ -1001,7 +1006,7 @@ namespace libtorrent
 			// get to download again after the disk has been
 			// blocked
 			connection_map::iterator m_next_disk_peer;
-#ifdef TORRENT_DEBUG
+#if defined TORRENT_DEBUG && !defined TORRENT_DISABLE_INVARIANT_CHECKS
 			void check_invariant() const;
 #endif
 
@@ -1151,42 +1156,11 @@ namespace libtorrent
 #ifdef TORRENT_UPNP_LOGGING
 			std::ofstream m_upnp_log;
 #endif
-			struct external_ip_t
-			{
-				external_ip_t(): sources(0), num_votes(0) {}
 
-				bool add_vote(sha1_hash const& k, int type);
-				bool operator<(external_ip_t const& rhs) const
-				{
-					if (num_votes < rhs.num_votes) return true;
-					if (num_votes > rhs.num_votes) return false;
-					return sources < rhs.sources;
-				}
-
-				// this is a bloom filter of the IPs that have
-				// reported this address
-				bloom_filter<16> voters;
-				// this is the actual external address
-				address addr;
-				// a bitmask of sources the reporters have come from
-				boost::uint16_t sources;
-				// the total number of votes for this IP
-				boost::uint16_t num_votes;
-			};
-
-			// this is a bloom filter of all the IPs that have
-			// been the first to report an external address. Each
-			// IP only gets to add a new item once.
-			bloom_filter<32> m_external_address_voters;
-			std::vector<external_ip_t> m_external_addresses;
-			address m_external_address;
+			// state for keeping track of external IPs
+			external_ip m_external_ip;
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
-			typedef std::list<boost::function<boost::shared_ptr<
-				torrent_plugin>(torrent*, void*)> > extension_list_t;
-
-			extension_list_t m_extensions;
-
 			typedef std::list<boost::shared_ptr<plugin> > ses_extension_list_t;
 			ses_extension_list_t m_ses_extensions;
 #endif
@@ -1255,6 +1229,7 @@ namespace libtorrent
 				, int min_interval
 				, int complete
 				, int incomplete
+				, int downloaded 
 				, address const& external_ip
 				, std::string const& tracker_id)
 			{

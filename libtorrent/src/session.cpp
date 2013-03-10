@@ -191,7 +191,7 @@ namespace libtorrent
 
 		// we will probably see a high rate of alerts, make it less
 		// likely to loose alerts
-		set.alert_queue_size = 10000;
+		set.alert_queue_size = 50000;
 
 		// allow 500 files open at a time
 		set.file_pool_size = 500;
@@ -304,20 +304,20 @@ namespace libtorrent
 	// wrapper around a function that's executed in the network thread
 	// ans synchronized in the client thread
 	template <class R>
-	void fun_ret(R* ret, bool* done, condition* e, mutex* m, boost::function<R(void)> f)
+	void fun_ret(R* ret, bool* done, condition_variable* e, mutex* m, boost::function<R(void)> f)
 	{
 		*ret = f();
 		mutex::scoped_lock l(*m);
 		*done = true;
-		e->signal_all(l);
+		e->notify_all();
 	}
 
-	void fun_wrap(bool* done, condition* e, mutex* m, boost::function<void(void)> f)
+	void fun_wrap(bool* done, condition_variable* e, mutex* m, boost::function<void(void)> f)
 	{
 		f();
 		mutex::scoped_lock l(*m);
 		*done = true;
-		e->signal_all(l);
+		e->notify_all();
 	}
 
 #define TORRENT_ASYNC_CALL(x) \
@@ -393,13 +393,24 @@ namespace libtorrent
 	void TORRENT_EXPORT TORRENT_CFG() {}
 
 	void session::init(std::pair<int, int> listen_range, char const* listen_interface
-		, fingerprint const& id, int flags, boost::uint32_t alert_mask TORRENT_LOGPATH_ARG)
+		, fingerprint const& id, boost::uint32_t alert_mask)
 	{
-		m_impl.reset(new session_impl(listen_range, id, listen_interface, alert_mask TORRENT_LOGPATH));
+		m_impl.reset(new session_impl(listen_range, id, listen_interface, alert_mask));
 
 #ifdef TORRENT_MEMDEBUG
 		start_malloc_debug();
 #endif
+	}
+
+	void session::set_log_path(std::string const& p)
+	{
+#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
+		m_impl->set_log_path(p);
+#endif
+	}
+
+	void session::start(int flags)
+	{
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		if (flags & add_default_plugins)
 		{
@@ -1248,6 +1259,7 @@ namespace libtorrent
 		, ignore_resume_timestamps(false)
 		, no_recheck_incomplete_resume(false)
 		, anonymous_mode(false)
+		, force_proxy(false)
 		, tick_interval(100)
 		, report_web_seed_downloads(true)
 		, share_mode_target(3)
@@ -1259,6 +1271,7 @@ namespace libtorrent
 		, unchoke_slots_limit(8)
 		, half_open_limit(0)
 		, connections_limit(200)
+		, connections_slack(10)
 		, utp_target_delay(100) // milliseconds
 		, utp_gain_factor(1500) // bytes per rtt
 		, utp_min_timeout(500) // milliseconds
@@ -1278,7 +1291,7 @@ namespace libtorrent
 		, torrent_connect_boost(10)
 		, seeding_outgoing_connections(true)
 		, no_connect_privileged_ports(true)
-		, alert_queue_size(1000)
+		, alert_queue_size(6000)
 		, max_metadata_size(3*1024*1024)
 		, smooth_connects(true)
 		, always_send_user_agent(false)
@@ -1290,6 +1303,9 @@ namespace libtorrent
 		, tracker_backoff(250)
 		, ban_web_seeds(true)
 		, max_http_recv_buffer_size(2*1024*1024)
+		, support_share_mode(true)
+		, support_merkle_torrents(false)
+		, report_redundant_bytes(true)
 	{}
 
 	session_settings::~session_settings() {}

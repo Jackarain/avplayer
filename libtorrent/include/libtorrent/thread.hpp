@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_THREAD_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/time.hpp"
 
 #if defined TORRENT_WINDOWS || defined TORRENT_CYGWIN
 // asio assumes that the windows error codes are defined already
@@ -58,12 +59,13 @@ namespace libtorrent
 
 	TORRENT_EXPORT void sleep(int milliseconds);
 
-	struct TORRENT_EXTRA_EXPORT condition
+	struct TORRENT_EXTRA_EXPORT condition_variable
 	{
-		condition();
-		~condition();
+		condition_variable();
+		~condition_variable();
 		void wait(mutex::scoped_lock& l);
-		void signal_all(mutex::scoped_lock& l);
+		void wait_for(mutex::scoped_lock& l, time_duration rel_time);
+		void notify_all();
 	private:
 #ifdef BOOST_HAS_PTHREADS
 		pthread_cond_t m_cond;

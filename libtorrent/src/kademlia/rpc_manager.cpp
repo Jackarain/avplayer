@@ -33,9 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/pch.hpp"
 #include "libtorrent/socket.hpp"
 
-// TODO: it would be nice to not have this dependency here
-#include "libtorrent/aux_/session_impl.hpp"
-
 #include <boost/bind.hpp>
 
 #include <libtorrent/io.hpp>
@@ -348,7 +345,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 		memcpy(&b[0], ext_ip->string_ptr(), 4);
 		if (m_observer)
 			m_observer->set_external_address(address_v4(b)
-				, aux::session_impl::source_dht, m.addr.address());
+				, m.addr.address());
 	}
 #if TORRENT_USE_IPV6
 	else if (ext_ip && ext_ip->string_length() == 16)
@@ -358,7 +355,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 		memcpy(&b[0], ext_ip->string_ptr(), 16);
 		if (m_observer)
 			m_observer->set_external_address(address_v6(b)
-				, aux::session_impl::source_dht, m.addr.address());
+				, m.addr.address());
 	}
 #endif
 
@@ -380,8 +377,8 @@ time_duration rpc_manager::tick()
 {
 	INVARIANT_CHECK;
 
-	const static int short_timeout = 2;
-	const static int timeout = 10;
+	const static int short_timeout = 1;
+	const static int timeout = 8;
 
 	//	look for observers that have timed out
 
@@ -391,6 +388,16 @@ time_duration rpc_manager::tick()
 
 	time_duration ret = seconds(short_timeout);
 	ptime now = time_now();
+
+#if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
+	ptime last = min_time();
+	for (transactions_t::iterator i = m_transactions.begin();
+		i != m_transactions.end(); ++i)
+	{
+		TORRENT_ASSERT((*i)->sent() >= last);
+		last = (*i)->sent();
+	}
+#endif
 
 	for (transactions_t::iterator i = m_transactions.begin();
 		i != m_transactions.end();)
@@ -433,10 +440,10 @@ time_duration rpc_manager::tick()
 			break;
 		}
 		
+		// don't call short_timeout() again if we've
+		// already called it once
 		if (o->has_short_timeout()) continue;
 
-		// TODO: don't call short_timeout() again if we've
-		// already called it once
 		timeouts.push_back(o);
 	}
 
@@ -482,8 +489,9 @@ bool rpc_manager::invoke(entry& e, udp::endpoint target_addr
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 		o->m_was_sent = true;
 #endif
+		return true;
 	}
-	return true;
+	return false;
 }
 
 observer::~observer()

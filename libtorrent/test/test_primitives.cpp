@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008, Arvid Norberg
+Copyright (c) 2008-2012, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/bloom_filter.hpp"
 #include "libtorrent/aux_/session_impl.hpp"
 #include "libtorrent/rsa.hpp"
+#include "libtorrent/ip_voter.hpp"
 #ifndef TORRENT_DISABLE_DHT
 #include "libtorrent/kademlia/node_id.hpp"
 #include "libtorrent/kademlia/routing_table.hpp"
@@ -394,6 +395,13 @@ address rand_v4()
 	return address_v4((rand() << 16 | rand()) & 0xffffffff);
 }
 
+address rand_v6()
+{
+	address_v6::bytes_type bytes;
+	for (int i = 0; i < bytes.size(); ++i) bytes[i] = rand();
+	return address_v6(bytes);
+}
+
 int test_main()
 {
 	using namespace libtorrent;
@@ -537,53 +545,49 @@ int test_main()
 	}
 
 	// test external ip voting
-	aux::session_impl* ses = new aux::session_impl(std::pair<int, int>(0,0)
-		, fingerprint("LT", 0, 0, 0, 0), "0.0.0.0", 0
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		, ""
-#endif
-		);
+	external_ip ipv1;
 
 	// test a single malicious node
 	// adds 50 legitimate responses from different peers
 	// and 50 malicious responses from the same peer
-	address real_external = address_v4::from_string("5.5.5.5");
-	address malicious = address_v4::from_string("4.4.4.4");
+	address real_external = address_v4::from_string("5.5.5.5", ec);
+	TEST_CHECK(!ec);
+	address malicious = address_v4::from_string("4.4.4.4", ec);
+	TEST_CHECK(!ec);
 	for (int i = 0; i < 50; ++i)
 	{
-		ses->set_external_address(real_external, aux::session_impl::source_dht, rand_v4());
-		ses->set_external_address(rand_v4(), aux::session_impl::source_dht, malicious);
+		ipv1.cast_vote(real_external, aux::session_impl::source_dht, rand_v4());
+		ipv1.cast_vote(rand_v4(), aux::session_impl::source_dht, malicious);
 	}
-	TEST_CHECK(ses->external_address() == real_external);
-	ses->abort();
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-	ses->m_logger.reset();
-#endif
-	delete ses;
-	ses = new aux::session_impl(std::pair<int, int>(0,0)
-		, fingerprint("LT", 0, 0, 0, 0), "0.0.0.0", 0
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-		, ""
-#endif
-		);
+	TEST_CHECK(ipv1.external_address(rand_v4()) == real_external);
+
+	external_ip ipv2;
 
 	// test a single malicious node
 	// adds 50 legitimate responses from different peers
 	// and 50 consistent malicious responses from the same peer
-	real_external = address_v4::from_string("5.5.5.5");
-	malicious = address_v4::from_string("4.4.4.4");
-	address malicious_external = address_v4::from_string("3.3.3.3");
+	address real_external1 = address_v4::from_string("5.5.5.5", ec);
+	TEST_CHECK(!ec);
+	address real_external2;
+	if (supports_ipv6())
+	{
+		real_external2 = address_v6::from_string("2f80::", ec);
+		TEST_CHECK(!ec);
+	}
+	malicious = address_v4::from_string("4.4.4.4", ec);
+	TEST_CHECK(!ec);
+	address malicious_external = address_v4::from_string("3.3.3.3", ec);
+	TEST_CHECK(!ec);
 	for (int i = 0; i < 50; ++i)
 	{
-		ses->set_external_address(real_external, aux::session_impl::source_dht, rand_v4());
-		ses->set_external_address(malicious_external, aux::session_impl::source_dht, malicious);
+		ipv2.cast_vote(real_external1, aux::session_impl::source_dht, rand_v4());
+		if (supports_ipv6())
+			ipv2.cast_vote(real_external2, aux::session_impl::source_dht, rand_v6());
+		ipv2.cast_vote(malicious_external, aux::session_impl::source_dht, malicious);
 	}
-	TEST_CHECK(ses->external_address() == real_external);
-	ses->abort();
-#if defined TORRENT_VERBOSE_LOGGING || defined TORRENT_LOGGING || defined TORRENT_ERROR_LOGGING
-	ses->m_logger.reset();
-#endif
-	delete ses;
+	TEST_CHECK(ipv2.external_address(rand_v4()) == real_external1);
+	if (supports_ipv6())
+		TEST_CHECK(ipv2.external_address(rand_v6()) == real_external2);
 
 	// test bloom_filter
 	bloom_filter<32> filter;
@@ -623,6 +627,10 @@ int test_main()
 		// test that wrapping of the timestamp is properly handled
 		h.add_sample(0xfffffff3, false);
 		TEST_EQUAL(h.base(), 0xfffffff3);
+
+
+		// TODO: test the case where we have > 120 samples (and have the base delay actually be updated)
+		// TODO: test the case where a sample is lower than the history entry but not lower than the base
 	}
 
 	// test packet_buffer
@@ -724,6 +732,28 @@ int test_main()
 		TEST_CHECK(pb.at(new_index) == (void*)2);
 	}
 
+	{
+		// test wrapping the indices backwards
+		packet_buffer pb;
+
+		TEST_EQUAL(pb.size(), 0);
+
+		pb.insert(0xfff3, (void*)1);
+		TEST_CHECK(pb.at(0xfff3) == (void*)1);
+
+		int new_index = (0xfff3 + pb.capacity()) & 0xffff;
+		pb.insert(new_index, (void*)2);
+		TEST_CHECK(pb.at(new_index) == (void*)2);
+
+		void* old = pb.remove(0xfff3);
+		TEST_CHECK(old == (void*)1);
+		TEST_CHECK(pb.at(0xfff3) == (void*)0);
+		TEST_CHECK(pb.at(new_index) == (void*)2);
+
+		pb.insert(0xffff, (void*)0xffff);
+	}
+
+	// test error codes
 	TEST_CHECK(error_code(errors::http_error).message() == "HTTP error");
 	TEST_CHECK(error_code(errors::missing_file_sizes).message() == "missing or invalid 'file sizes' entry");
 	TEST_CHECK(error_code(errors::unsupported_protocol_version).message() == "unsupported protocol version");
@@ -734,6 +764,9 @@ int test_main()
 	TEST_CHECK(errors::reserved129 == 129);
 	TEST_CHECK(errors::reserved159 == 159);
 	TEST_CHECK(errors::reserved114 == 114);
+
+	TEST_CHECK(error_code(errors::unauthorized, get_http_category()).message() == "401 Unauthorized");
+	TEST_CHECK(error_code(errors::service_unavailable, get_http_category()).message() == "503 Service Unavailable");
 
 	{
 	// test session state load/restore
@@ -853,6 +886,24 @@ int test_main()
 	TEST_CHECK(ret == 0);
 
 	fprintf(stderr, "session_state\n%s\n", print_entry(session_state2).c_str());
+
+	// parse_magnet_uri
+	parse_magnet_uri("magnet:?dn=foo&dht=127.0.0.1:43", p, ec);
+	TEST_CHECK(ec == error_code(errors::missing_info_hash_in_uri));
+	ec.clear();
+
+	parse_magnet_uri("magnet:?xt=blah&dn=foo&dht=127.0.0.1:43", p, ec);
+	TEST_CHECK(ec == error_code(errors::missing_info_hash_in_uri));
+	ec.clear();
+
+	parse_magnet_uri("magnet:?xt=urn:btih:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd&dn=foo&dht=127.0.0.1:43", p, ec);
+	TEST_CHECK(!ec);
+	if (ec) fprintf(stderr, "%s\n", ec.message().c_str());
+	ec.clear();
+
+	TEST_CHECK(p.dht_nodes.size() == 1);
+	TEST_CHECK(p.dht_nodes[0].first == "127.0.0.1");
+	TEST_CHECK(p.dht_nodes[0].second == 43);
 
 	// make sure settings that haven't been changed from their defaults are not saved
 	TEST_CHECK(session_state2.dict_find("settings")->dict_find("optimistic_disk_retry") == 0);
@@ -994,9 +1045,10 @@ int test_main()
 	TEST_CHECK(strcmp(msg, "too long ") == 0);
 
 	// test maybe_url_encode
-
-	TEST_EQUAL(maybe_url_encode("http://test:test@abc.com/abc<>abc"), "http://test:test@abc.com:80/abc%3c%3eabc");
-	TEST_EQUAL(maybe_url_encode("http://abc.com/foo bar"), "http://abc.com:80/foo%20bar");
+	TEST_EQUAL(maybe_url_encode("http://test:test@abc.com/abc<>abc"), "http://test:test@abc.com/abc%3c%3eabc");
+	TEST_EQUAL(maybe_url_encode("http://abc.com/foo bar"), "http://abc.com/foo%20bar");
+	TEST_EQUAL(maybe_url_encode("http://abc.com:80/foo bar"), "http://abc.com:80/foo%20bar");
+	TEST_EQUAL(maybe_url_encode("http://abc.com:8080/foo bar"), "http://abc.com:8080/foo%20bar");
 	TEST_EQUAL(maybe_url_encode("abc"), "abc");
 	TEST_EQUAL(maybe_url_encode("http://abc.com/abc"), "http://abc.com/abc");
 	
@@ -1102,19 +1154,34 @@ int test_main()
 		== make_tuple("http", "foo:bar", "host.com", 80, "/path/to/file"));
 
 	TEST_CHECK(parse_url_components("http://host.com/path/to/file", ec)
-		== make_tuple("http", "", "host.com", 80, "/path/to/file"));
+		== make_tuple("http", "", "host.com", -1, "/path/to/file"));
 
 	TEST_CHECK(parse_url_components("ftp://host.com:21/path/to/file", ec)
 		== make_tuple("ftp", "", "host.com", 21, "/path/to/file"));
 
 	TEST_CHECK(parse_url_components("http://host.com/path?foo:bar@foo:", ec)
-		== make_tuple("http", "", "host.com", 80, "/path?foo:bar@foo:"));
+		== make_tuple("http", "", "host.com", -1, "/path?foo:bar@foo:"));
 
 	TEST_CHECK(parse_url_components("http://192.168.0.1/path/to/file", ec)
-		== make_tuple("http", "", "192.168.0.1", 80, "/path/to/file"));
+		== make_tuple("http", "", "192.168.0.1", -1, "/path/to/file"));
 
 	TEST_CHECK(parse_url_components("http://[2001:ff00::1]:42/path/to/file", ec)
 		== make_tuple("http", "", "[2001:ff00::1]", 42, "/path/to/file"));
+
+	// leading spaces are supposed to be stripped
+	TEST_CHECK(parse_url_components(" \thttp://[2001:ff00::1]:42/path/to/file", ec)
+		== make_tuple("http", "", "[2001:ff00::1]", 42, "/path/to/file"));
+
+	parse_url_components("http://[2001:ff00::1:42/path/to/file", ec);
+	TEST_CHECK(ec == error_code(errors::expected_close_bracket_in_address));
+
+	parse_url_components("http:/", ec);
+	TEST_CHECK(ec == error_code(errors::unsupported_url_protocol));
+	ec.clear();
+
+	parse_url_components("http:", ec);
+	TEST_CHECK(ec == error_code(errors::unsupported_url_protocol));
+	ec.clear();
 
 	// base64 test vectors from http://www.faqs.org/rfcs/rfc4648.html
 
@@ -1177,6 +1244,7 @@ int test_main()
 
 	TEST_CHECK(unescape_string(escape_path(test_string, strlen(test_string)), ec) == test_string);
 	TEST_CHECK(!ec);
+	if (ec) fprintf(stderr, "%s\n", ec.message().c_str());
 
 	// need_encoding
 	char const* test_string2 = "!@$&()-_/,.%?";
@@ -1185,7 +1253,7 @@ int test_main()
 	TEST_CHECK(need_encoding("\n", 1) == true);
 
 	// maybe_url_encode
-	TEST_CHECK(maybe_url_encode("http://bla.com/\n") == "http://bla.com:80/%0a");
+	TEST_CHECK(maybe_url_encode("http://bla.com/\n") == "http://bla.com/%0a");
 	std::cerr << maybe_url_encode("http://bla.com/\n") << std::endl;
 	TEST_CHECK(maybe_url_encode("?&") == "?&");
 
@@ -1193,6 +1261,43 @@ int test_main()
 	TEST_CHECK(unescape_string(escape_string(test_string, strlen(test_string)), ec)
 		== test_string);
 	std::cerr << unescape_string(escape_string(test_string, strlen(test_string)), ec) << std::endl;
+	// prematurely terminated string
+	unescape_string("%", ec);
+	TEST_CHECK(ec == error_code(errors::invalid_escaped_string));
+	unescape_string("%0", ec);
+	TEST_CHECK(ec == error_code(errors::invalid_escaped_string));
+
+	// invalid hex character
+	unescape_string("%GE", ec);
+	TEST_CHECK(ec == error_code(errors::invalid_escaped_string));
+	unescape_string("%eg", ec);
+	TEST_CHECK(ec == error_code(errors::invalid_escaped_string));
+	ec.clear();
+
+	char hex_chars[] = "0123456789abcdefABCDEF";
+
+	for (int i = 1; i < 255; ++i)
+	{
+		bool hex = strchr(hex_chars, i) != NULL;
+		TEST_EQUAL(is_hex((char const*)&i, 1), hex);
+	}
+
+	TEST_EQUAL(hex_to_int('0'), 0);
+	TEST_EQUAL(hex_to_int('7'), 7);
+	TEST_EQUAL(hex_to_int('a'), 10);
+	TEST_EQUAL(hex_to_int('f'), 15);
+	TEST_EQUAL(hex_to_int('b'), 11);
+	TEST_EQUAL(hex_to_int('t'), -1);
+	TEST_EQUAL(hex_to_int('g'), -1);
+
+	std::string path = "a\\b\\c";
+	convert_path_to_posix(path);
+	TEST_EQUAL(path, "a/b/c");
+
+#ifdef TORRENT_WINDOWS
+	convert_path_to_windows(path);
+	TEST_EQUAL(path, "a\\b\\c");
+#endif
 
 	// verify_encoding
 	test = "\b?filename=4";
@@ -1207,6 +1312,99 @@ int test_main()
 	TEST_CHECK(verify_encoding(test));
 	TEST_CHECK(test == "filename=4");
 
+	// valid 2-byte sequence
+	test = "filename\xc2\xa1";
+	TEST_CHECK(verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename\xc2\xa1");
+
+	// truncated 2-byte sequence
+	test = "filename\xc2";
+	TEST_CHECK(!verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename_");
+
+	// valid 3-byte sequence
+	test = "filename\xe2\x9f\xb9";
+	TEST_CHECK(verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename\xe2\x9f\xb9");
+
+	// truncated 3-byte sequence
+	test = "filename\xe2\x9f";
+	TEST_CHECK(!verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename_");
+
+	// truncated 3-byte sequence
+	test = "filename\xe2";
+	TEST_CHECK(!verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename_");
+
+	// valid 4-byte sequence
+	test = "filename\xf0\x9f\x92\x88";
+	TEST_CHECK(verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename\xf0\x9f\x92\x88");
+
+	// truncated 4-byte sequence
+	test = "filename\xf0\x9f\x92";
+	TEST_CHECK(!verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename_");
+
+	// 5-byte utf-8 sequence (not allowed)
+	test = "filename\xf8\x9f\x9f\x9f\x9f""foobar";
+	TEST_CHECK(!verify_encoding(test));
+	fprintf(stderr, "%s\n", test.c_str());
+	TEST_CHECK(test == "filename_____foobar");
+
+	// trim_path_element
+
+	fprintf(stderr, "TORRENT_MAX_PATH: %d\n", TORRENT_MAX_PATH);
+
+	// 1100 characters
+	test = "abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij012345.txt";
+	std::string comparison = test;
+	trim_path_element(test);
+	comparison.resize(TORRENT_MAX_PATH - 4);
+	comparison += ".txt"; // the extension is supposed to be preserved
+	TEST_EQUAL(test, comparison);
+
+	// extensions > 15 characters are ignored
+	test = "abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789"
+		"abcdefghij0123456789abcdefghij0123456789abcdefghij0123456789abcdefghij.123456789abcdefghij0123456789";
+	comparison = test;
+	trim_path_element(test);
+	comparison.resize(TORRENT_MAX_PATH);
+	TEST_EQUAL(test, comparison);
+
+
+	// replace_extension
+	test = "foo.bar";
+	replace_extension(test, "txt");
+	TEST_EQUAL(test, "foo.txt");
+
 	// file class
 	file f;
 #if TORRENT_USE_UNC_PATHS || !defined WIN32
@@ -1215,6 +1413,7 @@ int test_main()
 	TEST_CHECK(f.open("test_file", file::read_write, ec));
 #endif
 	TEST_CHECK(!ec);
+	if (ec) fprintf(stderr, "%s\n", ec.message().c_str());
 	file::iovec_t b = {(void*)"test", 4};
 	TEST_CHECK(f.writev(0, &b, 1, ec) == 4);
 	TEST_CHECK(!ec);
@@ -1598,8 +1797,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 		TEST_EQUAL(nodes[0].timeout_count, 0);
 	}
 
@@ -1612,8 +1811,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 		TEST_EQUAL(nodes[0].timeout_count, 1);
 	}
 
@@ -1625,8 +1824,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 		TEST_EQUAL(nodes[0].timeout_count, 0);
 	}
 
@@ -1639,8 +1838,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 	}
 
 	// test adding the same node ID again with a different IP (should be ignored)
@@ -1650,8 +1849,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 	}
 
 	// test adding a node that ends up in the same bucket with an IP
@@ -1663,8 +1862,8 @@ int test_main()
 	if (!nodes.empty())
 	{
 		TEST_EQUAL(nodes[0].id, tmp);
-		TEST_EQUAL(nodes[0].addr, address_v4::from_string("4.4.4.4"));
-		TEST_EQUAL(nodes[0].port, 4);
+		TEST_EQUAL(nodes[0].addr(), address_v4::from_string("4.4.4.4"));
+		TEST_EQUAL(nodes[0].port(), 4);
 	}
 
 	s.restrict_routing_ips = false;
@@ -1831,6 +2030,34 @@ int test_main()
 	std::cerr << h1 << std::endl;
 #endif
 	TEST_CHECK(h1 == to_hash("000fffffff0000000000ffffffffff0000000000"));
+
+	h1 = to_hash("7000000000000000000000000000000000000000");
+	h1 <<= 1;
+#if TORRENT_USE_IOSTREAM
+	std::cerr << h1 << std::endl;
+#endif
+	TEST_CHECK(h1 == to_hash("e000000000000000000000000000000000000000"));
+
+	h1 = to_hash("0000000000000000000000000000000000000007");
+	h1 <<= 1;
+#if TORRENT_USE_IOSTREAM
+	std::cerr << h1 << std::endl;
+#endif
+	TEST_CHECK(h1 == to_hash("000000000000000000000000000000000000000e"));
+
+	h1 = to_hash("0000000000000000000000000000000000000007");
+	h1 >>= 1;
+#if TORRENT_USE_IOSTREAM
+	std::cerr << h1 << std::endl;
+#endif
+	TEST_CHECK(h1 == to_hash("0000000000000000000000000000000000000003"));
+
+	h1 = to_hash("7000000000000000000000000000000000000000");
+	h1 >>= 1;
+#if TORRENT_USE_IOSTREAM
+	std::cerr << h1 << std::endl;
+#endif
+	TEST_CHECK(h1 == to_hash("3800000000000000000000000000000000000000"));
 	
 	// CIDR distance test
 	h1 = to_hash("0123456789abcdef01232456789abcdef0123456");
@@ -1881,6 +2108,74 @@ int test_main()
 
 	test1.resize(100, true);
 	TEST_CHECK(test1.all_set() == true);
+
+	// test merkle_*() functions
+
+	// this is the structure:
+	//             0
+	//      1              2
+	//   3      4       5       6
+	//  7 8    9 10   11 12   13 14
+	// num_leafs = 8
+
+	TEST_EQUAL(merkle_num_leafs(1), 1);
+	TEST_EQUAL(merkle_num_leafs(2), 2);
+	TEST_EQUAL(merkle_num_leafs(3), 4);
+	TEST_EQUAL(merkle_num_leafs(4), 4);
+	TEST_EQUAL(merkle_num_leafs(5), 8);
+	TEST_EQUAL(merkle_num_leafs(6), 8);
+	TEST_EQUAL(merkle_num_leafs(7), 8);
+	TEST_EQUAL(merkle_num_leafs(8), 8);
+	TEST_EQUAL(merkle_num_leafs(9), 16);
+	TEST_EQUAL(merkle_num_leafs(10), 16);
+	TEST_EQUAL(merkle_num_leafs(11), 16);
+	TEST_EQUAL(merkle_num_leafs(12), 16);
+	TEST_EQUAL(merkle_num_leafs(13), 16);
+	TEST_EQUAL(merkle_num_leafs(14), 16);
+	TEST_EQUAL(merkle_num_leafs(15), 16);
+	TEST_EQUAL(merkle_num_leafs(16), 16);
+	TEST_EQUAL(merkle_num_leafs(17), 32);
+	TEST_EQUAL(merkle_num_leafs(18), 32);
+
+	// parents
+	TEST_EQUAL(merkle_get_parent(1), 0);
+	TEST_EQUAL(merkle_get_parent(2), 0);
+	TEST_EQUAL(merkle_get_parent(3), 1);
+	TEST_EQUAL(merkle_get_parent(4), 1);
+	TEST_EQUAL(merkle_get_parent(5), 2);
+	TEST_EQUAL(merkle_get_parent(6), 2);
+	TEST_EQUAL(merkle_get_parent(7), 3);
+	TEST_EQUAL(merkle_get_parent(8), 3);
+	TEST_EQUAL(merkle_get_parent(9), 4);
+	TEST_EQUAL(merkle_get_parent(10), 4);
+	TEST_EQUAL(merkle_get_parent(11), 5);
+	TEST_EQUAL(merkle_get_parent(12), 5);
+	TEST_EQUAL(merkle_get_parent(13), 6);
+	TEST_EQUAL(merkle_get_parent(14), 6);
+
+	// siblings
+	TEST_EQUAL(merkle_get_sibling(1), 2);
+	TEST_EQUAL(merkle_get_sibling(2), 1);
+	TEST_EQUAL(merkle_get_sibling(3), 4);
+	TEST_EQUAL(merkle_get_sibling(4), 3);
+	TEST_EQUAL(merkle_get_sibling(5), 6);
+	TEST_EQUAL(merkle_get_sibling(6), 5);
+	TEST_EQUAL(merkle_get_sibling(7), 8);
+	TEST_EQUAL(merkle_get_sibling(8), 7);
+	TEST_EQUAL(merkle_get_sibling(9), 10);
+	TEST_EQUAL(merkle_get_sibling(10), 9);
+	TEST_EQUAL(merkle_get_sibling(11), 12);
+	TEST_EQUAL(merkle_get_sibling(12), 11);
+	TEST_EQUAL(merkle_get_sibling(13), 14);
+	TEST_EQUAL(merkle_get_sibling(14), 13);
+
+	// total number of nodes given the number of leafs
+	TEST_EQUAL(merkle_num_nodes(1), 1);
+	TEST_EQUAL(merkle_num_nodes(2), 3);
+	TEST_EQUAL(merkle_num_nodes(4), 7);
+	TEST_EQUAL(merkle_num_nodes(8), 15);
+	TEST_EQUAL(merkle_num_nodes(16), 31);
+
 	return 0;
 }
 

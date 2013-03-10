@@ -96,6 +96,7 @@ namespace libtorrent
 
 		void set_proxy_settings(proxy_settings const& ps);
 		proxy_settings const& get_proxy_settings() { return m_proxy_settings; }
+		void set_force_proxy(bool f) { m_force_proxy = f; }
 
 		bool is_closed() const { return m_abort; }
 		tcp::endpoint local_endpoint(error_code& ec) const
@@ -192,7 +193,6 @@ namespace libtorrent
 
 #if defined TORRENT_DEBUG || TORRENT_RELEASE_ASSERTS
 
-		// TODO: move this debug facility into a base class. It's used in a lot of places
 #if defined BOOST_HAS_PTHREADS
 		mutable pthread_t m_thread;
 #endif
@@ -236,6 +236,7 @@ namespace libtorrent
 		char m_tmp_buf[270];
 		bool m_queue_packets;
 		bool m_tunnel_packets;
+		bool m_force_proxy;
 		bool m_abort;
 		udp::endpoint m_proxy_addr;
 		// while we're connecting to the proxy
@@ -268,19 +269,13 @@ namespace libtorrent
 	{
 		rate_limited_udp_socket(io_service& ios, connection_queue& cc);
 		void set_rate_limit(int limit) { m_rate_limit = limit; }
-		bool can_send() const { return int(m_queue.size()) >= m_queue_size_limit; }
 		bool send(udp::endpoint const& ep, char const* p, int len, error_code& ec, int flags = 0);
-		void close();
 
 	private:
-		void on_tick(error_code const& e);
 
-		deadline_timer m_timer;
-		int m_queue_size_limit;
 		int m_rate_limit;
 		int m_quota;
 		ptime m_last_tick;
-		std::deque<queued_packet> m_queue;
 	};
 }
 

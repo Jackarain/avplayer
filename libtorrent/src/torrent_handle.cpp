@@ -81,7 +81,7 @@ namespace libtorrent
 		, paused(false)
 		, auto_managed(false)
 		, sequential_download(false)
-		, user_defined_download(false)	// jackarain: �û��Զ������ط�ʽ.
+		, user_defined_download(false)	// jackarain: 锟矫伙拷锟皆讹拷锟斤拷锟斤拷锟截凤拷式.
 		, is_seeding(false)
 		, is_finished(false)
 		, has_metadata(false)
@@ -148,16 +148,16 @@ namespace libtorrent
 	torrent_status::~torrent_status() {}
 
 	template <class R>
-	void fun_ret(R* ret, bool* done, condition* e, mutex* m, boost::function<R(void)> f)
+	void fun_ret(R* ret, bool* done, condition_variable* e, mutex* m, boost::function<R(void)> f)
 	{
 		*ret = f();
 		mutex::scoped_lock l(*m);
 		*done = true;
-		e->signal_all(l);
+		e->notify_all();
 	}
 
 	// defined in session.cpp
-	void fun_wrap(bool* done, condition* e, mutex* m, boost::function<void(void)> f);
+	void fun_wrap(bool* done, condition_variable* e, mutex* m, boost::function<void(void)> f);
 
 #define TORRENT_ASYNC_CALL(x) \
 	boost::shared_ptr<torrent> t = m_torrent.lock(); \
@@ -268,8 +268,7 @@ namespace libtorrent
 	}
 #endif
 
-#ifdef TORRENT_DEBUG
-
+#if defined TORRENT_DEBUG && !defined TORRENT_DISABLE_INVARIANT_CHECKS
 	void torrent_handle::check_invariant() const
 	{}
 
@@ -535,13 +534,6 @@ namespace libtorrent
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASYNC_CALL1(set_user_defined_download, ud);
-	}
-
-	std::string torrent_handle::name() const
-	{
-		INVARIANT_CHECK;
-		TORRENT_SYNC_CALL_RET(std::string, "", name);
-		return r;
 	}
 
 	void torrent_handle::piece_availability(std::vector<int>& avail) const
@@ -817,7 +809,7 @@ namespace libtorrent
 		TORRENT_ASYNC_CALL1(read_piece, piece);
 	}
 
-	// jackarain: ��ȡ��Ƭ���ݽӿ�ʵ��.
+	// jackarain: 锟斤拷取锟斤拷片锟斤拷锟捷接匡拷实锟斤拷.
 	void torrent_handle::read_piece(int piece, read_data_fun rdf) const
 	{
 		INVARIANT_CHECK;
@@ -898,7 +890,6 @@ namespace libtorrent
 
 		return ret;
 	}
-#endif
 
 	std::string torrent_handle::save_path() const
 	{
@@ -906,6 +897,15 @@ namespace libtorrent
 		TORRENT_SYNC_CALL_RET(std::string, "", save_path);
 		return r;
 	}
+
+	std::string torrent_handle::name() const
+	{
+		INVARIANT_CHECK;
+		TORRENT_SYNC_CALL_RET(std::string, "", name);
+		return r;
+	}
+
+#endif
 
 	void torrent_handle::connect_peer(tcp::endpoint const& adr, int source) const
 	{

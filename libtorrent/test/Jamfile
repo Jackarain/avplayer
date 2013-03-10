@@ -39,6 +39,7 @@ project
    ;
 
 test-suite libtorrent : 	
+	[ run test_peer_priority.cpp ]
 	[ run test_file.cpp ]
 	[ run test_threads.cpp ]
 	[ run test_rss.cpp ]
@@ -52,9 +53,11 @@ test-suite libtorrent :
 	[ run test_hasher.cpp ]
 	[ run test_dht.cpp ]
 	[ run test_storage.cpp ]
+	[ run test_torrent_parse.cpp ]
 	[ run test_upnp.cpp ]
 
 	[ run test_tracker.cpp ]
+	[ run test_checking.cpp ]
 	[ run test_web_seed.cpp ]
 	[ run test_bdecode_performance.cpp ]
 	[ run test_pe_crypto.cpp ]
