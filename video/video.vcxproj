@@ -104,9 +104,9 @@
   <ItemGroup>
     <ClInclude Include="d3d_render.h" />
     <ClInclude Include="ddraw_render.h" />
-    <ClInclude Include="ins.h" />
     <CustomBuild Include="opengl_render.h" />
     <CustomBuild Include="soft_render.h" />
+    <ClInclude Include="internal.h" />
     <ClInclude Include="video_out.h" />
     <ClInclude Include="video_render.h" />
     <ClInclude Include="y4m_render.h" />

@@ -1,716 +1,719 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="源文件\kademlia">
-      <UniqueIdentifier>{239565d1-15f2-4a7b-967a-878f15af9bd2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件">
+    <Filter Include="include">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="头文件\kademlia">
+    <Filter Include="include\kademlia">
       <UniqueIdentifier>{e85934dd-c56e-43ad-b9f2-3a7043533acd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\extensions">
+    <Filter Include="include\extensions">
       <UniqueIdentifier>{bb036608-072c-48c4-b654-912e5a1ca14b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\aux_">
+    <Filter Include="include\aux_">
       <UniqueIdentifier>{3cfc525b-82f7-4efd-85b1-7dd27aa7e540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source\kademlia">
+      <UniqueIdentifier>{239565d1-15f2-4a7b-967a-878f15af9bd2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\alert.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\allocator.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\asio.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\asio_ssl.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\assert.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\bandwidth_limit.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\bandwidth_manager.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\bandwidth_queue_entry.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\bloom_filter.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\broadcast_socket.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\bt_peer_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\chained_buffer.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\connection_queue.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ConvertUTF.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\create_torrent.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\disk_buffer_holder.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\disk_buffer_pool.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\disk_io_thread.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\entry.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\enum_net.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\error_code.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\escape_string.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\file.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\file_pool.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\file_storage.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\GeoIP.c">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gzip.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\http_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\http_parser.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\http_seed_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\http_stream.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\http_tracker_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\i2p_stream.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\identify_client.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\instantiate_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ip_filter.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lazy_bdecode.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\logger.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lsd.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lt_trackers.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\magnet_uri.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\metadata_transfer.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mpi.c">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\natpmp.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\packet_buffer.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parse_url.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\pe_crypto.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\peer_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\piece_picker.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\policy.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\puff.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\random.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rsa.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rss.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\session.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\session_impl.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\settings.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\sha1.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\smart_ban.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\socket_io.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\socket_type.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\socks5_stream.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\stat.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\storage.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\thread.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\time.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\timestamp_history.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\torrent.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\torrent_handle.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\torrent_info.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tracker_manager.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\udp_socket.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\udp_tracker_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\upnp.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ut_metadata.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ut_pex.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utf8.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utp_socket_manager.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\utp_stream.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\web_connection_base.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\web_peer_connection.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\dht_tracker.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\find_data.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\node.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\node_id.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\refresh.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\routing_table.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\rpc_manager.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kademlia\traversal_algorithm.cpp">
-      <Filter>源文件\kademlia</Filter>
+      <Filter>source\kademlia</Filter>
     </ClCompile>
     <ClCompile Include="..\src\string_util.cpp">
-      <Filter>源文件</Filter>
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ip_voter.cpp">
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libtorrent\add_torrent_params.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\address.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\alert.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\alert_dispatcher.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\alert_types.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\alloca.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\allocator.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\assert.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bandwidth_limit.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bandwidth_manager.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bandwidth_queue_entry.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bandwidth_socket.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bencode.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bitfield.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bloom_filter.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\broadcast_socket.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\bt_peer_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\buffer.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\build_config.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\chained_buffer.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\config.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\connection_queue.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\ConvertUTF.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\copy_ptr.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\create_torrent.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\deadline_timer.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\debug.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\disk_buffer_holder.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\disk_buffer_pool.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\disk_io_thread.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\entry.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\enum_net.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\error.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\error_code.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\escape_string.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\file.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\file_pool.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\file_storage.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\fingerprint.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\GeoIP.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\gzip.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\hasher.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\http_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\http_parser.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\http_seed_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\http_stream.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\http_tracker_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\i2p_stream.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\identify_client.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\instantiate_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\interface.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\intrusive_ptr_base.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\invariant_check.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\io.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\io_service.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\io_service_fwd.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\ip_filter.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\lazy_entry.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\lsd.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\magnet_uri.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\max.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\natpmp.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\packet_buffer.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\parse_url.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\pch.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\pe_crypto.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\peer.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\peer_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\peer_id.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\peer_info.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\peer_request.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\piece_block_progress.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\piece_picker.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\policy.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\proxy_base.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\ptime.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\puff.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\random.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\rsa.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\rss.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\session.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\session_settings.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\session_status.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\settings.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\size_type.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\sliding_average.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\socket.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\socket_io.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\socket_type.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\socket_type_fwd.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\socks5_stream.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\ssl_stream.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\stat.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\storage.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\storage_defs.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\struct_debug.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\thread.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\time.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\timestamp_history.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\tommath.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\tommath_class.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\tommath_superclass.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\torrent.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\torrent_handle.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\torrent_info.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\tracker_manager.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\udp_socket.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\udp_tracker_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\union_endpoint.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\upnp.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\utf8.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\utp_socket_manager.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\utp_stream.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\version.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\web_connection_base.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\web_peer_connection.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\xml_parse.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\dht_observer.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\dht_tracker.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\find_data.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\logging.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\msg.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\node.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\node_entry.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\node_id.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\observer.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\refresh.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\routing_table.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\rpc_manager.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\kademlia\traversal_algorithm.hpp">
-      <Filter>头文件\kademlia</Filter>
+      <Filter>include\kademlia</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\logger.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\lt_trackers.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\metadata_transfer.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\smart_ban.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\ut_metadata.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\extensions\ut_pex.hpp">
-      <Filter>头文件\extensions</Filter>
+      <Filter>include\extensions</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\aux_\session_impl.hpp">
-      <Filter>头文件\aux_</Filter>
+      <Filter>include\aux_</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\string_util.hpp">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

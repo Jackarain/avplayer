@@ -24,10 +24,10 @@
     <ClInclude Include="audiocvt.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="ins.h">
+    <ClInclude Include="wave_render.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="wave_render.h">
+    <ClInclude Include="internal.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

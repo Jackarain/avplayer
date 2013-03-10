@@ -122,6 +122,7 @@
     <ClCompile Include="..\src\identify_client.cpp" />
     <ClCompile Include="..\src\instantiate_connection.cpp" />
     <ClCompile Include="..\src\ip_filter.cpp" />
+    <ClCompile Include="..\src\ip_voter.cpp" />
     <ClCompile Include="..\src\lazy_bdecode.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\lsd.cpp" />

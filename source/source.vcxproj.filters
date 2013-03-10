@@ -47,5 +47,8 @@
     <ClInclude Include="yk_source.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="internal.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

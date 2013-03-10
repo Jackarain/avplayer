@@ -27,9 +27,6 @@
     <ClInclude Include="ddraw_render.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="ins.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="video_out.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -37,6 +34,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="y4m_render.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="internal.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

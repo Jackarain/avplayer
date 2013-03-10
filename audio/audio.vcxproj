@@ -103,7 +103,7 @@
     <ClInclude Include="audio_render.h" />
     <ClInclude Include="audiocvt.h" />
     <ClInclude Include="dsound_render.h" />
-    <ClInclude Include="ins.h" />
+    <ClInclude Include="internal.h" />
     <ClInclude Include="wave_render.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
