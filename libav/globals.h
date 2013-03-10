@@ -9,6 +9,13 @@
 #define __AVPLAYER_GLOBALS_H__
 
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+	#include <libavcodec/avcodec.h>
+#ifdef __cplusplus
+}
+#endif
 
 struct AVFrame;
 struct AVPacket;
