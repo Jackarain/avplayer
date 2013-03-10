@@ -9,29 +9,8 @@
 #define __AVPLAYER_GLOBALS_H__
 
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
-	#include <libavcodec/avcodec.h>
-#ifdef __cplusplus
-}
-#endif
 
-struct AVFrame;
-struct AVPacket;
-enum AVMediaType;
-enum AVCodecID;
-
-/* 折中方案, 在不依然FFmpeg的项目, 因为未包含"libavutil\rational.h", 所以使用自定义AVRational. */
-#ifndef AVUTIL_RATIONAL_H
-typedef struct AVRational{
-	int num; ///< numerator
-	int den; ///< denominator
-} AVRational;
-#endif
-
-struct AVRational;
-
+#include "ffmpeg.h"
 
 /* 媒体数据源接口. */
 #define MEDIA_TYPE_FILE	0
