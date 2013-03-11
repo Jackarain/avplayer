@@ -3,6 +3,14 @@
 
 #define IO_BUFFER_SIZE	32768
 
+// INT64æœ€å¤§æœ€å°å–å€¼èŒƒå›´.
+#ifndef INT64_MIN
+#define INT64_MIN (-9223372036854775807LL - 1)
+#endif
+#ifndef INT64_MAX
+#define INT64_MAX (9223372036854775807LL)
+#endif
+
 int unkown_demux::decode_interrupt_cb(void *ctx)
 {
 	unkown_demux *demux = (unkown_demux*)ctx;
@@ -15,14 +23,14 @@ int unkown_demux::read_data(void *opaque, uint8_t *buf, int buf_size)
  	int ret = 0;
 //  	unkown_demux *demux = (avplay*)opaque;
 //  
-//  	// ÒÑ±»ÖĞÖ¹.
+//  	// å·²è¢«ä¸­æ­¢.
 //  	if (demux->is_abort())
 //  		return 0;
 //  
-//  	// ¶ÁÈ¡Êı¾İ.
+//  	// è¯»å–æ•°æ®.
 //  	ret = play->m_source_ctx->read_data(play->m_source_ctx, buf, buf_size);
 //  
-//  	// ¶ÁÈ¡Ê§°Ü, Ìø¹ı, ÕâÑù¾Í¿ÉÒÔ¼ÌĞø»º³åÊı¾İ»òÕßÌø»ØÇ°Ãæ²¥·Å.
+//  	// è¯»å–å¤±è´¥, è·³è¿‡, è¿™æ ·å°±å¯ä»¥ç»§ç»­ç¼“å†²æ•°æ®æˆ–è€…è·³å›å‰é¢æ’­æ”¾.
 //  	if (ret == -1)
 //  		return 0;
  
@@ -44,7 +52,7 @@ int64_t unkown_demux::seek_data(void *opaque, int64_t offset, int whence)
 //  	if (play->m_abort)
 //  		return -1;
 //  
-//  	// Èç¹û´æÔÚread_seekº¯ÊıÊµÏÖ, Ôòµ÷ÓÃÏàÓ¦µÄº¯ÊıÊµÏÖ, ´¦ÀíÏà¹ØÊÂ¼ş.
+//  	// å¦‚æœå­˜åœ¨read_seekå‡½æ•°å®ç°, åˆ™è°ƒç”¨ç›¸åº”çš„å‡½æ•°å®ç°, å¤„ç†ç›¸å…³äº‹ä»¶.
 //  	if (play->m_source_ctx && play->m_source_ctx->read_seek)
 //  		offset = play->m_source_ctx->read_seek(play->m_source_ctx, offset, whence);
 //  	else
@@ -52,7 +60,7 @@ int64_t unkown_demux::seek_data(void *opaque, int64_t offset, int whence)
 //  
 //  	if (play->m_source_ctx->dl_info.not_enough)
 //  	{
-//  		// TODO: ÅĞ¶ÏÊÇ·ñÊı¾İ×ã¹», Èç¹û²»×ãÒÔ²¥·Å, ÔòÔİÍ£²¥·Å.
+//  		// TODO: åˆ¤æ–­æ˜¯å¦æ•°æ®è¶³å¤Ÿ, å¦‚æœä¸è¶³ä»¥æ’­æ”¾, åˆ™æš‚åœæ’­æ”¾.
 //  	}
  
  	return offset;
@@ -71,26 +79,26 @@ unkown_demux::~unkown_demux(void)
 
 bool unkown_demux::open(boost::any ctx)
 {
-	// µÃµ½´«ÈëµÄ²ÎÊı.
+	// å¾—åˆ°ä¼ å…¥çš„å‚æ•°.
 	m_unkown_demux_data = boost::any_cast<unkown_demux_data>(ctx);
 
-	// ·ÖÅäm_format_ctx.
+	// åˆ†é…m_format_ctx.
 	m_format_ctx = avformat_alloc_context();
 	if (!m_format_ctx)
 		goto FAILED_FLG;
 
-	// ÉèÖÃ²ÎÊı.
+	// è®¾ç½®å‚æ•°.
 	m_format_ctx->flags = AVFMT_FLAG_GENPTS;
 	m_format_ctx->interrupt_callback.callback = decode_interrupt_cb;
 	m_format_ctx->interrupt_callback.opaque = (void*)this;
 
-	// ±£´æÖ¸Õë.
+	// ä¿å­˜æŒ‡é’ˆ.
 	m_source_ctx = *m_unkown_demux_data.source_ctx;
 
-	// ³õÊ¼»¯Êı¾İÔ´.
+	// åˆå§‹åŒ–æ•°æ®æº.
 	if (m_source_ctx)
 	{
-		// Èç¹û³õÊ¼»¯Ê§°Ü.
+		// å¦‚æœåˆå§‹åŒ–å¤±è´¥.
 		if (m_source_ctx->init_source(m_source_ctx) < 0)
 			goto FAILED_FLG;
 	}
@@ -98,7 +106,7 @@ bool unkown_demux::open(boost::any ctx)
 	int ret = 0;
 	AVInputFormat *iformat = NULL;
 
-	// Ö§³ÖBTºÍ±¾µØÎÄ¼ş.
+	// æ”¯æŒBTå’Œæœ¬åœ°æ–‡ä»¶.
 	if (m_source_ctx->type == MEDIA_TYPE_BT || m_source_ctx->type == MEDIA_TYPE_FILE)
 	{
 		m_io_buffer = (unsigned char*)malloc(IO_BUFFER_SIZE);
@@ -108,7 +116,7 @@ bool unkown_demux::open(boost::any ctx)
 			goto FAILED_FLG;
 		}
 
-		// ·ÖÅäioÉÏÏÂÎÄ.
+		// åˆ†é…ioä¸Šä¸‹æ–‡.
 		m_avio_ctx = avio_alloc_context(m_io_buffer,
 			IO_BUFFER_SIZE, 0, (void*)this, read_data, NULL, seek_data);
 		if (!m_avio_ctx)
@@ -125,7 +133,7 @@ bool unkown_demux::open(boost::any ctx)
 			goto FAILED_FLG;
 		}
 
-		// ´ò¿ªÊäÈëÃ½ÌåÁ÷.
+		// æ‰“å¼€è¾“å…¥åª’ä½“æµ.
 		m_format_ctx->pb = m_avio_ctx;
 		ret = avformat_open_input(&m_format_ctx, "", iformat, NULL);
 		if (ret < 0)
@@ -136,7 +144,7 @@ bool unkown_demux::open(boost::any ctx)
 	}
 	else
 	{
-		// µÃµ½ÏàÓ¦µÄurl.
+		// å¾—åˆ°ç›¸åº”çš„url.
 		char url[MAX_URI_PATH];
 		if (m_source_ctx->type == MEDIA_TYPE_HTTP)
 			strcpy(url, m_source_ctx->info.http.url);
@@ -145,11 +153,11 @@ bool unkown_demux::open(boost::any ctx)
 		else
 			goto FAILED_FLG;
 
-		// ¿Õ´®, Ìøµ½´íÎó.
+		// ç©ºä¸², è·³åˆ°é”™è¯¯.
 		if (strlen(url) == 0)
 			goto FAILED_FLG;
 
-		/* HTTPºÍRTSPÖ±½ÓÊ¹ÓÃffmpegÀ´´¦Àí.	*/
+		/* HTTPå’ŒRTSPç›´æ¥ä½¿ç”¨ffmpegæ¥å¤„ç†.	*/
 		int ret = avformat_open_input(&m_format_ctx, url, iformat, NULL);
 		if (ret < 0)
 		{
@@ -166,14 +174,14 @@ bool unkown_demux::open(boost::any ctx)
 	av_dump_format(m_format_ctx, 0, NULL, 0);
 #endif // _DEBUG
 
-	// ÖÃ¿Õ.
+	// ç½®ç©º.
 	memset(&m_base_info, 0, sizeof(m_base_info));
 
-	// »ñµÃÒ»Ğ©»ù±¾ĞÅÏ¢.
+	// è·å¾—ä¸€äº›åŸºæœ¬ä¿¡æ¯.
 	m_base_info.has_video = query_index(AVMEDIA_TYPE_VIDEO, m_format_ctx);
 	m_base_info.has_audio = query_index(AVMEDIA_TYPE_AUDIO, m_format_ctx);
 
-	// Èç¹ûÓĞÒôÆµ, »ñµÃÒôÆµµÄÒ»Ğ©»ù±¾ĞÅÏ¢.
+	// å¦‚æœæœ‰éŸ³é¢‘, è·å¾—éŸ³é¢‘çš„ä¸€äº›åŸºæœ¬ä¿¡æ¯.
 	if (m_base_info.has_audio >= 0)
 	{
 		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->r_frame_rate, m_base_info.audio_frame_rate);
@@ -181,7 +189,7 @@ bool unkown_demux::open(boost::any ctx)
 		m_base_info.audio_start_time = m_format_ctx->streams[m_base_info.has_audio]->start_time;
 	}
 
-	// Èç¹ûÓĞÊÓÆµ, »ñµÃÊÓÆµµÄÒ»Ğ©»ù±¾ĞÅÏ¢.
+	// å¦‚æœæœ‰è§†é¢‘, è·å¾—è§†é¢‘çš„ä¸€äº›åŸºæœ¬ä¿¡æ¯.
 	if (m_base_info.has_video >= 0)
 	{
 		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->r_frame_rate, m_base_info.video_frame_rate);
@@ -201,21 +209,46 @@ FAILED_FLG:
 
 bool unkown_demux::read_packet(AVPacket *pkt)
 {
-	return false;
+	int ret = av_read_frame(m_format_ctx, pkt);
+	if (ret < 0)
+		return false;
+	return true;
 }
 
 bool unkown_demux::seek_packet(int64_t timestamp)
 {
-	return false;
+	int64_t seek_min = INT64_MIN;
+	int64_t seek_max = INT64_MAX;
+	int seek_flags = 0 & (~AVSEEK_FLAG_BYTE);
+	int ret = avformat_seek_file(m_format_ctx, -1, seek_min, timestamp, seek_max, seek_flags);
+	if (ret < 0)
+		return false;
+	return true;
 }
 
 bool unkown_demux::stream_index(enum AVMediaType type, int &index)
 {
+	index = -1;
+
+	for (unsigned int i = 0; (unsigned int) i < m_format_ctx->nb_streams; i++)
+	{
+		if (m_format_ctx->streams[i]->codec->codec_type == type)
+		{
+			i = index;
+			return true;
+		}
+	}
+
 	return false;
 }
 
 bool unkown_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 {
+	if (index >= 0 && index < m_format_ctx->nb_streams)
+	{
+		codec_id = m_format_ctx->streams[index]->codec->codec_id;
+		return true;
+	}
 	return false;
 }
 
@@ -235,12 +268,12 @@ void unkown_demux::close()
 
 int unkown_demux::read_pause()
 {
-	return -1;
+	return av_read_pause(m_format_ctx);
 }
 
 int unkown_demux::read_play()
 {
-	return -1;
+	return av_read_play(m_format_ctx);
 }
 
 int unkown_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
