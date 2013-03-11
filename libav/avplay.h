@@ -83,6 +83,10 @@ EXPORT_API void free_audio_render(ao_context *ctx);
 EXPORT_API vo_context* alloc_video_render(void *user_data);
 EXPORT_API void free_video_render(vo_context *ctx);
 
+/* TODO: 分配视频分离和释放. */
+/* EXPORT_API demux_context* alloc_demux_context(); */
+/* EXPORT_API void free_demux_context(); */
+
 /* 计算视频实时帧率和实时码率的时间单元. */
 #define MAX_CALC_SEC 5
 
@@ -166,6 +170,8 @@ typedef struct avplay
 	source_context *m_source_ctx;
 	AVIOContext *m_avio_ctx;
 	unsigned char *m_io_buffer;
+	/* 用于视频分离的组件. */
+	demux_context *m_demux_context;
 	/* 当前音频渲染器.	*/
 	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
