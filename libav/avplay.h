@@ -83,9 +83,9 @@ EXPORT_API void free_audio_render(ao_context *ctx);
 EXPORT_API vo_context* alloc_video_render(void *user_data);
 EXPORT_API void free_video_render(vo_context *ctx);
 
-/* TODO: 分配视频分离和释放. */
-/* EXPORT_API demux_context* alloc_demux_context(); */
-/* EXPORT_API void free_demux_context(); */
+/* 分配视频分离和释放. */
+EXPORT_API demux_context* alloc_demux_context();
+EXPORT_API void free_demux_context(demux_context *ctx);
 
 /* 计算视频实时帧率和实时码率的时间单元. */
 #define MAX_CALC_SEC 5

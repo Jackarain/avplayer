@@ -475,8 +475,7 @@ void free_media_source(source_context *ctx)
 
 avplay* alloc_avplay_context()
 {
-	struct avplay *ptr = malloc(sizeof(avplay));
-	memset(ptr, 0, sizeof(avplay));
+	struct avplay *ptr = calloc(1, sizeof(avplay));
 	return ptr;
 }
 
@@ -487,8 +486,7 @@ void free_avplay_context(avplay *ctx)
 
 ao_context* alloc_audio_render()
 {
-	ao_context *ptr = malloc(sizeof(ao_context));
-	memset(ptr, 0, sizeof(ao_context));
+	ao_context *ptr = calloc(1, sizeof(ao_context));
 	return ptr;
 }
 
@@ -501,8 +499,7 @@ void free_audio_render(ao_context *ctx)
 
 vo_context* alloc_video_render(void *user_data)
 {
-	struct vo_context *ptr = malloc(sizeof(vo_context));
-	memset(ptr, 0, sizeof(vo_context));
+	struct vo_context *ptr = calloc(1, sizeof(vo_context));
 	ptr->user_data = user_data;
 	return ptr;
 }
@@ -511,6 +508,18 @@ void free_video_render(vo_context *ctx)
 {
 	if (ctx->priv)
 		ctx->destory_video(ctx);
+	free(ctx);
+}
+
+demux_context* alloc_demux_context()
+{
+	return calloc(1, sizeof(demux_context));
+}
+
+void free_demux_context(demux_context *ctx)
+{
+	if (ctx)
+		ctx->destory(ctx);
 	free(ctx);
 }
 
