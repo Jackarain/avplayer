@@ -49,10 +49,11 @@ enum sync_type
 	AV_SYNC_EXTERNAL_CLOCK, /* 同步到外部时钟. */
 };
 
-/* 用于config_render参数表示所配置的render.  */
+/* 用于config_render参数表示所配置的render或source或demux.  */
 #define MEDIA_SOURCE			0
-#define AUDIO_RENDER			1
-#define VIDEO_RENDER			2
+#define MEDIA_DEMUX				1
+#define AUDIO_RENDER			2
+#define VIDEO_RENDER			3
 
 /* 用于标识渲染器类型. */
 #define VIDEO_RENDER_D3D		0
@@ -249,7 +250,7 @@ EXPORT_API int initialize(avplay *play, source_context *sc);
  * The Configure render or source to palyer.
  * @param play pointer to the player. 
  * @param param video render or audio render or media_source.
- * @param type Specifies render type, MEDIA_SOURCE	or AUDIO_RENDER VIDEO_RENDER.
+ * @param type Specifies render type, MEDIA_SOURCE or AUDIO_RENDER、 MEDIA_DEMUX、 VIDEO_RENDER.
  * @This function does not return a value.
  */
 EXPORT_API void configure(avplay *play, void *param, int type);

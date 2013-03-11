@@ -776,33 +776,49 @@ int av_start(avplay *play, double fact, int index)
 	return 0;
 }
 
-void configure(avplay *play, void* param, int type)
+void configure(avplay *play, void *param, int type)
 {
-	if (type == AUDIO_RENDER)
+	switch (type)
 	{
-		if (play->m_ao_ctx && play->m_ao_ctx->priv)
-			free_audio_render(play->m_ao_ctx);
-		play->m_ao_ctx = (ao_context*)param;
-	}
-	if (type == VIDEO_RENDER)
-	{
-		if (play->m_vo_ctx && play->m_vo_ctx->priv)
-			free_video_render(play->m_vo_ctx);
-		play->m_vo_ctx = (vo_context*)param;
-	}
-	if (type == MEDIA_SOURCE)
-	{
-		/* 注意如果正在播放, 则不可以配置应该源. */
-		if (play->m_play_status == playing ||
-			 play->m_play_status == paused)
-			return ;
-		if (play->m_source_ctx)
+	case AUDIO_RENDER:
 		{
-			if (play->m_source_ctx && play->m_source_ctx->priv)
-				play->m_source_ctx->close(play->m_source_ctx);
-			free_media_source(play->m_source_ctx);
-			play->m_source_ctx = (source_context*)param;
+			if (play->m_ao_ctx && play->m_ao_ctx->priv)
+				free_audio_render(play->m_ao_ctx);
+			play->m_ao_ctx = (ao_context*)param;
 		}
+		break;
+	case VIDEO_RENDER:
+		{
+			if (play->m_vo_ctx && play->m_vo_ctx->priv)
+				free_video_render(play->m_vo_ctx);
+			play->m_vo_ctx = (vo_context*)param;
+		}
+		break;
+	case MEDIA_SOURCE:
+		{
+			/* 注意如果正在播放, 则不可以配置应该源. */
+			if (play->m_play_status == playing ||
+				play->m_play_status == paused)
+				return ;
+			if (play->m_source_ctx)
+			{
+				if (play->m_source_ctx && play->m_source_ctx->priv)
+					play->m_source_ctx->close(play->m_source_ctx);
+				free_media_source(play->m_source_ctx);
+				play->m_source_ctx = (source_context*)param;
+			}
+		}
+		break;
+	case MEDIA_DEMUX:
+		{
+			if (play->m_demux_context && play->m_demux_context->priv)
+				play->m_demux_context->destory(play->m_demux_context);
+			free_demux_context(play->m_demux_context);
+			play->m_demux_context = (demux_context*)param;
+		}
+		break;
+	default:
+		assert(0);
 	}
 }
 
