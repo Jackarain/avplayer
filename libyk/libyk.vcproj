@@ -165,11 +165,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\codepage.h"
+				RelativePath=".\libyk.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libyk.h"
+				RelativePath=".\utf8.h"
 				>
 			</File>
 			<File
