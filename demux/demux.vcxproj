@@ -93,6 +93,14 @@
     <ClInclude Include="internal.h" />
     <ClInclude Include="unkown_demux.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libav\libav.vcxproj">
+      <Project>{457c2989-509d-4132-b08a-1695342bb9db}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\source\source.vcxproj">
+      <Project>{c3812e93-d5de-4275-9e57-62513c4fac32}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
