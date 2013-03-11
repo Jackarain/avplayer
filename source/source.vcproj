@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;TORRENT_USE_OPENSSL;USE_TORRENT;USE_YK;SOURCE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
+				AdditionalIncludeDirectories="..\third_party\ffmpeg\include;..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;TORRENT_USE_OPENSSL;USE_TORRENT;USE_YK;SOURCE_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
