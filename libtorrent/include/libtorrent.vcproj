@@ -329,6 +329,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\ip_voter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\lazy_bdecode.cpp"
 				>
 			</File>
