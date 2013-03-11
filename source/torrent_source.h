@@ -26,7 +26,7 @@
 #include "libtorrent/bencode.hpp"
 #include "libtorrent/session.hpp"
 #include "libtorrent/storage.hpp"
-#include "libtorrent/interface.hpp"
+#include "libtorrent/extern_read_op.hpp"
 
 using namespace libtorrent;
 #if BOOST_VERSION < 103400

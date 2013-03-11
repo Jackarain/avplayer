@@ -10,7 +10,7 @@
 #include <boost/bind.hpp>
 #include <fstream>
 #include "torrent_source.h"
-#include "libtorrent/interface.hpp"
+#include "libtorrent/extern_read_op.hpp"
 
 #endif // USE_TORRENT
 
