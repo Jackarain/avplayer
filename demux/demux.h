@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 // 未知的数据类型.
-EXPORT_API int unkown_init_demux(struct demux_context *demux_ctx, source_context **source_ctx);
+EXPORT_API int unkown_init_demux(struct demux_context *demux_ctx);
 EXPORT_API int unkown_read_packet(struct demux_context *demux_ctx, AVPacket *pkt);
 EXPORT_API int unkown_packet_seek(struct demux_context *demux_ctx, int64_t timestamp);
 EXPORT_API int unkown_stream_index(struct demux_context *demux_ctx, enum AVMediaType type);

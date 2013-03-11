@@ -6,7 +6,7 @@
 
 // 具体的demux组件实现.
 
-EXPORT_API int unkown_init_demux(struct demux_context *demux_ctx, source_context **source_ctx)
+EXPORT_API int unkown_init_demux(struct demux_context *demux_ctx)
 {
 	unkown_demux_info &unkown_info = demux_ctx->info.unkown;
 	unkown_demux *demux = new unkown_demux();
@@ -15,12 +15,11 @@ EXPORT_API int unkown_init_demux(struct demux_context *demux_ctx, source_context
 	// 保存文件名到d, 以作为参数传入unkown_demux中打开.
 	d.file_name = std::string(unkown_info.file_name);
 
-	// 保存source_context指针到d, 如果不为空, 则内部使用这个source_context来读取数据.
-	// 否则使用demux内部默认的ffmpeg来访问数据.
-	d.source_ctx = source_ctx;
-
 	// 保存到demux_context.priv中做为私有的上下文.
 	demux_ctx->priv = (void*)demux;
+
+	// 保存数据源类型.
+	d.type = demux_ctx->type;
 
 	// 执行打开操作.
 	if (demux->open(d))

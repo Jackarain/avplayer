@@ -246,10 +246,9 @@ typedef struct demux_context
 	/*
 	 * 初始化demux.
 	 * demux_ctx 是demux_context本身的指针.
-	 * source_ctx 是指向一个source_ctx指针的指针, demuxer使用外部的source_ctx读取数据时使用.
 	 * 返回0表示成功, -1表示失败.
 	 */
-	int (*init_demux)(struct demux_context *demux_ctx, source_context **source_ctx);
+	int (*init_demux)(struct demux_context *demux_ctx);
 
 	/*
 	 * 读取一个packet到pkt中.

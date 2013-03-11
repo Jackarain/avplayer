@@ -1,5 +1,7 @@
 #include "internal.h"
 #include "unkown_demux.h"
+#include "source.h"
+#include "avplay.h"
 
 #define IO_BUFFER_SIZE	32768
 
@@ -20,20 +22,18 @@ int unkown_demux::decode_interrupt_cb(void *ctx)
 
 int unkown_demux::read_data(void *opaque, uint8_t *buf, int buf_size)
 {
- 	int ret = 0;
-//  	unkown_demux *demux = (avplay*)opaque;
-//  
-//  	// 已被中止.
-//  	if (demux->is_abort())
-//  		return 0;
-//  
-//  	// 读取数据.
-//  	ret = play->m_source_ctx->read_data(play->m_source_ctx, buf, buf_size);
-//  
-//  	// 读取失败, 跳过, 这样就可以继续缓冲数据或者跳回前面播放.
-//  	if (ret == -1)
-//  		return 0;
- 
+	unkown_demux *demux = (unkown_demux*)opaque;
+
+	// 已经中止播放.
+	if (demux->is_abort())
+		return 0;
+
+	int ret = demux->m_source_ctx->read_data(demux->m_source_ctx, (char*)buf, buf_size);
+
+	// 读取失败, 跳过, 这样就可以继续缓冲数据或者跳回前面播放.
+	if (ret == -1)
+		return 0;
+
  	return ret;
 }
 
@@ -48,22 +48,19 @@ int unkown_demux::write_data(void *opaque, uint8_t *buf, int buf_size)
 int64_t unkown_demux::seek_data(void *opaque, int64_t offset, int whence)
 {
  	unkown_demux *demux = (unkown_demux*)opaque;
- 
-//  	if (play->m_abort)
-//  		return -1;
-//  
-//  	// 如果存在read_seek函数实现, 则调用相应的函数实现, 处理相关事件.
-//  	if (play->m_source_ctx && play->m_source_ctx->read_seek)
-//  		offset = play->m_source_ctx->read_seek(play->m_source_ctx, offset, whence);
-//  	else
-//  		assert(0);
-//  
-//  	if (play->m_source_ctx->dl_info.not_enough)
-//  	{
-//  		// TODO: 判断是否数据足够, 如果不足以播放, 则暂停播放.
-//  	}
- 
- 	return offset;
+
+	// 已经中止播放.
+	if (demux->is_abort())
+		return -1;
+
+	offset = demux->m_source_ctx->read_seek(demux->m_source_ctx, offset, whence);
+
+	if (demux->m_source_ctx->dl_info.not_enough)
+	{
+		// TODO: 判断是否数据足够, 如果不足以播放, 则暂停播放.
+	}
+
+	return offset;
 }
 
 unkown_demux::unkown_demux(void)
@@ -92,16 +89,56 @@ bool unkown_demux::open(boost::any ctx)
 	m_format_ctx->interrupt_callback.callback = decode_interrupt_cb;
 	m_format_ctx->interrupt_callback.opaque = (void*)this;
 
-	// 保存指针.
-	m_source_ctx = *m_unkown_demux_data.source_ctx;
-
-	// 初始化数据源.
-	if (m_source_ctx)
+	if (m_unkown_demux_data.type == MEDIA_TYPE_BT)
 	{
-		// 如果初始化失败.
-		if (m_source_ctx->init_source(m_source_ctx) < 0)
+		FILE *fp = fopen(m_unkown_demux_data.file_name.c_str(), "r+b");
+		if (!fp)
 			goto FAILED_FLG;
+		uint64_t file_lentgh = fs::file_size(m_unkown_demux_data.file_name);
+		char *torrent_data = (char*)malloc(file_lentgh);
+		if (!torrent_data)
+			goto FAILED_FLG;
+		int readbytes = fread(torrent_data, 1, file_lentgh, fp);
+		m_source_ctx = alloc_media_source(MEDIA_TYPE_BT, torrent_data, readbytes, 0);
+		free(torrent_data);
+		if (!m_source_ctx)
+			goto FAILED_FLG;
+
+		// 初始化bt读取函数指针.
+		m_source_ctx->init_source = bt_init_source;
+		m_source_ctx->read_data = bt_read_data;
+		m_source_ctx->read_seek = bt_read_seek;
+		m_source_ctx->close = bt_close;
+		m_source_ctx->destory = bt_destory;
 	}
+	else
+	{
+		m_source_ctx = alloc_media_source(m_unkown_demux_data.type,
+			m_unkown_demux_data.file_name.c_str(), m_unkown_demux_data.file_name.length(), 0);
+		if (!m_source_ctx)
+			goto FAILED_FLG;
+		// 按种类分配不同的数据源处理函数.
+		switch (m_unkown_demux_data.type)
+		{
+		case MEDIA_TYPE_FILE:
+			{
+				m_source_ctx->init_source = file_init_source;
+				m_source_ctx->read_data = file_read_data;
+				m_source_ctx->read_seek = file_read_seek;
+				m_source_ctx->close = file_close;
+				m_source_ctx->destory = file_destory;
+			}
+			break;
+		case MEDIA_TYPE_HTTP: break;
+		case MEDIA_TYPE_RTSP: break;
+		case MEDIA_TYPE_YK: goto FAILED_FLG;	// 暂不支持自动识别YK格式视频.
+		default: break;
+		}
+	}
+
+	// 如果初始化失败.
+	if (m_source_ctx->init_source(m_source_ctx) < 0)
+		goto FAILED_FLG;
 
 	int ret = 0;
 	AVInputFormat *iformat = NULL;

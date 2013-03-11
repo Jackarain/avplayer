@@ -17,8 +17,8 @@
 
 struct unkown_demux_data
 {
-	std::string file_name;				// ÎÄ¼şÃû.
-	source_context **source_ctx;		// Ö¸ÏòÍâ²¿´«ÈëµÄsource_contextÖ¸Õë, ÄÚ²¿¿É²Ù×÷, µ«ÓÉÍâ²¿ÊÍ·Å.
+	std::string file_name;			// æ–‡ä»¶å.
+	int type;						// æ•°æ®ç±»å‹.
 };
 
 class unkown_demux : public demuxer
@@ -28,61 +28,61 @@ public:
 	virtual ~unkown_demux(void);
 
 public:
-	// ´ò¿ªdemuxer, ²ÎÊıÎªany, ÒÔ´«ÈëÈÎÒâ²ÎÊı.
+	// æ‰“å¼€demuxer, å‚æ•°ä¸ºany, ä»¥ä¼ å…¥ä»»æ„å‚æ•°.
 	virtual bool open(boost::any ctx);
 
-	// ¶ÁÈ¡Ò»¸öpacketµ½pktÖĞ.
-	// ·µ»Øtrue±íÊ¾³É¹¦.
+	// è¯»å–ä¸€ä¸ªpacketåˆ°pktä¸­.
+	// è¿”å›trueè¡¨ç¤ºæˆåŠŸ.
 	virtual bool read_packet(AVPacket *pkt);
 
-	// seek_packet ÊÇÓÃÓÚseekµ½Ö¸¶¨µÄtimestampÎ»ÖÃ.
-	// timestamp Ê±¼ä´Á.
+	// seek_packet æ˜¯ç”¨äºseekåˆ°æŒ‡å®šçš„timestampä½ç½®.
+	// timestamp æ—¶é—´æˆ³.
 	virtual bool seek_packet(int64_t timestamp);
 
-	// stream_index µÃµ½Ö¸¶¨AVMediaTypeÀàĞÍµÄindex.
-	// index ÊÇ·µ»ØµÄÖ¸¶¨AVMediaTypeÀàĞÍµÄindex.
-	// ·µ»Øtrue±íÊ¾³É¹¦.
+	// stream_index å¾—åˆ°æŒ‡å®šAVMediaTypeç±»å‹çš„index.
+	// index æ˜¯è¿”å›çš„æŒ‡å®šAVMediaTypeç±»å‹çš„index.
+	// è¿”å›trueè¡¨ç¤ºæˆåŠŸ.
 	virtual bool stream_index(enum AVMediaType type, int &index);
 
-	// query_avcodec_id ²éÑ¯Ö¸¶¨indexµÄcodecµÄidÖµ.
-	// Ö¸¶¨µÄindex.
-	// Ö¸¶¨µÄindexµÄcodec_id.
-	// ³É¹¦·µ»Øtrue.
+	// query_avcodec_id æŸ¥è¯¢æŒ‡å®šindexçš„codecçš„idå€¼.
+	// æŒ‡å®šçš„index.
+	// æŒ‡å®šçš„indexçš„codec_id.
+	// æˆåŠŸè¿”å›true.
 	virtual bool query_avcodec_id(int index, enum AVCodecID &codec_id);
 
-	// ¶ÁÈ¡ÔİÍ£, Ö÷ÒªÎªRTSPÕâÖÖÍøÂçÃ½ÌåĞ­Òé.
+	// è¯»å–æš‚åœ, ä¸»è¦ä¸ºRTSPè¿™ç§ç½‘ç»œåª’ä½“åè®®.
 	virtual int read_pause();
 
-	// Í¬ÉÏ, »Ö¸´²¥·Å.
+	// åŒä¸Š, æ¢å¤æ’­æ”¾.
 	virtual int read_play();
 
-	// ¹Ø±Õ.
+	// å…³é—­.
 	virtual void close();
 
-	// ÊÇ·ñÖĞÖ¹.
+	// æ˜¯å¦ä¸­æ­¢.
 	inline bool is_abort() { return m_abort; }
 
-	// »ñµÃÊÓÆµµÄ»ù±¾ĞÅÏ¢.
+	// è·å¾—è§†é¢‘çš„åŸºæœ¬ä¿¡æ¯.
 	media_base_info base_info();
 
 protected:
 
-	// ÖĞÖ¹½âÂë»Øµ÷.
+	// ä¸­æ­¢è§£ç å›è°ƒ.
 	static int decode_interrupt_cb(void *ctx);
 
-	// ´ÓsourceÖĞ¶ÁÈ¡Êı¾İ.
+	// ä»sourceä¸­è¯»å–æ•°æ®.
 	static int read_data(void *opaque, uint8_t *buf, int buf_size);
 
-	// ÏòsourceÖĞĞ´ÈëÊı¾İ.
+	// å‘sourceä¸­å†™å…¥æ•°æ®.
 	static int write_data(void *opaque, uint8_t *buf, int buf_size);
 
-	// ÔÚsourceÖĞ½øĞĞseek.
+	// åœ¨sourceä¸­è¿›è¡Œseek.
 	static int64_t seek_data(void *opaque, int64_t offset, int whence);
 
-	// ²éÑ¯Ö¸¶¨µÄindex.
+	// æŸ¥è¯¢æŒ‡å®šçš„index.
 	int query_index(enum AVMediaType type, AVFormatContext *ctx);
 
-	// ¸´ÖÆAVRational.
+	// å¤åˆ¶AVRational.
 	inline void avrational_copy(AVRational &src, AVRational &dst)
 	{
 		dst.den = src.den;
@@ -91,25 +91,25 @@ protected:
 
 
 protected:
-	// ²ÎÊıĞÅÏ¢.
+	// å‚æ•°ä¿¡æ¯.
 	unkown_demux_data m_unkown_demux_data;
 
-	// Ê¹ÓÃFFmpegµÄAVFormatContextÀ´¶ÁÈ¡AVPacket.
+	// ä½¿ç”¨FFmpegçš„AVFormatContextæ¥è¯»å–AVPacket.
 	AVFormatContext *m_format_ctx;
 
-	// Êı¾İIOÉÏÏÂÎÄÖ¸Õë.
+	// æ•°æ®IOä¸Šä¸‹æ–‡æŒ‡é’ˆ.
 	AVIOContext *m_avio_ctx;
 
-	// source_contextÖ¸Õë.
+	// source_contextæŒ‡é’ˆ.
 	source_context *m_source_ctx;
 
-	// ÊÓÆµµÄ»ù±¾ĞÅÏ¢.
+	// è§†é¢‘çš„åŸºæœ¬ä¿¡æ¯.
 	media_base_info m_base_info;
 
-	// Êı¾İ»º³å.
+	// æ•°æ®ç¼“å†².
 	unsigned char *m_io_buffer;
 
-	// ÊÇ·ñÖĞÖ¹.
+	// æ˜¯å¦ä¸­æ­¢.
 	bool m_abort;
 };
 

@@ -29,6 +29,9 @@ extern "C"
 #include <iostream>
 
 #include <boost/any.hpp>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 #ifdef _MSC_VER
 # pragma warning(pop)
