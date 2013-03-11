@@ -17,6 +17,7 @@
 
 #ifdef USE_YK
 #include "yk_source.h"
+#include "utf8.h"
 #endif // USE_YK
 
 #ifdef  __cplusplus
@@ -285,7 +286,7 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 		ansi = boost::filesystem::current_path().string();
 #ifdef _WIN32
 		ansi_wide(ansi, path);
-		libtorrent::wchar_utf8(path, ansi);
+		ansi = libyk::wide_utf8(path);
 #endif
 		// 更新保存路径.
 		yd->save_path = ansi;
@@ -296,7 +297,7 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 		ansi = std::string(yk_info.save_path);
 #ifdef _WIN32
 		ansi_wide(ansi, path);
-		libtorrent::wchar_utf8(path, ansi);
+		ansi = libyk::wide_utf8(path);
 #endif
 		// 更新保存路径.
 		yd->save_path = ansi;
