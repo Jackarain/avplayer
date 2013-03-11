@@ -31,6 +31,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libyk", "libyk\libyk.vcproj", "{46CD66DB-40A1-4677-91B4-F3226FAB8941}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demux", "demux\demux.vcproj", "{A2B8CC80-EEB0-40BD-91D1-BA9DBB4E89C6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{457C2989-509D-4132-B08A-1695342BB9DB} = {457C2989-509D-4132-B08A-1695342BB9DB}
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32} = {C3812E93-D5DE-4275-9E57-62513C4FAC32}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
