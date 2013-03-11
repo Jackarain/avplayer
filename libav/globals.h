@@ -269,12 +269,12 @@ typedef struct demux_context
 	/*
 	 * 读取暂停, 主要为RTSP这种网络媒体协议.
 	 */
-	int (*read_pause)(struct demux_context *source_ctx);
+	int (*read_pause)(struct demux_context *demux_ctx);
 
 	/*
 	 * 同上, 恢复播放.
 	 */
-	int (*read_play)(struct demux_context *source_ctx);
+	int (*read_play)(struct demux_context *demux_ctx);
 
 	/*
 	 * 查询指定媒体类型的index.
