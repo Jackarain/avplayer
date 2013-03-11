@@ -18,6 +18,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "source", "source\source.vcxproj", "{C3812E93-D5DE-4275-9E57-62513C4FAC32}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demux", "demux\demux.vcxproj", "{FF475010-1F91-42B3-92C1-E8B2B42B7529}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C3812E93-D5DE-4275-9E57-62513C4FAC32} = {C3812E93-D5DE-4275-9E57-62513C4FAC32}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
