@@ -1,7 +1,7 @@
 /*
 
-Copyright (c) 2003, Arvid Norberg
-All rights reserved.
+Copyright (c) 2003, Arvid Norberg All rights reserved.
+Copyright (c) 2013, Jack All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -30,8 +30,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_INTERFACE_HPP_INCLUDED
-#define TORRENT_INTERFACE_HPP_INCLUDED
+#ifndef TORRENT_EXTERN_READ_OP_HPP_INCLUDED
+#define TORRENT_EXTERN_READ_OP_HPP_INCLUDED
 
 #include "libtorrent/torrent_handle.hpp"
 #include "libtorrent/escape_string.hpp"
@@ -373,4 +373,4 @@ private:
 
 }
 
-#endif // TORRENT_INTERFACE_HPP_INCLUDED
+#endif // TORRENT_EXTERN_READ_OP_HPP_INCLUDED

@@ -230,7 +230,7 @@
     <ClInclude Include="libtorrent\i2p_stream.hpp" />
     <ClInclude Include="libtorrent\identify_client.hpp" />
     <ClInclude Include="libtorrent\instantiate_connection.hpp" />
-    <ClInclude Include="libtorrent\interface.hpp" />
+    <ClInclude Include="libtorrent\extern_read_op.hpp" />
     <ClInclude Include="libtorrent\intrusive_ptr_base.hpp" />
     <ClInclude Include="libtorrent\invariant_check.hpp" />
     <ClInclude Include="libtorrent\io.hpp" />

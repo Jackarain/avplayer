@@ -763,7 +763,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\libtorrent\interface.hpp"
+				RelativePath=".\libtorrent\extern_read_op.hpp"
 				>
 			</File>
 			<File

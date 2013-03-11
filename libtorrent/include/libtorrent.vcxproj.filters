@@ -451,9 +451,6 @@
     <ClInclude Include="libtorrent\instantiate_connection.hpp">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="libtorrent\interface.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="libtorrent\intrusive_ptr_base.hpp">
       <Filter>include</Filter>
     </ClInclude>
@@ -713,6 +710,9 @@
       <Filter>include\aux_</Filter>
     </ClInclude>
     <ClInclude Include="libtorrent\string_util.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libtorrent\extern_read_op.hpp">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
