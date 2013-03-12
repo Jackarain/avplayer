@@ -1,138 +1,141 @@
 EXPORTS
-    av_add_index_entry @1
-    av_append_packet @2
-    av_close_input_file @3
-    av_codec_get_id @4
-    av_codec_get_tag @5
-    av_convert_lang_to @6
-    av_demuxer_open @7
-    av_dump_format @8
-    av_filename_number_test @9
-    av_find_best_stream @10
-    av_find_default_stream_index @11
-    av_find_input_format @12
-    av_find_program_from_stream @13
-    av_find_stream_info @14
-    av_fmt_ctx_get_duration_estimation_method @15
-    av_get_frame_filename @16
-    av_get_output_timestamp @17
-    av_get_packet @18
-    av_gettime@LIBAVFORMAT_54 @19
-    av_guess_codec @20
-    av_guess_format @21
-    av_guess_sample_aspect_ratio @22
-    av_hex_dump @23
-    av_hex_dump_log @24
-    av_iformat_next @25
-    av_index_search_timestamp @26
-    av_interleave_packet_per_dts @27
-    av_interleaved_write_frame @28
-    av_match_ext @29
-    av_new_program @30
-    av_new_stream @31
-    av_oformat_next @32
-    av_pkt_dump2 @33
-    av_pkt_dump_log2 @34
-    av_probe_input_buffer @35
-    av_probe_input_format @36
-    av_probe_input_format2 @37
-    av_probe_input_format3 @38
-    av_read_frame @39
-    av_read_packet @40
-    av_read_pause @41
-    av_read_play @42
-    av_register_all @43
-    av_register_input_format @44
-    av_register_output_format @45
-    av_register_rdt_dynamic_payload_handlers @46
-    av_register_rtp_dynamic_payload_handlers @47
-    av_sdp_create @48
-    av_seek_frame @49
-    av_set_pts_info @50
-    av_url_split @51
-    av_write_frame @52
-    av_write_trailer @53
-    avformat_alloc_context @54
-    avformat_alloc_output_context @55
-    avformat_alloc_output_context2 @56
-    avformat_close_input @57
-    avformat_configuration @58
-    avformat_find_stream_info @59
-    avformat_free_context @60
-    avformat_get_class @61
-    avformat_get_riff_audio_tags @62
-    avformat_get_riff_video_tags @63
-    avformat_license @64
-    avformat_match_stream_specifier @65
-    avformat_network_deinit @66
-    avformat_network_init @67
-    avformat_new_stream @68
-    avformat_open_input @69
-    avformat_query_codec @70
-    avformat_queue_attached_pictures @71
-    avformat_seek_file @72
-    avformat_version @73
-    avformat_write_header @74
-    avio_alloc_context @75
-    avio_check @76
-    avio_close @77
-    avio_close_dyn_buf @78
-    avio_enum_protocols @79
-    avio_flush @80
-    avio_get_str @81
-    avio_get_str16be @82
-    avio_get_str16le @83
-    avio_open @84
-    avio_open2 @85
-    avio_open_dyn_buf @86
-    avio_pause @87
-    avio_printf @88
-    avio_put_str @89
-    avio_put_str16le @90
-    avio_r8 @91
-    avio_rb16 @92
-    avio_rb24 @93
-    avio_rb32 @94
-    avio_rb64 @95
-    avio_read @96
-    avio_rl16 @97
-    avio_rl24 @98
-    avio_rl32 @99
-    avio_rl64 @100
-    avio_seek @101
-    avio_seek_time @102
-    avio_size @103
-    avio_skip @104
-    avio_w8 @105
-    avio_wb16 @106
-    avio_wb24 @107
-    avio_wb32 @108
-    avio_wb64 @109
-    avio_wl16 @110
-    avio_wl24 @111
-    avio_wl32 @112
-    avio_wl64 @113
-    avio_write @114
-    avpriv_dv_get_packet @115
-    avpriv_dv_init_demux @116
-    avpriv_dv_produce_packet @117
-    avpriv_new_chapter @118
-    avpriv_set_pts_info @119
-    ff_inet_aton @120
-    ff_mpegts_parse_close @121
-    ff_mpegts_parse_open @122
-    ff_mpegts_parse_packet @123
-    ff_rtp_get_local_rtcp_port @124
-    ff_rtp_get_local_rtp_port @125
-    ff_rtsp_parse_line @126
-    ff_socket_nonblock @127
-    ffio_open_dyn_packet_buf @128
-    ffio_set_buf_size @129
-    ffurl_close @130
-    ffurl_open @131
-    ffurl_protocol_next @132
-    ffurl_read_complete @133
-    ffurl_seek @134
-    ffurl_size @135
-    ffurl_write @136
-    url_feof @137
+    av_add_index_entry
+    av_append_packet
+    av_close_input_file
+    av_codec_get_id
+    av_codec_get_tag
+    av_convert_lang_to
+    av_demuxer_open
+    av_dump_format
+    av_filename_number_test
+    av_find_best_stream
+    av_find_default_stream_index
+    av_find_input_format
+    av_find_program_from_stream
+    av_find_stream_info
+    av_fmt_ctx_get_duration_estimation_method
+    av_get_frame_filename
+    av_get_output_timestamp
+    av_get_packet
+    av_gettime@LIBAVFORMAT_54
+    av_guess_codec
+    av_guess_format
+    av_guess_sample_aspect_ratio
+    av_hex_dump
+    av_hex_dump_log
+    av_iformat_next
+    av_index_search_timestamp
+    av_interleave_packet_per_dts
+    av_interleaved_write_frame
+    av_match_ext
+    av_new_program
+    av_new_stream
+    av_oformat_next
+    av_pkt_dump2
+    av_pkt_dump_log2
+    av_probe_input_buffer
+    av_probe_input_format
+    av_probe_input_format2
+    av_probe_input_format3
+    av_read_frame
+    av_read_packet
+    av_read_pause
+    av_read_play
+    av_register_all
+    av_register_input_format
+    av_register_output_format
+    av_register_rdt_dynamic_payload_handlers
+    av_register_rtp_dynamic_payload_handlers
+    av_sdp_create
+    av_seek_frame
+    av_set_pts_info
+    av_url_split
+    av_write_frame
+    av_write_trailer
+    avformat_alloc_context
+    avformat_alloc_output_context
+    avformat_alloc_output_context2
+    avformat_close_input
+    avformat_configuration
+    avformat_find_stream_info
+    avformat_free_context
+    avformat_get_class
+    avformat_get_riff_audio_tags
+    avformat_get_riff_video_tags
+    avformat_license
+    avformat_match_stream_specifier
+    avformat_network_deinit
+    avformat_network_init
+    avformat_new_stream
+    avformat_open_input
+    avformat_query_codec
+    avformat_queue_attached_pictures
+    avformat_seek_file
+    avformat_version
+    avformat_write_header
+    avio_alloc_context
+    avio_check
+    avio_close
+    avio_close_dyn_buf
+    avio_closep
+    avio_enum_protocols
+    avio_flush
+    avio_get_str
+    avio_get_str16be
+    avio_get_str16le
+    avio_open
+    avio_open2
+    avio_open_dyn_buf
+    avio_pause
+    avio_printf
+    avio_put_str
+    avio_put_str16le
+    avio_r8
+    avio_rb16
+    avio_rb24
+    avio_rb32
+    avio_rb64
+    avio_read
+    avio_rl16
+    avio_rl24
+    avio_rl32
+    avio_rl64
+    avio_seek
+    avio_seek_time
+    avio_size
+    avio_skip
+    avio_w8
+    avio_wb16
+    avio_wb24
+    avio_wb32
+    avio_wb64
+    avio_wl16
+    avio_wl24
+    avio_wl32
+    avio_wl64
+    avio_write
+    avpriv_dv_get_packet
+    avpriv_dv_init_demux
+    avpriv_dv_produce_packet
+    avpriv_new_chapter
+    avpriv_set_pts_info
+    ff_inet_aton
+    ff_mpegts_parse_close
+    ff_mpegts_parse_open
+    ff_mpegts_parse_packet
+    ff_rtp_get_local_rtcp_port
+    ff_rtp_get_local_rtp_port
+    ff_rtsp_parse_line
+    ff_socket_nonblock
+    ffio_open_dyn_packet_buf
+    ffio_set_buf_size
+    ffurl_close
+    ffurl_open
+    ffurl_protocol_next
+    ffurl_read_complete
+    ffurl_seek
+    ffurl_size
+    ffurl_write
+    get_crc_table
+    get_extension
+    url_feof
