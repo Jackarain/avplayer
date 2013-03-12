@@ -1026,14 +1026,19 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	int nb_sample;
 	int dst_buf_size;
 	int out_channels;
+	int bytes_per_sample = 0;
 
 	dst->linesize[0] = src->linesize[0];
 	*dst = *src;
 	dst->data[0] = NULL;
 	dst->type = 0;
-	out_channels = FFMIN(play->m_audio_ctx->channels, 2);
-	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
-	dst_buf_size = nb_sample * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
+	/* 备注: FFMIN(play->m_audio_ctx->channels, 2); 会有问题, 因为swr_alloc_set_opts的out_channel_layout参数. */
+	out_channels = play->m_audio_ctx->channels;
+	bytes_per_sample = av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
+	/* 备注: 由于 src->linesize[0] 可能是错误的, 所以计算得到的nb_sample会不正确, 直接使用src->nb_samples即可. */
+	nb_sample = src->nb_samples;/* src->linesize[0] / play->m_audio_ctx->channels / bytes_per_sample; */
+	bytes_per_sample = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+	dst_buf_size = nb_sample * bytes_per_sample * out_channels;
 	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
 	assert(dst->data[0]);
 	avcodec_fill_audio_frame(dst, out_channels, AV_SAMPLE_FMT_S16, dst->data[0], dst_buf_size, 0);
@@ -1045,9 +1050,10 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		{
 			uint64_t in_channel_layout = av_get_default_channel_layout(play->m_audio_ctx->channels);
 			uint64_t out_channel_layout = av_get_default_channel_layout(out_channels);
-			play->m_swr_ctx = swr_alloc_set_opts(NULL, in_channel_layout, AV_SAMPLE_FMT_S16,
-				play->m_audio_ctx->sample_rate, in_channel_layout,
-				play->m_audio_ctx->sample_fmt, play->m_audio_ctx->sample_rate, 0, NULL);
+			play->m_swr_ctx = swr_alloc_set_opts(NULL,
+				out_channel_layout, AV_SAMPLE_FMT_S16, play->m_audio_ctx->sample_rate,
+				in_channel_layout, play->m_audio_ctx->sample_fmt, play->m_audio_ctx->sample_rate,
+				0, NULL);
 			swr_init(play->m_swr_ctx);
 		}
 
@@ -2364,4 +2370,9 @@ double buffering(avplay *play)
 int audio_is_inited(avplay *play)
 {
 	return play->m_ao_inited;
+}
+
+int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc)
+{
+	return 0;
 }
