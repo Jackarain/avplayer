@@ -1986,116 +1986,7 @@ void* video_render_thrd(void *param)
 	return NULL;
 }
 
-/* 下面模糊代码来自ffmpeg. */
-static
-inline void blur(uint8_t *dst, uint8_t *src, int w, int radius, int dstStep, int srcStep)
-{
-	int x;
-	const int length= radius*2 + 1;
-	const int inv= ((1<<16) + length/2)/length;
-
-	int sum= 0;
-
-	for(x=0; x<radius; x++){
-		sum+= src[x*srcStep]<<1;
-	}
-	sum+= src[radius*srcStep];
-
-	for(x=0; x<=radius; x++){
-		sum+= src[(radius+x)*srcStep] - src[(radius-x)*srcStep];
-		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
-	}
-
-	for(; x<w-radius; x++){
-		sum+= src[(radius+x)*srcStep] - src[(x-radius-1)*srcStep];
-		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
-	}
-
-	for(; x<w; x++){
-		sum+= src[(2*w-radius-x-1)*srcStep] - src[(x-radius-1)*srcStep];
-		dst[x*dstStep]= (sum*inv + (1<<15))>>16;
-	}
-}
-
-static
-inline void blur2(uint8_t *dst, uint8_t *src, int w, int radius, int power, int dstStep, int srcStep)
-{
-	uint8_t temp[2][4096];
-	uint8_t *a= temp[0], *b=temp[1];
-
-	if(radius){
-		blur(a, src, w, radius, 1, srcStep);
-		for(; power>2; power--){
-			uint8_t *c;
-			blur(b, a, w, radius, 1, 1);
-			c=a; a=b; b=c;
-		}
-		if(power>1)
-			blur(dst, a, w, radius, dstStep, 1);
-		else{
-			int i;
-			for(i=0; i<w; i++)
-				dst[i*dstStep]= a[i];
-		}
-	}else{
-		int i;
-		for(i=0; i<w; i++)
-			dst[i*dstStep]= src[i*srcStep];
-	}
-}
-
-static
-void hBlur(uint8_t *dst, uint8_t *src, int w, int h, int dstStride, int srcStride, int radius, int power)
-{
-	int y;
-
-	if(radius==0 && dst==src) return;
-
-	for(y=0; y<h; y++){
-		blur2(dst + y*dstStride, src + y*srcStride, w, radius, power, 1, 1);
-	}
-}
-
-static
-void vBlur(uint8_t *dst, uint8_t *src, int w, int h, int dstStride, int srcStride, int radius, int power)
-{
-	int x;
-
-	if(radius==0 && dst==src) return;
-
-	for(x=0; x<w; x++){
-		blur2(dst + x, src + x, h, radius, power, dstStride, srcStride);
-	}
-}
-
-void blurring2(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
-{
-	int cw = dcx/2;
-	int ch = dcy/2;
-	uint8_t *data[3] = { frame->data[0],
-		frame->data[1], frame->data[2]};
-	int linesize[3] = { frame->linesize[0],
-		frame->linesize[1], frame->linesize[2]	};
-
-	data[0] = frame->data[0] + dy * fw + dx;
-	data[1] = frame->data[1] + ((dy / 2) * (fw / 2)) + dx / 2;
-	data[2] = frame->data[2] + ((dy / 2) * (fw / 2)) + dx / 2;
-
-	hBlur(data[0], data[0], dcx, dcy,
-		linesize[0], linesize[0], 16, 2);
-	hBlur(data[1], data[1], cw, ch,
-		linesize[1], linesize[1], 16, 2);
-	hBlur(data[2], data[2], cw, ch,
-		linesize[2], linesize[2], 16, 2);
-
-	vBlur(data[0], data[0], dcx, dcy,
-		linesize[0], linesize[0], 16, 2);
-	vBlur(data[1], data[1], cw, ch,
-		linesize[1], linesize[1], 16, 2);
-	vBlur(data[2], data[2], cw, ch,
-		linesize[2], linesize[2], 16, 2);
-}
-
+/* 下面模糊代码来自ffdshow. */
 void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 {
 	uint8_t* tempLogo = malloc(dcx * dcy);
@@ -2216,6 +2107,7 @@ void blurring(AVFrame* frame, int fw, int fh, int dx, int dy, int dcx, int dcy)
 	free(borderE);
 }
 
+/* 下面alpha_blend代码来自vlc. */
 void alpha_blend(AVFrame* frame, uint8_t* rgba,
 	int fw, int fh, int rgba_w, int rgba_h, int x, int y)
 {
