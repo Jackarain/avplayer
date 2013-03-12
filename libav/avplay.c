@@ -1031,7 +1031,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	*dst = *src;
 	dst->data[0] = NULL;
 	dst->type = 0;
-	out_channels = play->m_audio_ctx->channels;/* (FFMIN(play->m_audio_ctx->channels, 2)); */
+	out_channels = FFMIN(play->m_audio_ctx->channels, 2);
 	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
 	dst_buf_size = nb_sample * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
 	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
