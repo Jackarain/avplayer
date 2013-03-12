@@ -1387,7 +1387,7 @@ void* audio_dec_thrd(void *param)
 {
 	AVPacket pkt, pkt2;
 	int ret, n;
-	AVFrame avframe = { 0 }, avcopy;
+	AVFrame avframe = { 0 }, avcopy = { 0 };
 	avplay *play = (avplay*) param;
 	int64_t v_start_time = 0;
 	int64_t a_start_time = 0;
