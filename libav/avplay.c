@@ -2365,3 +2365,8 @@ int audio_is_inited(avplay *play)
 {
 	return play->m_ao_inited;
 }
+
+int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc)
+{
+	return 0;
+}

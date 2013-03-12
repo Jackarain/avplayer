@@ -247,6 +247,24 @@ EXPORT_API void free_avplay_context(avplay *ctx);
 EXPORT_API int initialize(avplay *play, source_context *sc);
 
 /*
+ * Initialize the player.
+ * @param play pointer to user-supplied avplayer (allocated by alloc_avplay_context).
+ * @param file_name specifies the source file path or url.
+ * @param source_type specifies source type, MEDIA_TYPE_FILE or MEDIA_TYPE_BT、
+ *  MEDIA_TYPE_HTTP、 MEDIA_TYPE_RTSP、 MEDIA_TYPE_YK.
+ * @param dc pointer to user-supplied demux_context object (allocated by alloc_demux_context).
+ * @return 0 on success, a negative AVERROR on failure.
+ * example:
+ * avplayer* play = alloc_avplay_context();
+ * int ret;
+ * demux_context *dc = alloc_demux_context();
+ * ret = initialize_avplay(play, "test.mp4", MEDIA_TYPE_FILE, dc);
+ * if (ret != 0)
+ *    return ret; // ERROR!
+ */
+EXPORT_API int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc);
+
+/*
  * The Configure render or source to palyer.
  * @param play pointer to the player. 
  * @param param video render or audio render or media_source.
