@@ -14,7 +14,7 @@
     <ClCompile Include="demux.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="unkown_demux.cpp">
+    <ClCompile Include="generic_demux.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -28,7 +28,7 @@
     <ClInclude Include="internal.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="unkown_demux.h">
+    <ClInclude Include="generic_demux.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

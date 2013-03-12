@@ -60,6 +60,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\third_party\ffmpeg\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>avutil.lib;avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,17 +82,18 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>..\third_party\ffmpeg\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>avutil.lib;avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="demux.cpp" />
-    <ClCompile Include="unkown_demux.cpp" />
+    <ClCompile Include="generic_demux.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="demux.h" />
     <ClInclude Include="demuxer.h" />
+    <ClInclude Include="generic_demux.h" />
     <ClInclude Include="internal.h" />
-    <ClInclude Include="unkown_demux.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libav\libav.vcxproj">
