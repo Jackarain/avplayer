@@ -1032,9 +1032,13 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	*dst = *src;
 	dst->data[0] = NULL;
 	dst->type = 0;
-	out_channels = FFMIN(play->m_audio_ctx->channels, 2);
+
+	/* 备注: FFMIN(play->m_audio_ctx->channels, 2); 会有问题, 因为swr_alloc_set_opts的out_channel_layout参数. */
+	out_channels = play->m_audio_ctx->channels;
+
 	bytes_per_sample = av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
-	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / bytes_per_sample;
+	/* 备注: 由于 src->linesize[0] 可能是错误的, 所以计算得到的nb_sample会不正确, 直接使用src->nb_samples即可. */
+	nb_sample = src->nb_samples;/* src->linesize[0] / play->m_audio_ctx->channels / bytes_per_sample; */
 	bytes_per_sample = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 	dst_buf_size = nb_sample * bytes_per_sample * out_channels;
 	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
@@ -1058,7 +1062,7 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		if (play->m_swr_ctx)
 		{
 			int ret, out_count;
-			out_count = dst_buf_size / out_channels / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) + 256;
+			out_count = dst_buf_size / out_channels / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 			ret = swr_convert(play->m_swr_ctx, dst->data, out_count, src->data, nb_sample);
 			if (ret < 0)
 				assert(0);
