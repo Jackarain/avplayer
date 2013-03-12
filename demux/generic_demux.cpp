@@ -1,5 +1,5 @@
 #include "internal.h"
-#include "unkown_demux.h"
+#include "generic_demux.h"
 #include "source.h"
 #include "avplay.h"
 
@@ -13,16 +13,16 @@
 #define INT64_MAX (9223372036854775807LL)
 #endif
 
-int unkown_demux::decode_interrupt_cb(void *ctx)
+int generic_demux::decode_interrupt_cb(void *ctx)
 {
-	unkown_demux *demux = (unkown_demux*)ctx;
+	generic_demux *demux = (generic_demux*)ctx;
 	return (int)demux->m_abort;
 	// return demux->is_abort();
 }
 
-int unkown_demux::read_data(void *opaque, uint8_t *buf, int buf_size)
+int generic_demux::read_data(void *opaque, uint8_t *buf, int buf_size)
 {
-	unkown_demux *demux = (unkown_demux*)opaque;
+	generic_demux *demux = (generic_demux*)opaque;
 
 	// 已经中止播放.
 	if (demux->is_abort())
@@ -38,16 +38,16 @@ int unkown_demux::read_data(void *opaque, uint8_t *buf, int buf_size)
 }
 
 
-int unkown_demux::write_data(void *opaque, uint8_t *buf, int buf_size)
+int generic_demux::write_data(void *opaque, uint8_t *buf, int buf_size)
 {
-	unkown_demux *demux = (unkown_demux*)opaque;
+	generic_demux *demux = (generic_demux*)opaque;
 	return 0;
 }
 
 
-int64_t unkown_demux::seek_data(void *opaque, int64_t offset, int whence)
+int64_t generic_demux::seek_data(void *opaque, int64_t offset, int whence)
 {
- 	unkown_demux *demux = (unkown_demux*)opaque;
+ 	generic_demux *demux = (generic_demux*)opaque;
 
 	// 已经中止播放.
 	if (demux->is_abort())
@@ -63,7 +63,7 @@ int64_t unkown_demux::seek_data(void *opaque, int64_t offset, int whence)
 	return offset;
 }
 
-unkown_demux::unkown_demux(void)
+generic_demux::generic_demux(void)
 	: m_format_ctx(NULL)
 	, m_avio_ctx(NULL)
 	, m_source_ctx(NULL)
@@ -71,13 +71,13 @@ unkown_demux::unkown_demux(void)
 	, m_abort(false)
 {}
 
-unkown_demux::~unkown_demux(void)
+generic_demux::~generic_demux(void)
 {}
 
-bool unkown_demux::open(boost::any ctx)
+bool generic_demux::open(boost::any ctx)
 {
 	// 得到传入的参数.
-	m_unkown_demux_data = boost::any_cast<unkown_demux_data>(ctx);
+	m_generic_demux_data = boost::any_cast<generic_demux_data>(ctx);
 
 	// 分配m_format_ctx.
 	m_format_ctx = avformat_alloc_context();
@@ -89,12 +89,12 @@ bool unkown_demux::open(boost::any ctx)
 	m_format_ctx->interrupt_callback.callback = decode_interrupt_cb;
 	m_format_ctx->interrupt_callback.opaque = (void*)this;
 
-	if (m_unkown_demux_data.type == MEDIA_TYPE_BT)
+	if (m_generic_demux_data.type == MEDIA_TYPE_BT)
 	{
-		FILE *fp = fopen(m_unkown_demux_data.file_name.c_str(), "r+b");
+		FILE *fp = fopen(m_generic_demux_data.file_name.c_str(), "r+b");
 		if (!fp)
 			goto FAILED_FLG;
-		uint64_t file_lentgh = fs::file_size(m_unkown_demux_data.file_name);
+		uint64_t file_lentgh = fs::file_size(m_generic_demux_data.file_name);
 		char *torrent_data = (char*)malloc(file_lentgh);
 		if (!torrent_data)
 			goto FAILED_FLG;
@@ -113,12 +113,12 @@ bool unkown_demux::open(boost::any ctx)
 	}
 	else
 	{
-		m_source_ctx = alloc_media_source(m_unkown_demux_data.type,
-			m_unkown_demux_data.file_name.c_str(), m_unkown_demux_data.file_name.length(), 0);
+		m_source_ctx = alloc_media_source(m_generic_demux_data.type,
+			m_generic_demux_data.file_name.c_str(), m_generic_demux_data.file_name.length(), 0);
 		if (!m_source_ctx)
 			goto FAILED_FLG;
 		// 按种类分配不同的数据源处理函数.
-		switch (m_unkown_demux_data.type)
+		switch (m_generic_demux_data.type)
 		{
 		case MEDIA_TYPE_FILE:
 			{
@@ -244,7 +244,7 @@ FAILED_FLG:
 	return false;
 }
 
-bool unkown_demux::read_packet(AVPacket *pkt)
+bool generic_demux::read_packet(AVPacket *pkt)
 {
 	int ret = av_read_frame(m_format_ctx, pkt);
 	if (ret < 0)
@@ -252,7 +252,7 @@ bool unkown_demux::read_packet(AVPacket *pkt)
 	return true;
 }
 
-bool unkown_demux::seek_packet(int64_t timestamp)
+bool generic_demux::seek_packet(int64_t timestamp)
 {
 	int64_t seek_min = INT64_MIN;
 	int64_t seek_max = INT64_MAX;
@@ -263,7 +263,7 @@ bool unkown_demux::seek_packet(int64_t timestamp)
 	return true;
 }
 
-bool unkown_demux::stream_index(enum AVMediaType type, int &index)
+bool generic_demux::stream_index(enum AVMediaType type, int &index)
 {
 	index = -1;
 
@@ -279,7 +279,7 @@ bool unkown_demux::stream_index(enum AVMediaType type, int &index)
 	return false;
 }
 
-bool unkown_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
+bool generic_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 {
 	if (index >= 0 && index < m_format_ctx->nb_streams)
 	{
@@ -289,7 +289,7 @@ bool unkown_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 	return false;
 }
 
-void unkown_demux::close()
+void generic_demux::close()
 {
 	if (m_format_ctx)
 	{
@@ -303,17 +303,17 @@ void unkown_demux::close()
 	}
 }
 
-int unkown_demux::read_pause()
+int generic_demux::read_pause()
 {
 	return av_read_pause(m_format_ctx);
 }
 
-int unkown_demux::read_play()
+int generic_demux::read_play()
 {
 	return av_read_play(m_format_ctx);
 }
 
-int unkown_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
+int generic_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
 {
 	unsigned int i;
 
@@ -323,7 +323,7 @@ int unkown_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
 	return -1;
 }
 
-media_base_info unkown_demux::base_info()
+media_base_info generic_demux::base_info()
 {
 	return m_base_info;
 }

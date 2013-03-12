@@ -1,12 +1,12 @@
 //
-// unkown_demux.h
-// ~~~~~~~~~~~~~~
+// generic_demux.h
+// ~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2011 Jack (jack.wgm@gmail.com)
 //
 
-#ifndef __UNKOWN_DEMUX_H__
-#define __UNKOWN_DEMUX_H__
+#ifndef __GENERIC_DEMUX_H__
+#define __GENERIC_DEMUX_H__
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
@@ -15,17 +15,17 @@
 #include "demuxer.h"
 #include "globals.h"
 
-struct unkown_demux_data
+struct generic_demux_data
 {
 	std::string file_name;			// 文件名.
 	int type;						// 数据类型.
 };
 
-class unkown_demux : public demuxer
+class generic_demux : public demuxer
 {
 public:
-	unkown_demux(void);
-	virtual ~unkown_demux(void);
+	generic_demux(void);
+	virtual ~generic_demux(void);
 
 public:
 	// 打开demuxer, 参数为any, 以传入任意参数.
@@ -92,7 +92,7 @@ protected:
 
 protected:
 	// 参数信息.
-	unkown_demux_data m_unkown_demux_data;
+	generic_demux_data m_generic_demux_data;
 
 	// 使用FFmpeg的AVFormatContext来读取AVPacket.
 	AVFormatContext *m_format_ctx;
@@ -113,4 +113,4 @@ protected:
 	bool m_abort;
 };
 
-#endif // __UNKOWN_DEMUX_H__
+#endif // __GENERIC_DEMUX_H__

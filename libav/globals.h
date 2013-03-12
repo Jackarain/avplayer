@@ -194,15 +194,15 @@ typedef struct source_context
  */
 typedef enum source_type
 {
-	unkown_source_type,		/* 未知的类型. */
+	generic_source_type,		/* 未知的类型. */
 	source_type_flv,		/* TODO: 普通的flv, 一个小示例. */
 } source_type;
 
-/* unkown_type的信息, 由demux内部去实现分析. */
-typedef struct unkown_demux_info
+/* generic_type的信息, 由demux内部去实现分析. */
+typedef struct generic_demux_info
 {
 	char file_name[MAX_URI_PATH];	/* 文件名. */
-} unkown_demux_info;
+} generic_demux_info;
 
 /* TODO: source_type_flv的信息, 由demux使用. */
 typedef struct flv_demux_info
@@ -213,7 +213,7 @@ typedef struct flv_demux_info
 /* 包含具体的demux_info的信息共用. */
 typedef union demux_info
 {
-	unkown_demux_info unkown;	/* 未知的文件格式. */
+	generic_demux_info unkown;	/* 未知的文件格式. */
 	flv_demux_info flv;			/* TODO: flv格式. */
 } demux_info;
 
