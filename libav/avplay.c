@@ -1026,14 +1026,17 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 	int nb_sample;
 	int dst_buf_size;
 	int out_channels;
+	int bytes_per_sample = 0;
 
 	dst->linesize[0] = src->linesize[0];
 	*dst = *src;
 	dst->data[0] = NULL;
 	dst->type = 0;
-	out_channels = play->m_audio_ctx->channels;/* (FFMIN(play->m_audio_ctx->channels, 2)); */
-	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
-	dst_buf_size = nb_sample * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) * out_channels;
+	out_channels = FFMIN(play->m_audio_ctx->channels, 2);
+	bytes_per_sample = av_get_bytes_per_sample(play->m_audio_ctx->sample_fmt);
+	nb_sample = src->linesize[0] / play->m_audio_ctx->channels / bytes_per_sample;
+	bytes_per_sample = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+	dst_buf_size = nb_sample * bytes_per_sample * out_channels;
 	dst->data[0] = (uint8_t*) av_malloc(dst_buf_size);
 	assert(dst->data[0]);
 	avcodec_fill_audio_frame(dst, out_channels, AV_SAMPLE_FMT_S16, dst->data[0], dst_buf_size, 0);
@@ -1045,16 +1048,17 @@ void audio_copy(avplay *play, AVFrame *dst, AVFrame* src)
 		{
 			uint64_t in_channel_layout = av_get_default_channel_layout(play->m_audio_ctx->channels);
 			uint64_t out_channel_layout = av_get_default_channel_layout(out_channels);
-			play->m_swr_ctx = swr_alloc_set_opts(NULL, in_channel_layout, AV_SAMPLE_FMT_S16,
-				play->m_audio_ctx->sample_rate, in_channel_layout,
-				play->m_audio_ctx->sample_fmt, play->m_audio_ctx->sample_rate, 0, NULL);
+			play->m_swr_ctx = swr_alloc_set_opts(NULL,
+				out_channel_layout, AV_SAMPLE_FMT_S16, play->m_audio_ctx->sample_rate,
+				in_channel_layout, play->m_audio_ctx->sample_fmt, play->m_audio_ctx->sample_rate,
+				0, NULL);
 			swr_init(play->m_swr_ctx);
 		}
 
 		if (play->m_swr_ctx)
 		{
 			int ret, out_count;
-			out_count = dst_buf_size / out_channels / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+			out_count = dst_buf_size / out_channels / av_get_bytes_per_sample(AV_SAMPLE_FMT_S16) + 256;
 			ret = swr_convert(play->m_swr_ctx, dst->data, out_count, src->data, nb_sample);
 			if (ret < 0)
 				assert(0);
@@ -1387,7 +1391,7 @@ void* audio_dec_thrd(void *param)
 {
 	AVPacket pkt, pkt2;
 	int ret, n;
-	AVFrame avframe = { 0 }, avcopy;
+	AVFrame avframe = { 0 }, avcopy = { 0 };
 	avplay *play = (avplay*) param;
 	int64_t v_start_time = 0;
 	int64_t a_start_time = 0;
