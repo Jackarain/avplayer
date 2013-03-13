@@ -28,6 +28,9 @@ $ git pull
 
 ####本程序基于FFmpeg, 所以只能以GPL协议发布, 任何人请在遵守协议的前提下复制、发布、修改.
 ####最后本程序作者不承担使用该程序所带来的任何问题并拥有一切解释权.
+####提供商业技术支持服务.
 
 
+联系方式:
 mail: jack.wgm AT gmail.com microcaicai AT gmail.com
+qq: 17146738
