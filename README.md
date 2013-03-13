@@ -19,7 +19,7 @@ $ git clone https://github.com/avplayer/avplayer.git avplayer
 
 $ git pull
 
-在windows下, 需要下载https://sourceforge.net/projects/avplayer/files/develop/FFmpeg-dev/ 和 https://sourceforge.net/projects/avplayer/files/develop/OpenSSL-dev/解压到third_party目录下.
+在windows下, 需要下载https://sourceforge.net/projects/avplayer/files/develop/FFmpeg-dev/ 和 https://sourceforge.net/projects/avplayer/files/develop/OpenSSL-dev/ 解压到third_party目录下.
 有任何问题, 请在issues里提交问题.
 
 ##### 使用 cmake 编译
