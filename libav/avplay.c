@@ -1983,6 +1983,14 @@ void* video_render_thrd(void *param)
 			av_free(video_frame.data[0]);
 		}
 	}
+
+	/* 释放render. */
+	if (play->m_vo_ctx)
+	{
+		free_video_render(play->m_vo_ctx);
+		play->m_vo_ctx = NULL;
+	}
+
 	return NULL;
 }
 
