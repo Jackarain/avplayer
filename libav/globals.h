@@ -213,7 +213,7 @@ typedef struct flv_demux_info
 /* 包含具体的demux_info的信息共用. */
 typedef union demux_info
 {
-	generic_demux_info unkown;	/* 未知的文件格式. */
+	generic_demux_info generic;	/* 未知的文件格式. */
 	flv_demux_info flv;			/* TODO: flv格式. */
 } demux_info;
 

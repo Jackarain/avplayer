@@ -8,7 +8,7 @@
 
 EXPORT_API int generic_init_demux(struct demux_context *demux_ctx)
 {
-	generic_demux_info &generic_info = demux_ctx->info.unkown;
+	generic_demux_info &generic_info = demux_ctx->info.generic;
 	generic_demux *demux = new generic_demux();
 	generic_demux_data d;
 
