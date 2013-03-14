@@ -11,6 +11,7 @@
 #include "audio_out.h"
 #include "video_out.h"
 #include "source.h"
+#include "demux.h"
 #include "globals.h"
 #include "avplayer.h"
 

@@ -53,7 +53,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\third_party\ffmpeg\include;..\..\third_party\include;..\..\libav;..\..\audio;..\..\video;..\..\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\third_party\ffmpeg\include;..\..\third_party\include;..\..\libav;..\..\audio;..\..\video;..\..\source;..\..\demux;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -73,7 +73,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\third_party\ffmpeg\include;..\..\third_party\include;..\..\libav;..\..\audio;..\..\video;..\..\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\third_party\ffmpeg\include;..\..\third_party\include;..\..\libav;..\..\audio;..\..\video;..\..\source;..\..\demux;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -107,6 +107,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\audio\audio.vcxproj">
       <Project>{bc5e9c1a-c689-4298-a8ea-2856457dac28}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\demux\demux.vcxproj">
+      <Project>{ff475010-1f91-42b3-92c1-e8b2b42b7529}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\libav\libav.vcxproj">
       <Project>{457c2989-509d-4132-b08a-1695342bb9db}</Project>

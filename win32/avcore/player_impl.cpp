@@ -810,111 +810,43 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			break;
 		}
 
-		// 根据打开的文件类型, 创建不同媒体源.
-		if (media_type == MEDIA_TYPE_FILE)
+		// 为avplay创建demux.
+		demux_context *demux = alloc_demux_context();
+		configure(m_avplay, demux, MEDIA_DEMUX);
+
+		// 目前只有除youku之外, 都使用generic_demux.
+		if (media_type != MEDIA_TYPE_YK)
 		{
-			len = strlen(filename);
-			m_source = alloc_media_source(MEDIA_TYPE_FILE, filename, len + 1, file_lentgh);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is file.\n");
-				break;
-			}
-
-			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename, filename));
-
-			// 初始化文件媒体源.
-			init_file_source(m_source);
+			demux->init_demux = generic_init_demux;
+			demux->read_packet = generic_read_packet;
+			demux->seek_packet = generic_packet_seek;
+			demux->stream_index = generic_stream_index;
+			demux->query_avcodec_id = generic_query_avcodec_id;
+			demux->destory = generic_destory;
 		}
-
-		if (media_type == MEDIA_TYPE_BT)
+		else
 		{
-			// 先读取bt种子数据, 然后作为附加数据保存到媒体源.
-			FILE *fp = fopen(filename, "r+b");
-			if (!fp)
-			{
-				::logger("open torrent file \'%s\' failed!\n", filename);
-				break;
-			}
-			char *torrent_data = (char*)malloc(file_lentgh);
-			int readbytes = fread(torrent_data, 1, file_lentgh, fp);
-			if (readbytes != file_lentgh)
-			{
-				::logger("read torrent file \'%s\' failed!\n", filename);
-				break;
-			}
-			m_source = alloc_media_source(MEDIA_TYPE_BT, torrent_data, file_lentgh, 0);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is torrent.\n");
-				break;
-			}
-
-			free(torrent_data);
-
-			// 初始化torrent媒体源.
-			init_torrent_source(m_source);
-		}
-
-		if (media_type == MEDIA_TYPE_YK)
-		{
-			m_source = alloc_media_source(MEDIA_TYPE_YK, filename, 0, 0);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is yk.\n");
-				break;
-			}
-
-			// 初始化yk媒体源.
-			init_yk_source(m_source);
-		}
-
-		if (media_type == MEDIA_TYPE_HTTP)
-		{
-			len = strlen(filename) + 1;
-			m_source = alloc_media_source(MEDIA_TYPE_HTTP, filename, len, 0);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is youku.\n");
-				break;
-			}
-
-			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename, filename));
-		}
-
-		if (media_type == MEDIA_TYPE_RTSP)
-		{
-			len = strlen(filename) + 1;
-			m_source = alloc_media_source(MEDIA_TYPE_RTSP, filename, len, 0);
-			if (!m_source)
-			{
-				::logger("allocate media source failed, type is rtsp.\n");
-				break;
-			}
-
-			// 插入到媒体列表.
-			m_media_list.insert(std::make_pair(filename, filename));
+			// TODO: 实现youku相关的demux.
+			break;
 		}
 
 		// 初始化avplay.
-		if (initialize(m_avplay, m_source) != 0)
+		if (initialize_avplay(m_avplay, filename, media_type, demux) != 0)
 		{
 			::logger("initialize avplay failed!\n");
 			break;
 		}
 
-		// 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
-		if (media_type == MEDIA_TYPE_BT)
-		{
-			bt_source_info *bt_info = &m_avplay->m_source_ctx->info.bt;
-			for (int i = 0; i < bt_info->info_size; i++)
-			{
-				std::string name = std::string(bt_info->info[i].file_name);
-				m_media_list.insert(std::make_pair(filename, name));
-			}
-		}
+		// TODO: 如果是bt类型, 则在此得到视频文件列表, 并添加到m_media_list.
+		// if (media_type == MEDIA_TYPE_BT)
+		// {
+		// 	bt_source_info *bt_info = &m_avplay->m_source_ctx->info.bt;
+		// 	for (int i = 0; i < bt_info->info_size; i++)
+		// 	{
+		// 		std::string name = std::string(bt_info->info[i].file_name);
+		// 		m_media_list.insert(std::make_pair(filename, name));
+		// 	}
+		// }
 
 		// 分配音频和视频的渲染器.
 		m_audio = alloc_audio_render();
