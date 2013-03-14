@@ -209,6 +209,9 @@ private:
 	BOOL m_full_screen;
 	DWORD m_wnd_style;
 
+	// 同步一些操作.
+	CRITICAL_SECTION m_cs;
+
 	// 声音选项.
 	bool m_mute;
 };

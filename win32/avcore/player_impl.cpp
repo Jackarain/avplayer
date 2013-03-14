@@ -281,6 +281,7 @@ player_impl::player_impl(void)
 {
 	// 初始化字幕插件的临界.
 	InitializeCriticalSection(&m_plugin_cs);
+	InitializeCriticalSection(&m_cs);
 }
 
 player_impl::~player_impl(void)
@@ -291,6 +292,7 @@ player_impl::~player_impl(void)
 		m_brbackground = NULL;
 	}
 	DeleteCriticalSection(&m_plugin_cs);
+	DeleteCriticalSection(&m_cs);
 }
 
 HWND player_impl::create_window(const char *player_name)
@@ -1033,6 +1035,7 @@ BOOL player_impl::wait_for_completion()
 
 BOOL player_impl::close()
 {
+	EnterCriticalSection(&m_cs);
 	if (m_avplay)
 	{
 		::av_destory(m_avplay);
@@ -1040,6 +1043,7 @@ BOOL player_impl::close()
 		m_source = NULL;	// m_source 在 read_pkt_thrd 线程退出时, 会自动释放, 这里只需要简单清空即可.
 		m_cur_index = -1;
 		::logger("close avplay.\n");
+		LeaveCriticalSection(&m_cs);
 		return TRUE;
 	}
 	else
@@ -1051,6 +1055,7 @@ BOOL player_impl::close()
 			m_source = NULL;
 		}
 	}
+	LeaveCriticalSection(&m_cs);
 	return FALSE;
 }
 
@@ -1271,6 +1276,7 @@ int player_impl::download_rate()
 {
 	if (m_source)
 		return m_source->dl_info.speed;
+	return -1;
 }
 
 void player_impl::set_download_rate(int k)
