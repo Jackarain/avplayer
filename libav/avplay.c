@@ -102,6 +102,7 @@ static void chk_queue(avplay *play, av_queue *q, int size);
 /* ffmpeg相关操作函数. */
 static int stream_index(enum AVMediaType type, AVFormatContext *ctx);
 static int open_decoder(AVCodecContext *ctx);
+static int open_decoder2(AVCodecContext **context, enum AVCodecID codec_id);
 
 /* 读取数据线程.	*/
 static void* read_pkt_thrd(void *param);
@@ -395,6 +396,29 @@ int open_decoder(AVCodecContext *ctx)
    return ret;
 }
 
+static
+int open_decoder2(AVCodecContext **context, enum AVCodecID codec_id)
+{
+	int ret = 0;
+	AVCodec *codec = NULL;
+
+	/* 查找解码器. */
+	codec = avcodec_find_decoder(codec_id);
+	if (!codec)
+		return -1;
+
+	/* 打开解码器.	*/
+	*context = avcodec_alloc_context3(codec);
+	if (avcodec_open2(*context, codec, NULL) < 0)
+	{
+		avcodec_close(*context);
+		av_free(*context);
+		*context = NULL;
+		return -1;
+	}
+	return 0;
+}
+
 source_context* alloc_media_source(int type, const char *data, int len, int64_t size)
 {
 	/* 分配一个source_context结构. */
@@ -523,13 +547,107 @@ void free_demux_context(demux_context *ctx)
 	free(ctx);
 }
 
+int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc)
+{
+	if (!play || !file_name || !dc)
+		return -1;
+
+	av_register_all();
+	avcodec_register_all();
+	avformat_network_init();
+
+	/* 置0. */
+	memset(play, 0, sizeof(avplay));
+
+	/* 保存demux_context. */
+	play->m_demux_context = dc;
+
+	/* 设置source type. */
+	if (source_type == MEDIA_TYPE_YK)
+	{
+		dc->type = source_type_flv;
+		dc->info.flv.unused = 0;
+	}
+	else
+	{
+		generic_demux_info *generic_info = &dc->info.generic;
+		dc->type = generic_source_type;
+		strcpy(generic_info->file_name, file_name);	/* 保存文件名到generic_info.file_name, 以便其在初始化demux时使用. */
+	}
+
+	/* 初始化demux的source. */
+	if (dc->init_demux(dc) == -1)
+		goto FAILED_FLG;
+
+	/* 得到audio和video在streams中的index.	*/
+	play->m_video_index = 
+		dc->stream_index(dc, AVMEDIA_TYPE_VIDEO);
+	play->m_audio_index = 
+		dc->stream_index(dc, AVMEDIA_TYPE_AUDIO);
+
+	if (play->m_video_index == -1 && play->m_audio_index == -1)
+		goto FAILED_FLG;
+
+	/* 打开解码器. */
+	if (play->m_audio_index != -1)
+	{
+		if (open_decoder2(&play->m_audio_ctx, dc->query_avcodec_id(dc, play->m_audio_index)) != 0)
+			goto FAILED_FLG;
+	}
+	if (play->m_video_index != -1)
+	{
+		if (open_decoder2(&play->m_video_ctx, dc->query_avcodec_id(dc, play->m_video_index)) != 0)
+			goto FAILED_FLG;
+	}
+
+	/* 默认同步到音频.	*/
+	play->m_av_sync_type = AV_SYNC_AUDIO_MASTER;
+	play->m_abort = TRUE;
+
+	/* 初始化各变量. */
+	av_init_packet(&flush_pkt);
+	flush_pkt.data = (uint8_t*)"FLUSH";
+	flush_frm.data[0] = (uint8_t*)"FLUSH";
+	play->m_abort = 0;
+
+	/* 初始化队列. */
+	if (play->m_audio_index != -1)
+	{
+		play->m_audio_q.m_type = QUEUE_PACKET;
+		queue_init(&play->m_audio_q);
+		play->m_audio_dq.m_type = QUEUE_AVFRAME;
+		queue_init(&play->m_audio_dq);
+	}
+	if (play->m_video_index != -1)
+	{
+		play->m_video_q.m_type = QUEUE_PACKET;
+		queue_init(&play->m_video_q);
+		play->m_video_dq.m_type = QUEUE_AVFRAME;
+		queue_init(&play->m_video_dq);
+	}
+
+	/* 初始化读取文件数据缓冲计数mutex. */
+	pthread_mutex_init(&play->m_buf_size_mtx, NULL);
+
+	/* 打开各线程.	*/
+	return 0;
+
+FAILED_FLG:
+	if (play->m_demux_context)
+	{
+		play->m_demux_context->destory(play->m_demux_context);	// ? free_demux_context(play->m_demux_context);
+	}
+
+	return -1;
+}
+
 int initialize(avplay *play, source_context *sc)
 {
 	int ret = 0, i = 0;
 	AVInputFormat *iformat = NULL;
 
 	av_register_all();
-	avcodec_register_all();
+	// avcodec_register_all();
 	avformat_network_init();
 
 	/* 置0. */
@@ -665,8 +783,8 @@ int initialize(avplay *play, source_context *sc)
 
 	/* 初始化各变量. */
 	av_init_packet(&flush_pkt);
-	flush_pkt.data = "FLUSH";
-	flush_frm.data[0] = "FLUSH";
+	flush_pkt.data = (uint8_t*)"FLUSH";
+	flush_frm.data[0] = (uint8_t*)"FLUSH";
 	play->m_abort = 0;
 
 	/* 初始化队列. */
@@ -890,10 +1008,21 @@ void av_stop(avplay *play)
 	queue_end(&play->m_video_dq);
 
 	/* 关闭解码器以及渲染器. */
-	if (play->m_audio_ctx)
-		avcodec_close(play->m_audio_ctx);
-	if (play->m_video_ctx)
-		avcodec_close(play->m_video_ctx);
+	if (play->m_demux_context)
+	{
+		if (play->m_audio_ctx)
+		{
+			avcodec_close(play->m_audio_ctx);
+			av_free(play->m_audio_ctx);
+			play->m_audio_ctx = NULL;
+		}
+		if (play->m_video_ctx)
+		{
+			avcodec_close(play->m_video_ctx);
+			av_free(play->m_video_ctx);
+			play->m_video_ctx = NULL;
+		}
+	}
 	if (play->m_format_ctx)
 		avformat_close_input(&play->m_format_ctx);
 	if (play->m_swr_ctx)
@@ -1225,7 +1354,6 @@ void* read_pkt_thrd(void *param)
 	int ret;
 	avplay *play = (avplay*) param;
 	int last_paused = play->m_play_status;
-	AVStream *stream = NULL;
 
 	// 起始时间不等于0, 则先seek至指定时间.
 	if (fabs(play->m_start_time) > 1.0e-6)
@@ -2272,7 +2400,3 @@ int audio_is_inited(avplay *play)
 	return play->m_ao_inited;
 }
 
-int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc)
-{
-	return 0;
-}
