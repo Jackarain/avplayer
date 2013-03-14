@@ -225,6 +225,8 @@ typedef struct media_base_info
 	int has_video;	/* 是否有视频信息, -1表示没有. */
 	int has_audio;	/* 是否有音频信息, -1表示没有. */
 
+	int64_t start_time;	/* 起始时间. */
+
 	int64_t video_start_time;	/* 视频起始时间信息. */
 	int64_t audio_start_time;	/* 音频起始时间信息. */
 
@@ -234,7 +236,14 @@ typedef struct media_base_info
 	AVRational video_frame_rate;	/* 视频帧率. */
 	AVRational audio_frame_rate;	/* 音频帧率. */
 
+	int width;		/* 视频宽. */
+	int height;		/* 视频高. */
+
+	int sample_rate;	/* 音频采样率. */
+	int channels;		/* 音频声道. */
+
 	int64_t duration;				/* 视频时长信息. */
+	int64_t	file_size;				/* 文件长度. */
 
 } media_base_info;
 

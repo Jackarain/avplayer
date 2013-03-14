@@ -50,10 +50,9 @@ enum sync_type
 };
 
 /* 用于config_render参数表示所配置的render或source或demux.  */
-#define MEDIA_SOURCE			0
-#define MEDIA_DEMUX				1
-#define AUDIO_RENDER			2
-#define VIDEO_RENDER			3
+#define MEDIA_DEMUX				0
+#define AUDIO_RENDER			1
+#define VIDEO_RENDER			2
 
 /* 用于标识渲染器类型. */
 #define VIDEO_RENDER_D3D		0
@@ -93,9 +92,6 @@ EXPORT_API void free_demux_context(demux_context *ctx);
 
 typedef struct avplay
 {
-	/* 文件打开指针. */
-	AVFormatContext *m_format_ctx;
-
 	/* 音视频队列.	*/
 	av_queue m_audio_q;
 	av_queue m_video_q;
@@ -117,8 +113,6 @@ typedef struct avplay
 	/* 音频和视频的AVStream、AVCodecContext指针和index.	*/
 	AVCodecContext *m_audio_ctx;
 	AVCodecContext *m_video_ctx;
-	AVStream *m_audio_st;
-	AVStream *m_video_st;
 	int m_audio_index;
 	int m_video_index;
 
@@ -153,7 +147,6 @@ typedef struct avplay
 	int m_drop_frame_num;
 
 	/* seek实现. */
-	int m_read_pause_return;
 	int m_seek_req;
 	int m_seek_flags;
 	int64_t m_seek_pos;
@@ -167,12 +160,10 @@ typedef struct avplay
 	double m_external_clock;
 	double m_external_clock_time;
 
-	/* 当前数据源读取器. */
-	source_context *m_source_ctx;
-	AVIOContext *m_avio_ctx;
-	unsigned char *m_io_buffer;
 	/* 用于视频分离的组件. */
 	demux_context *m_demux_context;
+	generic_demux_info *m_generic_info;	/* 指向m_demux_context的成员,无需释放等操作. */
+	media_base_info *m_base_info;		/* 指向m_demux_context的成员,无需释放等操作. */
 	/* 当前音频渲染器.	*/
 	ao_context *m_ao_ctx;
 	/* 当前视频渲染器. */
@@ -192,6 +183,7 @@ typedef struct avplay
 	/* 播放状态. */
 	play_status m_play_status;
 	int m_rendering;
+	double m_duration;
 
 	/* 实时视频输入位率. */
 	int m_enable_calc_video_bite;
@@ -234,21 +226,6 @@ EXPORT_API void free_avplay_context(avplay *ctx);
 /*
  * Initialize the player.
  * @param play pointer to user-supplied avplayer (allocated by alloc_avplay_context).
- * @param sc source_context use to read media data.
- * @return 0 on success, a negative AVERROR on failure.
- * example:
- * avplayer* play = alloc_avplay_context();
- * int ret;
- * source_context sc = alloc_media_source(MEDIA_TYPE_FILE, "test.mp4", strlen("test.mp4") + 1, filesize("test.mp4"));
- * ret = initialize(play, sc);
- * if (ret != 0)
- *    return ret; // ERROR!
- */
-EXPORT_API int initialize(avplay *play, source_context *sc);
-
-/*
- * Initialize the player.
- * @param play pointer to user-supplied avplayer (allocated by alloc_avplay_context).
  * @param file_name specifies the source file path or url.
  * @param source_type specifies source type, MEDIA_TYPE_FILE or MEDIA_TYPE_BT、
  *  MEDIA_TYPE_HTTP、 MEDIA_TYPE_RTSP、 MEDIA_TYPE_YK.
@@ -262,7 +239,7 @@ EXPORT_API int initialize(avplay *play, source_context *sc);
  * if (ret != 0)
  *    return ret; // ERROR!
  */
-EXPORT_API int initialize_avplay(avplay *play, const char *file_name, int source_type, demux_context *dc);
+EXPORT_API int initialize(avplay *play, const char *file_name, int source_type, demux_context *dc);
 
 /*
  * The Configure render or source to palyer.
@@ -401,7 +378,7 @@ EXPORT_API double buffering(avplay *play);
  * @param play pointer to the player.
  * @save_path pointer to save path.
  */
-EXPORT_API void set_download_path(avplay *play, const char *save_path);
+/* EXPORT_API void set_download_path(avplay *play, const char *save_path); */
 
 /*
  * Set youku vide type.

@@ -227,6 +227,8 @@ bool generic_demux::open(boost::any ctx)
 		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->r_frame_rate, m_base_info.audio_frame_rate);
 		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->time_base, m_base_info.audio_time_base);
 		m_base_info.audio_start_time = m_format_ctx->streams[m_base_info.has_audio]->start_time;
+		m_base_info.sample_rate = m_format_ctx->streams[m_base_info.has_audio]->codec->sample_rate;
+		m_base_info.channels = m_format_ctx->streams[m_base_info.has_audio]->codec->channels;
 	}
 
 	// 如果有视频, 获得视频的一些基本信息.
@@ -235,7 +237,14 @@ bool generic_demux::open(boost::any ctx)
 		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->r_frame_rate, m_base_info.video_frame_rate);
 		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->time_base, m_base_info.video_time_base);
 		m_base_info.video_start_time = m_format_ctx->streams[m_base_info.has_video]->start_time;
+
+		m_base_info.width = m_format_ctx->streams[m_base_info.has_video]->codec->width;
+		m_base_info.height = m_format_ctx->streams[m_base_info.has_video]->codec->height;
 	}
+
+	m_base_info.start_time = m_format_ctx->start_time;
+	m_base_info.duration = m_format_ctx->duration;
+	m_base_info.file_size = avio_size(m_format_ctx->pb);
 
 	return true;
 
@@ -301,10 +310,9 @@ void generic_demux::close()
 		avformat_close_input(&m_format_ctx);
 	}
 
-	if (m_io_buffer)
+	if (m_avio_ctx)
 	{
-		av_free(m_io_buffer);
-		m_io_buffer = NULL;
+		av_free(m_avio_ctx);
 	}
 }
 

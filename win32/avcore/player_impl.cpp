@@ -820,6 +820,8 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 			demux->init_demux = generic_init_demux;
 			demux->read_packet = generic_read_packet;
 			demux->seek_packet = generic_packet_seek;
+			demux->read_pause = generic_read_pause;
+			demux->read_play = generic_read_play;
 			demux->stream_index = generic_stream_index;
 			demux->query_avcodec_id = generic_query_avcodec_id;
 			demux->destory = generic_destory;
@@ -831,7 +833,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 		}
 
 		// 初始化avplay.
-		if (initialize_avplay(m_avplay, filename, media_type, demux) != 0)
+		if (initialize(m_avplay, filename, media_type, demux) != 0)
 		{
 			::logger("initialize avplay failed!\n");
 			break;
@@ -1110,23 +1112,23 @@ double player_impl::curr_play_time()
 
 double player_impl::duration()
 {
-	if (!m_avplay || !m_avplay->m_format_ctx)
+	if (!m_avplay)
 		return -1.0f;
-	return (double)m_avplay->m_format_ctx->duration / AV_TIME_BASE;
+	return ::av_duration(m_avplay);
 }
 
 int player_impl::video_width()
 {
-	if (!m_avplay || !m_avplay->m_format_ctx)
+	if (!m_avplay || !m_avplay->m_base_info)
 		return 0;
-	return m_avplay->m_video_ctx->width;
+	return m_avplay->m_base_info->width;
 }
 
 int player_impl::video_height()
 {
-	if (!m_avplay || !m_avplay->m_format_ctx)
+	if (!m_avplay || !m_avplay->m_base_info)
 		return 0;
-	return m_avplay->m_video_ctx->height;
+	return m_avplay->m_base_info->height;
 }
 
 double player_impl::buffering()

@@ -23,7 +23,10 @@ EXPORT_API int generic_init_demux(struct demux_context *demux_ctx)
 
 	// 执行打开操作.
 	if (demux->open(d))
+	{
+		demux_ctx->base_info = demux->base_info();
 		return 0;
+	}
 
 	return -1;
 }
@@ -42,6 +45,18 @@ EXPORT_API int generic_packet_seek(struct demux_context *demux_ctx, int64_t time
 	if (demux->seek_packet(timestamp))
 		return 0;
 	return -1;
+}
+
+EXPORT_API int generic_read_pause(struct demux_context *demux_ctx)
+{
+	generic_demux *demux = (generic_demux*)demux_ctx->priv;
+	return demux->read_pause();
+}
+
+EXPORT_API int generic_read_play(struct demux_context *demux_ctx)
+{
+	generic_demux *demux = (generic_demux*)demux_ctx->priv;
+	return demux->read_play();
 }
 
 EXPORT_API int generic_stream_index(struct demux_context *demux_ctx, enum AVMediaType type)
@@ -67,4 +82,5 @@ EXPORT_API void generic_destory(struct demux_context *demux_ctx)
 	generic_demux *demux = (generic_demux*)demux_ctx->priv;
 	demux->close();	// 关闭demux.
 	delete demux;	// 释放资源.
+	demux_ctx->priv = NULL;
 }
