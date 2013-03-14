@@ -76,6 +76,9 @@ generic_demux::~generic_demux(void)
 
 bool generic_demux::open(boost::any ctx)
 {
+	av_register_all();
+	avformat_network_init();
+
 	// 得到传入的参数.
 	m_generic_demux_data = boost::any_cast<generic_demux_data>(ctx);
 
@@ -146,7 +149,7 @@ bool generic_demux::open(boost::any ctx)
 	// 支持BT和本地文件.
 	if (m_source_ctx->type == MEDIA_TYPE_BT || m_source_ctx->type == MEDIA_TYPE_FILE)
 	{
-		m_io_buffer = (unsigned char*)malloc(IO_BUFFER_SIZE);
+		m_io_buffer = (unsigned char*)av_malloc(IO_BUFFER_SIZE);
 		if (!m_io_buffer)
 		{
 			std::cerr << "Create buffer failed!\n";
@@ -234,6 +237,8 @@ bool generic_demux::open(boost::any ctx)
 		m_base_info.video_start_time = m_format_ctx->streams[m_base_info.has_video]->start_time;
 	}
 
+	return true;
+
 FAILED_FLG:
 	if (m_format_ctx)
 		avformat_close_input(&m_format_ctx);
@@ -271,7 +276,7 @@ bool generic_demux::stream_index(enum AVMediaType type, int &index)
 	{
 		if (m_format_ctx->streams[i]->codec->codec_type == type)
 		{
-			i = index;
+			index = i;
 			return true;
 		}
 	}
@@ -298,7 +303,7 @@ void generic_demux::close()
 
 	if (m_io_buffer)
 	{
-		free(m_io_buffer);
+		av_free(m_io_buffer);
 		m_io_buffer = NULL;
 	}
 }
