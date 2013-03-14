@@ -69,7 +69,9 @@ generic_demux::generic_demux(void)
 	, m_source_ctx(NULL)
 	, m_io_buffer(NULL)
 	, m_abort(false)
-{}
+{
+	memset(&m_base_info, 0, sizeof(m_base_info));
+}
 
 generic_demux::~generic_demux(void)
 {}
@@ -224,22 +226,25 @@ bool generic_demux::open(boost::any ctx)
 	// 如果有音频, 获得音频的一些基本信息.
 	if (m_base_info.has_audio >= 0)
 	{
-		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->r_frame_rate, m_base_info.audio_frame_rate);
-		avrational_copy(m_format_ctx->streams[m_base_info.has_audio]->time_base, m_base_info.audio_time_base);
-		m_base_info.audio_start_time = m_format_ctx->streams[m_base_info.has_audio]->start_time;
-		m_base_info.sample_rate = m_format_ctx->streams[m_base_info.has_audio]->codec->sample_rate;
-		m_base_info.channels = m_format_ctx->streams[m_base_info.has_audio]->codec->channels;
+		AVStream *streams = m_format_ctx->streams[m_base_info.has_audio];
+		avrational_copy(streams->r_frame_rate, m_base_info.audio_frame_rate);
+		avrational_copy(streams->time_base, m_base_info.audio_time_base);
+		m_base_info.audio_start_time = streams->start_time;
+		m_base_info.sample_rate = streams->codec->sample_rate;
+		m_base_info.channels = streams->codec->channels;
+		m_base_info.audio_codec = streams->codec;
 	}
 
 	// 如果有视频, 获得视频的一些基本信息.
 	if (m_base_info.has_video >= 0)
 	{
-		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->r_frame_rate, m_base_info.video_frame_rate);
-		avrational_copy(m_format_ctx->streams[m_base_info.has_video]->time_base, m_base_info.video_time_base);
-		m_base_info.video_start_time = m_format_ctx->streams[m_base_info.has_video]->start_time;
-
-		m_base_info.width = m_format_ctx->streams[m_base_info.has_video]->codec->width;
-		m_base_info.height = m_format_ctx->streams[m_base_info.has_video]->codec->height;
+		AVStream *streams = m_format_ctx->streams[m_base_info.has_video];
+		avrational_copy(streams->r_frame_rate, m_base_info.video_frame_rate);
+		avrational_copy(streams->time_base, m_base_info.video_time_base);
+		m_base_info.video_start_time = streams->start_time;
+		m_base_info.width = streams->codec->width;
+		m_base_info.height = streams->codec->height;
+		m_base_info.video_codec = streams->codec;
 	}
 
 	m_base_info.start_time = m_format_ctx->start_time;
@@ -267,6 +272,9 @@ FAILED_FLG:
 
 bool generic_demux::read_packet(AVPacket *pkt)
 {
+	boost::mutex::scoped_lock l(m_mutex);
+	if (!m_format_ctx)
+		return false;
 	int ret = av_read_frame(m_format_ctx, pkt);
 	if (ret < 0)
 		return false;
@@ -275,6 +283,9 @@ bool generic_demux::read_packet(AVPacket *pkt)
 
 bool generic_demux::seek_packet(int64_t timestamp)
 {
+	boost::mutex::scoped_lock l(m_mutex);
+	if (!m_format_ctx)
+		return false;
 	int64_t seek_min = INT64_MIN;
 	int64_t seek_max = INT64_MAX;
 	int seek_flags = 0 & (~AVSEEK_FLAG_BYTE);
@@ -286,6 +297,11 @@ bool generic_demux::seek_packet(int64_t timestamp)
 
 bool generic_demux::stream_index(enum AVMediaType type, int &index)
 {
+	boost::mutex::scoped_lock l(m_mutex);
+
+	if (!m_format_ctx)
+		return false;
+
 	index = -1;
 
 	for (unsigned int i = 0; (unsigned int) i < m_format_ctx->nb_streams; i++)
@@ -302,6 +318,8 @@ bool generic_demux::stream_index(enum AVMediaType type, int &index)
 
 bool generic_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 {
+	boost::mutex::scoped_lock l(m_mutex);
+
 	if (index >= 0 && index < m_format_ctx->nb_streams)
 	{
 		codec_id = m_format_ctx->streams[index]->codec->codec_id;
@@ -312,29 +330,36 @@ bool generic_demux::query_avcodec_id(int index, enum AVCodecID &codec_id)
 
 void generic_demux::close()
 {
+	boost::mutex::scoped_lock l(m_mutex);
+
 	if (m_format_ctx)
 	{
 		avformat_close_input(&m_format_ctx);
+		m_format_ctx = NULL;
 	}
 
 	if (m_avio_ctx)
 	{
-		av_free(m_avio_ctx);
+		av_freep(&m_avio_ctx);
 	}
 }
 
 int generic_demux::read_pause()
 {
+	boost::mutex::scoped_lock l(m_mutex);
 	return av_read_pause(m_format_ctx);
 }
 
 int generic_demux::read_play()
 {
+	boost::mutex::scoped_lock l(m_mutex);
 	return av_read_play(m_format_ctx);
 }
 
 int generic_demux::query_index(enum AVMediaType type, AVFormatContext *ctx)
 {
+	boost::mutex::scoped_lock l(m_mutex);
+
 	unsigned int i;
 
 	for (i = 0; (unsigned int) i < ctx->nb_streams; i++)

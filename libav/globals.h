@@ -239,6 +239,9 @@ typedef struct media_base_info
 	int width;		/* 视频宽. */
 	int height;		/* 视频高. */
 
+	AVCodecContext *audio_codec;
+	AVCodecContext *video_codec;
+
 	int sample_rate;	/* 音频采样率. */
 	int channels;		/* 音频声道. */
 

@@ -352,8 +352,13 @@ int open_decoder2(AVCodecContext **context, enum AVCodecID codec_id)
 	if (!codec)
 		return -1;
 
-	/* 打开解码器.	*/
+	/*
 	*context = avcodec_alloc_context3(codec);
+	if (avcodec_get_context_defaults3(*context, codec) < 0)
+		return -1;
+	*/
+
+	/* 打开解码器.	*/
 	if (avcodec_open2(*context, codec, NULL) < 0)
 	{
 		avcodec_close(*context);
@@ -361,6 +366,7 @@ int open_decoder2(AVCodecContext **context, enum AVCodecID codec_id)
 		*context = NULL;
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -512,17 +518,9 @@ int initialize(avplay *play, const char *file_name, int source_type, demux_conte
 	play->m_demux_context = dc;
 
 	/* 设置source type. */
-	if (source_type == MEDIA_TYPE_YK)
-	{
-		dc->type = source_type_flv;
-		dc->info.flv.unused = 0;
-	}
-	else
-	{
-		play->m_generic_info = &dc->info.generic;
-		dc->type = generic_source_type;
-		strcpy(play->m_generic_info->file_name, file_name);	/* 保存文件名到generic_info.file_name, 以便其在初始化demux时使用. */
-	}
+	play->m_generic_info = &dc->info.generic;
+	dc->type = source_type;
+	strcpy(play->m_generic_info->file_name, file_name);	/* 保存文件名到generic_info.file_name, 以便其在初始化demux时使用. */
 
 	/* 初始化demux的source. */
 	if (dc->init_demux(dc) == -1)
@@ -542,11 +540,21 @@ int initialize(avplay *play, const char *file_name, int source_type, demux_conte
 	/* 打开解码器. */
 	if (play->m_audio_index != -1)
 	{
+		AVCodec *codec = NULL;
+		/* 查找解码器. */
+		codec = avcodec_find_decoder(play->m_base_info->audio_codec->codec_id);
+		play->m_audio_ctx = avcodec_alloc_context3(codec);
+		avcodec_copy_context(play->m_audio_ctx, play->m_base_info->audio_codec);
 		if (open_decoder2(&play->m_audio_ctx, dc->query_avcodec_id(dc, play->m_audio_index)) != 0)
 			goto FAILED_FLG;
 	}
 	if (play->m_video_index != -1)
 	{
+		AVCodec *codec = NULL;
+		/* 查找解码器. */
+		codec = avcodec_find_decoder(play->m_base_info->video_codec->codec_id);
+		play->m_video_ctx = avcodec_alloc_context3(codec);
+		avcodec_copy_context(play->m_video_ctx, play->m_base_info->video_codec);
 		if (open_decoder2(&play->m_video_ctx, dc->query_avcodec_id(dc, play->m_video_index)) != 0)
 			goto FAILED_FLG;
 	}
@@ -1191,7 +1199,6 @@ void* read_pkt_thrd(void *param)
 
 		/* Return 0 if OK, < 0 on error or end of file.	*/
 		ret = dc->read_packet(dc, &packet);
-		/* ret = av_read_frame(play->m_format_ctx, &packet); */
 		if (ret < 0)
 		{
 			if (play->m_video_q.m_size == 0 && play->m_audio_q.m_size == 0 &&

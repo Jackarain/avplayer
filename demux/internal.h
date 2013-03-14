@@ -30,6 +30,7 @@ extern "C"
 
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace fs = boost::filesystem;
 

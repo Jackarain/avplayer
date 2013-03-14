@@ -109,6 +109,9 @@ protected:
 	// 数据缓冲.
 	unsigned char *m_io_buffer;
 
+	// 同步访问.
+	mutable boost::mutex m_mutex;
+
 	// 是否中止.
 	bool m_abort;
 };
