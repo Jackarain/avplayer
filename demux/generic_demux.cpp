@@ -250,11 +250,18 @@ bool generic_demux::open(boost::any ctx)
 
 FAILED_FLG:
 	if (m_format_ctx)
+	{
 		avformat_close_input(&m_format_ctx);
+		m_format_ctx = NULL;
+	}
 	if (m_avio_ctx)
-		av_free(m_avio_ctx);
+	{
+		av_freep(&m_avio_ctx);
+	}
 	if (m_io_buffer)
-		av_free(m_io_buffer);
+	{
+		av_freep(&m_io_buffer);
+	}
 	return false;
 }
 
