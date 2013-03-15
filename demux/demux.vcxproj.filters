@@ -17,6 +17,9 @@
     <ClCompile Include="generic_demux.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="youku_demux.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="demux.h">
@@ -29,6 +32,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="generic_demux.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="youku_demux.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

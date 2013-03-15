@@ -88,12 +88,14 @@
   <ItemGroup>
     <ClCompile Include="demux.cpp" />
     <ClCompile Include="generic_demux.cpp" />
+    <ClCompile Include="youku_demux.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="demux.h" />
     <ClInclude Include="demuxer.h" />
     <ClInclude Include="generic_demux.h" />
     <ClInclude Include="internal.h" />
+    <ClInclude Include="youku_demux.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libav\libav.vcxproj">
