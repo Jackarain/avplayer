@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	std::string ext = extension<std::string>(filename);
 	if (ext == ".torrent")
 	{
-		if (!win.open(filename.c_str(), MEDIA_TYPE_BT))
+		if (!win.open(filename.c_str(), MEDIA_TYPE_BT, RENDER_OGL))
 			return -1;
 	}
 	else
@@ -80,23 +80,23 @@ int main(int argc, char* argv[])
 			std::string::size_type pos = str.find("http://v.youku.com/v_show/id_");
 			if (pos == std::string::npos)
 		    {
-                if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP))
+                if (!win.open(filename.c_str(), MEDIA_TYPE_HTTP, RENDER_OGL))
                     return -1;
 		    }
 			else
 		    {
-                if (!win.open(filename.c_str(), MEDIA_TYPE_YK))
+                if (!win.open(filename.c_str(), MEDIA_TYPE_YK, RENDER_OGL))
                     return -1;
 		    }
 		}
 		else if (is_url == "rtsp://")
 		{
-			if (!win.open(filename.c_str(), MEDIA_TYPE_RTSP))
+			if (!win.open(filename.c_str(), MEDIA_TYPE_RTSP, RENDER_OGL))
 				return -1;
 		}
 		else
 		{
-			if (!win.open(filename.c_str(), MEDIA_TYPE_FILE))
+			if (!win.open(filename.c_str(), MEDIA_TYPE_FILE, RENDER_OGL))
 			return -1;
 		}
 	}
