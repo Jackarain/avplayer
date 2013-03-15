@@ -3,6 +3,8 @@
 #include "youku_demux.h"
 
 
+// 具体实现.
+
 youku_demux::youku_demux(void)
 {
 }
