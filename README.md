@@ -13,11 +13,17 @@ avplayer.exe <文件名|URL|TORRENT>
 
 请使用git下载, 以便随时更新代码, 这样做也可以方便在你自己的分支中开发, 并提交补丁.
 
-$ git clone https://github.com/avplayer/avplayer.git avplayer
+	$ git clone https://github.com/avplayer/avplayer.git avplayer
 
 更新
 
-$ git pull
+	$ git pull
+
+更新子模块
+
+	$ git submodule init
+	$ git submodule update
+
 
 在windows下, 需要下载https://sourceforge.net/projects/avplayer/files/develop/FFmpeg-dev/ 和 https://sourceforge.net/projects/avplayer/files/develop/OpenSSL-dev/ 解压到third_party目录下.
 有任何问题, 请在issues里提交问题.
