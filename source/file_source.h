@@ -13,8 +13,12 @@
 #endif
 
 #include <string>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "av_source.h"
+
 
 struct open_file_data
 {
@@ -50,13 +54,10 @@ private:
    open_file_data *m_open_data;
 
    // 文件指针.
-   FILE *m_file;
-
-   // 文件大小.
-   uint64_t m_file_size;
+   boost::filesystem::fstream m_file;
 
    // 线程安全锁.
-   mutable pthread_mutex_t m_mutex;
+   mutable boost::mutex m_mutex;
 };
 
 #endif // __FILE_SOURCE_H__

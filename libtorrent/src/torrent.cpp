@@ -1264,7 +1264,7 @@ namespace libtorrent
 
 			if (rdf)
 			{
-				rdf(rp->piece_data.get(), r.piece * m_torrent_file->piece_length(), size);
+				rdf(rp->piece_data.get(), r.piece * boost::int64_t(m_torrent_file->piece_length()), size);
 			}
 
 			// delete rp;
