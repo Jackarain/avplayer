@@ -285,6 +285,6 @@ GLvoid opengl_render::KillGLWindow(GLvoid)            // Properly Kill The Windo
 	if (m_hdc && !ReleaseDC(m_hwnd, m_hdc))            // Are We Able To Release The DC
 	{
 		printf("Release Device Context Failed.\n");
-		m_hdc = NULL;                                   // Set DC To NULL
 	}
+	m_hdc = NULL;										// Set DC To NULL
 }
