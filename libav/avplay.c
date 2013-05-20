@@ -31,36 +31,6 @@ enum bool_type
 #define SEEKING_FLAG			-1
 #define NOSEEKING_FLAG			0
 
-#ifndef _MSC_VER
-#include <unistd.h>
-#include <sys/time.h>
-#include <time.h>
-#include <errno.h>
-
-void Sleep(int msec)
-{
-	struct timespec rev,rem;
-	rev.tv_sec =msec/1000;
-	rev.tv_nsec = msec * 1000000;
-	
-	int ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
-	while(ret <0 && errno == EINTR){
-		rev = rem;
-		ret = clock_nanosleep(CLOCK_MONOTONIC,0,&rev,&rem);
-	}
-}
-
-int64_t av_gettime()
-{
-	struct timespec cltime;
-	clock_gettime(CLOCK_MONOTONIC,&cltime);
-	return cltime.tv_sec * 1000000 + cltime.tv_nsec / 1000;
-}
-
-#else
-#define av_gettime() (timeGetTime() * 1000.0f)
-#endif
-
 
 /* INT64最大最小取值范围. */
 #ifndef INT64_MIN
@@ -726,7 +696,7 @@ void wait_for_completion(avplay *play)
 	while (play->m_play_status == playing ||
 		play->m_play_status == paused)
 	{
-		Sleep(100);
+		av_usleep(100000);
 	}
 }
 
@@ -813,7 +783,7 @@ void av_pause(avplay *play)
 {
 	/* 一直等待为渲染状态时才控制为暂停, 原因是这样可以在暂停时继续渲染而不至于黑屏. */
 	while (!play->m_rendering)
-		Sleep(0);
+		av_usleep(1000);
 	/* 更改播放状态. */
 	play->m_play_status = paused;
 }
@@ -1007,7 +977,7 @@ void video_copy(avplay *play, AVFrame *dst, AVFrame *src)
 static
 void update_video_pts(avplay *play, double pts, int64_t pos)
 {
-   double time = av_gettime() / 1000000.0;
+   double time = (double)av_gettime() / 1000000.0;
    /* update current video pts */
    play->m_video_current_pts = pts;
    play->m_video_current_pts_drift = play->m_video_current_pts - time;
@@ -1047,14 +1017,14 @@ double video_clock(avplay *play)
 {
 	if (play->m_play_status == paused)
 		return play->m_video_current_pts;
-	return play->m_video_current_pts_drift + av_gettime() / 1000000.0f;
+	return play->m_video_current_pts_drift + (double)av_gettime() / 1000000.0f;
 }
 
 static
 double external_clock(avplay *play)
 {
 	int64_t ti;
-	ti = av_gettime();
+	ti = (double)av_gettime();
 	return play->m_external_clock + ((ti - play->m_external_clock_time) * 1e-6);
 }
 
@@ -1095,7 +1065,7 @@ void chk_queue(avplay *play, av_queue *q, int size)
 		if (q->m_size >= size && !play->m_abort)
 		{
 			pthread_mutex_unlock(&q->m_mutex);
-			Sleep(4);
+			av_usleep(4000);
 		}
 		else
 		{
@@ -1193,7 +1163,7 @@ void* read_pkt_thrd(void *param)
 
 		/* 缓冲读满, 在这休眠让出cpu.	*/
 		while (play->m_pkt_buffer_size > MAX_PKT_BUFFER_SIZE && !play->m_abort && !play->m_seek_req)
-			Sleep(32);
+			av_usleep(32000);
 		if (play->m_abort)
 			break;
 
@@ -1204,7 +1174,7 @@ void* read_pkt_thrd(void *param)
 			if (play->m_video_q.m_size == 0 && play->m_audio_q.m_size == 0 &&
 				play->m_video_dq.m_size == 0 && play->m_audio_dq.m_size == 0)
 				play->m_play_status = completed;
-			Sleep(100);
+			av_usleep(100000);
 			continue;
 		}
 
@@ -1226,8 +1196,8 @@ void* read_pkt_thrd(void *param)
 			int current_time = 0;
 			/* 计算时间是否足够一秒钟. */
 			if (play->m_last_vb_time == 0)
-				play->m_last_vb_time = av_gettime() / 1000000.0f;
-			current_time = av_gettime() / 1000000.0f;
+				play->m_last_vb_time = (double)av_gettime() / 1000000.0f;
+			current_time = (double)av_gettime() / 1000000.0f;
 			if (current_time - play->m_last_vb_time >= 1)
 			{
 				play->m_last_vb_time = current_time;
@@ -1285,7 +1255,7 @@ void* audio_dec_thrd(void *param)
 	{
 		av_init_packet(&pkt);
 		while (play->m_play_status == paused && !play->m_abort)
-			Sleep(10);
+			av_usleep(10000);
 		ret = get_queue(&play->m_audio_q, &pkt);
 		if (ret != -1)
 		{
@@ -1294,7 +1264,7 @@ void* audio_dec_thrd(void *param)
 				AVFrameList* lst = NULL;
 				avcodec_flush_buffers(play->m_audio_ctx);
 				while (play->m_audio_dq.m_size && !play->m_audio_dq.abort_request)
-						Sleep(1);
+						av_usleep(1000);
 				pthread_mutex_lock(&play->m_audio_dq.m_mutex);
 				lst = (AVFrameList*)play->m_audio_dq.m_first_pkt;
 				for (; lst != NULL; lst = lst->next)
@@ -1403,7 +1373,7 @@ void* video_dec_thrd(void *param)
 	{
 		av_init_packet(&pkt);
 		while (play->m_play_status == paused && !play->m_abort)
-			Sleep(10);
+			av_usleep(10000);
 		ret = get_queue(&play->m_video_q, (AVPacket*) &pkt);
 		if (ret != -1)
 		{
@@ -1414,7 +1384,7 @@ void* video_dec_thrd(void *param)
 				avcodec_flush_buffers(play->m_video_ctx);
 
 				while (play->m_video_dq.m_size && !play->m_video_dq.abort_request)
-					Sleep(1);
+					av_usleep(1000);
 
 				pthread_mutex_lock(&play->m_video_dq.m_mutex);
 				lst = (AVFrameList*)play->m_video_dq.m_first_pkt;
@@ -1423,7 +1393,7 @@ void* video_dec_thrd(void *param)
 				play->m_video_current_pos = -1;
 				play->m_frame_last_dropped_pts = AV_NOPTS_VALUE;
 				play->m_frame_last_duration = 0;
-				play->m_frame_timer = (double) av_gettime() / 1000000.0f;
+				play->m_frame_timer = (double)av_gettime() / 1000000.0f;
 				play->m_video_current_pts_drift = -play->m_frame_timer;
 				play->m_frame_last_pts = AV_NOPTS_VALUE;
 				pthread_mutex_unlock(&play->m_video_dq.m_mutex);
@@ -1465,7 +1435,7 @@ void* video_dec_thrd(void *param)
 				 * 初始化m_frame_timer时间, 使用系统时间.
 				 */
 				if (play->m_frame_timer == 0.0f)
-					play->m_frame_timer = (double) av_gettime() / 1000000.0f;
+					play->m_frame_timer = (double)av_gettime() / 1000000.0f;
 
 				/*
 				 * 计算pts值.
@@ -1517,9 +1487,9 @@ void* video_dec_thrd(void *param)
 				}
 
 				/* 计录最后有效帧时间. */
-				play->m_frame_last_returned_time = av_gettime() / 1000000.0f;
+				play->m_frame_last_returned_time = (double)av_gettime() / 1000000.0f;
 				/* m_frame_last_filter_delay基本都是0吧. */
-				play->m_frame_last_filter_delay = av_gettime() / 1000000.0f
+				play->m_frame_last_filter_delay = (double)av_gettime() / 1000000.0f
 						- play->m_frame_last_returned_time;
 				/* 如果m_frame_last_filter_delay还可能大于1, 那么m_frame_last_filter_delay置0. */
 				if (fabs(play->m_frame_last_filter_delay) > AV_NOSYNC_THRESHOLD / 10.0f)
@@ -1640,7 +1610,7 @@ void* audio_render_thrd(void *param)
 							if (((AVFrameList*) play->m_audio_dq.m_last_pkt)->pkt.type == 1)
 								break;
 						}
-						Sleep(10);
+						av_usleep(10000);
 					}
 				}
 				else
@@ -1751,17 +1721,17 @@ void* video_render_thrd(void *param)
 						if (diff < 0.0f)
 							delay = 0.0f;
 						else
-							Sleep(0);
+							av_usleep(1000);
 					}
 				}
 
 				/* 得到当前系统时间. */
-				time = av_gettime() / 1000000.0f;
+				time = (double)av_gettime() / 1000000.0f;
 
 				/* 如果当前系统时间小于播放时间加延迟时间, 则过一会重试. */
 				if (time < play->m_frame_timer + delay)
 				{
-					Sleep(1);
+					av_usleep(1000);
 					continue;
 				}
 
@@ -1811,8 +1781,8 @@ void* video_render_thrd(void *param)
 					int current_time = 0;
 					/* 计算时间是否足够一秒钟. */
 					if (play->m_last_fr_time == 0)
-						play->m_last_fr_time = av_gettime() / 1000000.0f;
-					current_time = av_gettime() / 1000000.0f;
+						play->m_last_fr_time = (double)av_gettime() / 1000000.0f;
+					current_time = (double)av_gettime() / 1000000.0f;
 					if (current_time - play->m_last_fr_time >= 1)
 					{
 						play->m_last_fr_time = current_time;
@@ -1844,7 +1814,7 @@ void* video_render_thrd(void *param)
 				{
 					play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
 					if (delay != 0)
-						Sleep(4);
+						av_usleep(4000);
 				}
 				break;
 			} while (TRUE);
@@ -1856,7 +1826,7 @@ void* video_render_thrd(void *param)
 			while (play->m_play_status == paused && inited == 1 && play->m_vo_ctx && !play->m_abort)
 			{
 				play->m_vo_ctx->render_one_frame(play->m_vo_ctx, &video_frame, play->m_video_ctx->pix_fmt, av_curr_play_time(play));
-				Sleep(16);
+				av_usleep(16000);
 			}
 
 			/* 释放视频帧缓冲. */
