@@ -345,6 +345,11 @@ void generic_demux::close()
 	{
 		av_freep(&m_avio_ctx);
 	}
+
+	if (m_source_ctx)
+	{
+		free_media_source(m_source_ctx);
+	}
 }
 
 int generic_demux::read_pause()
