@@ -141,9 +141,12 @@ bool generic_demux::open(boost::any ctx)
 		}
 	}
 
-	// 如果初始化失败.
-	if (m_source_ctx->init_source(m_source_ctx) < 0)
-		goto FAILED_FLG;
+	if (m_source_ctx->init_source)
+	{
+		// 如果初始化失败.
+		if (m_source_ctx->init_source(m_source_ctx) < 0)
+			goto FAILED_FLG;
+	}
 
 	int ret = 0;
 	AVInputFormat *iformat = NULL;
