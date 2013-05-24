@@ -26,6 +26,7 @@ avplayer.exe <文件名|URL|TORRENT>
 
 
 在windows下, 需要下载https://sourceforge.net/projects/avplayer/files/develop/FFmpeg-dev/ 和 https://sourceforge.net/projects/avplayer/files/develop/OpenSSL-dev/ 解压到third_party目录下.
+以及下载配置DXSDK环境 http://sourceforge.net/projects/avplayer/files/develop/DXSDK/ , 配置DXSDK有疑问, 可以参考wiki中的 https://github.com/Jackarain/avplayer/wiki/build 
 有任何问题, 请在issues里提交问题.
 
 ##### 使用 cmake 编译
