@@ -49,9 +49,3 @@ void yk_source::reset()
 {
 
 }
-
-bool yk_source::parse_url(const std::string &url)
-{
-	return m_yk_video.parse_url(url);
-}
-

@@ -3,6 +3,7 @@
 
 namespace libyk {
 
+// youku的具体实现.
 youku::youku()
 	: m_impl(NULL)
 {
@@ -14,14 +15,19 @@ youku::~youku()
 	delete m_impl;
 }
 
-bool youku::parse_url(const std::string &url)
+bool youku::open(const std::string &url, std::string save_path /*= "."*/, video_quality quality /*= normal_quality*/)
 {
-	return m_impl->parse_url(url);
+	return m_impl->open(url, save_path, quality);
 }
 
-bool youku::parse_video_files(std::vector<std::string> &videos, const std::string &password /*= ""*/)
+void youku::stop()
 {
-	return m_impl->parse_video_files(videos, password);
+	m_impl->stop();
+}
+
+bool youku::wait_for_complete()
+{
+	return m_impl->wait_for_complete();
 }
 
 }

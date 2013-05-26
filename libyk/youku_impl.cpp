@@ -1,13 +1,85 @@
 #include <cstddef>
-#include "utf8.h"
+#include <strstream>
+#include <boost/crc.hpp>  // for boost::crc_32_type
 #include "youku_impl.h"
 
 namespace libyk {
 
+using boost::property_tree::wptree;
+
+template <class Ptree, class Stream>
+void dump_json(Ptree json, Stream &stream, int level = 0)
+{
+	if (level == 0)
+	{
+		level++;
+		stream << "{\n";
+	}
+	int s = json.size();
+	BOOST_FOREACH(Ptree::value_type &v, json)
+	{
+		std::string first = avhttp::detail::wide_utf8(v.first);
+		if (v.second.size() == 0)
+		{
+			for (int i = 0; i < level; i++)
+				stream << "  ";
+			stream << "\"" << first << "\"" << ":" << "\"" << avhttp::detail::wide_utf8(v.second.get_value<std::wstring>()) << "\"";
+			if (s != 1)
+				stream << ",";
+			stream << std::endl;
+		}
+		else
+		{
+			if (first != "")
+			{
+				for (int i = 0; i < level; i++)
+					stream << "  ";
+				stream << "\"" << first << "\"" << ":[" << std::endl;
+			}
+			else
+			{
+				for (int i = 0; i < level; i++)
+					stream << "  ";
+				stream << "{" << std::endl;
+			}
+			dump_json(v.second, stream, level + 1);
+			if (first != "")
+			{
+				for (int i = 0; i < level; i++)
+					stream << "  ";
+				if (s != 1)
+					stream << "]," << std::endl;
+				else
+					stream << "]" << std::endl;
+			}
+			else
+			{
+				for (int i = 0; i < level; i++)
+					stream << "  ";
+				if (s != 1)
+					stream << "}," << std::endl;
+				else
+					stream << "}" << std::endl;
+			}
+		}
+		s--;
+	}
+	if (level == 1)
+	{
+		stream << "}";
+	}
+}
+
 youku_impl::youku_impl(void)
 	: m_http_stream(m_io_service)
+	, m_multi_http(m_io_service)
+	, m_timer(m_io_service)
+	, m_quality(normal_quality)
 {
-	// ÉèÖÃÎªssl²»ÈÏÖ¤Ä£Ê½.
+#ifdef _DEBUG
+	INIT_LOGGER(".", "youku.log");
+#endif
+	// è®¾ç½®ä¸ºsslä¸è®¤è¯æ¨¡å¼.
 	m_http_stream.check_certificate(false);
 }
 
@@ -15,56 +87,57 @@ youku_impl::~youku_impl(void)
 {
 }
 
-bool youku_impl::parse_url(const std::string& url)
+bool youku_impl::open(const std::string &url,
+	std::string save_path/* = "."*/, video_quality quality/* = normal_quality*/)
 {
 	std::string prefix_youku_url = "http://v.youku.com/v_show/id_";
 	const int vid_length = 13;
 
-	// ¼ì²éurlÊÇ·ñÊÇyoukuµÄÊÓÆµÁ´½Ó.
+	m_quality = quality;
+	m_url = url;
+	m_abort = false;
+
+	// æ£€æŸ¥urlæ˜¯å¦æ˜¯youkuçš„è§†é¢‘é“¾æ¥.
 	std::string::size_type pos = url.find(prefix_youku_url);
 	if (pos == std::string::npos)
 		return false;
 
-	// µÃµ½ÊÓÆµid.
+	// å¾—åˆ°è§†é¢‘id.
     std::string vid = url.substr(pos + prefix_youku_url.length());
 	if (vid.length() >= vid_length)
 		vid = vid.substr(0, vid_length);
 	else
 		return false;
 
-	// µÃµ½ÊÓÆµid.
-    m_vid = vid;
-
-    return true;
-}
-
-bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::string &password)
-{
-    if (m_vid.empty())
-        return -1;
-
+	// ä¸‹è½½è§†é¢‘æ–‡ä»¶åˆ—è¡¨json.
 	std::string prefix_query_url =
 		"https://openapi.youku.com/v2/videos/files.json?"
 		"client_id=e57bc82b1a9dcd2f&"
 		"client_secret=a361608273b857415ee91a8285a16b4a&video_id=";
 
-	// Ìí¼Óid.
-    std::string query = prefix_query_url + m_vid;
+	// æ·»åŠ id.
+	std::string query = prefix_query_url + vid;
+	// æ·»åŠ passwd.
+	std::string password = "";
+	query += password.empty() ? "" : "&watch_password=" + password;
 
-	// Ìí¼Ópasswd.
-    query += password.empty() ? "" : "&watch_password=" + password;
+	// å‘èµ·è¯·æ±‚.
+	avhttp::request_opts opt;
+	opt.insert(avhttp::http_options::user_agent,
+		"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31");
+	opt.insert(avhttp::http_options::referer, query);
+	opt.insert("Accept-Language", "Accept-Language: zh-CN,zh;q=0.8");
+	opt.insert("Accept-Charset", "gb18030,utf-8;q=0.7,*;q=0.3");
 
-	// ´ò¿ªÁ¬½Ó¿ªÊ¼ÇëÇó.
 	boost::system::error_code ec;
 	m_http_stream.open(query, ec);
-	if (ec && ec != boost::asio::error::eof)
+	if (ec)
 	{
-		std::cerr << ec.message().c_str() << std::endl;
-		// ²éÑ¯urlÊ§°Ü.
+		// æŸ¥è¯¢jsonå¤±è´¥.
 		return false;
 	}
 
-	// ÇëÇójson×Ö·û´®, È»ºó½âÎö.
+	// è¯·æ±‚jsonå­—ç¬¦ä¸², ç„¶åè§£æ.
 	boost::asio::streambuf response;
 	std::ostringstream oss;
 
@@ -73,47 +146,117 @@ bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::
 	{
 		oss << &response;
 	}
+	// å…³é—­httpé“¾æ¥.
+	m_http_stream.close(ec);
 
-	// ×ªÎª¿í×Ö·û´®.
-	std::wstring utf = utf8_wide(oss.str());
+	// è½¬ä¸ºå®½å­—ç¬¦ä¸²æµ.
+	std::wstring utf = avhttp::detail::utf8_wide(oss.str());
 	std::wstringstream stream;
 	stream << utf;
 
-	// ½âÎöjson×Ö·û´®.
-	boost::property_tree::wptree root;
+	// è§£æjsonå­—ç¬¦ä¸².
+	wptree root;
 	try {
-		boost::property_tree::read_json<boost::property_tree::wptree>(stream, root);
+		boost::property_tree::read_json<wptree>(stream, root);
 		try {
-			boost::property_tree::wptree errinfo = root.get_child(L"error");
+			wptree errinfo = root.get_child(L"error");
 			int err = errinfo.get<int>(L"code");
-			// Êä³öjsonÖĞ°üº¬µÄ´íÎó´úÂë.
+			// è¾“å‡ºjsonä¸­åŒ…å«çš„é”™è¯¯ä»£ç .
 			std::cerr << "error code: " << err << std::endl;
 			return false;
 		}
 		catch (std::exception &)
 		{}
 
-		// µÃµ½ÎÄ¼ş±í.
-		boost::property_tree::wptree files = root.get_child(L"files");
-		boost::property_tree::wptree type;
+		// å¾—åˆ°æ–‡ä»¶è¡¨.
+		wptree files = root.get_child(L"files");
 
-		// ËµÃ÷: ÔÚµÃµ½¶ÔÓ¦µÄÊÓÆµÎÄ¼ş±íºó, È»ºó½âÎösegs±í, ÔÚÕâ¸ö±íÖĞ, °üº¬ÁËÊÓÆµ·Ö¶ÎĞÅÏ¢.
-		// ×¢Òâm3u8ÊÇÃ»ÓĞÊÓÆµ·Ö¶ÎĞÅÏ¢µÄ, ËüÖ»ÓĞÒ»¸öm3u8µÄµØÖ·url+durationĞÅÏ¢. ok, ÔÚ
-		// µÃµ½ÁËÕâĞ©ĞÅÏ¢ºó, ÎÒÃÇ¾Í¿ÉÒÔ°´´ËÏÂÔØÊı¾İÌá¹©¸ø²¥·ÅÆ÷²¥·Å, so, ÏÖÔÚÒª×öµÄÊÇ½âÎö
-		// ËûÃÇ.
+		// std::fstream file;
+		// file.open("dump.js", std::ios::trunc|std::ios::binary|std::ios::out);
+		// dump_json(files, file);
 
-		// µÃµ½hd2ÎÄ¼ş±í.
+		BOOST_FOREACH(wptree::value_type &v, files)
+		{
+			video_info info;
+			video_type vq;
 
-		// µÃµ½mp4ÎÄ¼ş±í.
+			if (v.first == L"hd2")			// é«˜æ¸….
+			{
+				vq = hd2;
+			}
+			else if (v.first == L"mp4")		// æ™®é€šè´¨é‡.
+			{
+				vq = mp4;
+			}
+			else if (v.first == L"flv")
+			{
+				vq = flv;
+			}
+			else if (v.first == L"3gphd")
+			{
+				vq = gp3hd;
+			}
+			else if (v.first == L"m3u8")
+			{
+				vq = m3u8;
+			}
 
-		// µÃµ½3gpÎÄ¼ş±í.
+			if (v.second.size() != 0)
+			{
+				BOOST_FOREACH(wptree::value_type &v, v.second)
+				{
+					if (v.first == L"duration")
+					{
+						std::string duration = avhttp::detail::wide_utf8(v.second.get_value<std::wstring>());
+						info.duration = boost::lexical_cast<float>(duration);
+					}
 
-		// µÃµ½3gphdÎÄ¼ş±í.
+					if (v.second.size() != 0)
+					{
+						BOOST_FOREACH(wptree::value_type &v, v.second)
+						{
+							video_clip clip;
+							BOOST_FOREACH(wptree::value_type &v, v.second)
+							{
+								if (v.first == L"duration")
+								{
+									std::string duration = avhttp::detail::wide_utf8(v.second.get_value<std::wstring>());
+									clip.duration = boost::lexical_cast<float>(duration);
+								}
+								else if (v.first == L"no")
+								{
+									clip.id = v.second.get_value<int>();
+								}
+								else if (v.first == L"size")
+								{
+									clip.filesize = v.second.get_value<int>();
+								}
+								else if (v.first == L"url")
+								{
+									clip.url = avhttp::detail::wide_utf8(v.second.get_value<std::wstring>());
+								}
+							}
 
-		// µÃµ½flvÎÄ¼ş±í.
+							info.fs.push_back(clip);
+						}
+					}
+				}
+			}
 
-		// µÃµ½m3u8ÎÄ¼ş±í.
+			// ä¿å­˜åˆ°å®¹å™¨.
+			m_video_group.insert(std::make_pair(vq, info));
+		}
 
+		// å¾—åˆ°å½“å‰éœ€è¦ä¸‹è½½çš„è§†é¢‘url.
+		if (m_video_group.find(query_quality()) == m_video_group.end())
+		{
+			return false;
+		}
+
+		async_request_youku();
+
+		// å¯åŠ¨ioçº¿ç¨‹.
+		m_work_thread = boost::thread(boost::bind(&youku_impl::io_service_thread, this));
 	}
 	catch (std::exception &e)
 	{
@@ -121,125 +264,164 @@ bool youku_impl::parse_video_files(std::vector<std::string> &videos, const std::
 		return false;
 	}
 
-	// boost::property_tree::parse_json();
-
-	// ÎªÁË±àÒëÍ¨¹ı!!
-	return false;
-
-	// ²éÑ¯.
-
-//     curl p;
-//     boost::property_tree::wptree root;
-//     if (!parse_json(p.curl_send_request(query), root))
-//         return -1;
-
-//     boost::property_tree::wptree files=root.get_child(L"files");
-// 
-//     boost::property_tree::wptree type;
-
-    // ÔİÊ±²»²¥·Å¸ßÇåºÍ³¬ÇåÊÓÆµ
-    /*
-    try
-    {
-        type=files.get_child(L"hd2");
-        BOOST_FOREACH(boost::property_tree::wptree::value_type& v,type.get_child(L"segs"))
-        {
-            boost::property_tree::wptree value=v.second;
-            p.detail[index-1]->hd2.push_back(codepage::w2utf(value.get<std::wstring>(L"url")));
-        }
-        ret++;
-    }
-    catch(...)
-    {
-
-    }
-
-    try
-    {
-        type=files.get_child(L"mp4");
-        BOOST_FOREACH(boost::property_tree::wptree::value_type& v,type.get_child(L"segs"))
-        {
-            boost::property_tree::wptree value=v.second;
-            p.detail[index-1]->mp4.push_back(codepage::w2utf(value.get<std::wstring>(L"url")));
-        }
-        ret++;
-    }
-    catch(...)
-    {
-
-    }
-    */
-//     try
-//     {
-//         type=files.get_child(L"flv");
-//         BOOST_FOREACH(boost::property_tree::wptree::value_type& v,type.get_child(L"segs"))
-//         {
-//             boost::property_tree::wptree value=v.second;
-//             std::string relocation=location(codepage::w2utf(value.get<std::wstring>(L"url")));
-//             if (!relocation.empty())
-//                 videos.push_back(relocation);
-//             else
-//                 return -1;
-//         }
-//         return 0;
-//     }
-//     catch(...)
-//     {
-//         return -1;
-//     }
-
+    return true;
 }
 
-/*
-bool libykvideo::parse_json(const std::string& data,boost::property_tree::wptree &root)
+void youku_impl::io_service_thread()
 {
-    if (data.empty())
-        return false;
+	while (!m_io_service.stopped())
+	{
+		m_io_service.run_one();
 
-    std::wstringstream stream;
-
-    std::wstring utf=codepage::utf2w(data);
-
-    stream<<utf;
-
-    try
-    {
-        boost::property_tree::read_json<boost::property_tree::wptree>(stream,root);
-    }
-    catch(...)
-    {
-        return false;
-    }
-
-    try
-    {
-        boost::property_tree::wptree errinfo=root.get_child(L"error");
-        int err=errinfo.get<int>(L"code");
-        return false;
-    }
-    catch(...)
-    {
-        return true;
-    }
+		if (m_abort)
+			break;
+	}
 }
 
-std::string libykvideo::location(const std::string& url)
+void youku_impl::stop()
 {
-    curl p(true);
-    std::string header=p.curl_send_request(url);
-    boost::to_lower<std::string>(header);
-    size_t pos=header.find("location: ")+1;
-    if (!pos)
-        return false;
-    
-    header=header.substr((pos-1)+strlen("location: "));
-    pos=header.find("\r\n")+1;
-    if (!pos)
-        return false;
-    return header.substr(0,pos-1);    
+	m_abort = true;
+	if (m_work_thread.joinable())
+	{
+		m_work_thread.join();
+	}
 }
 
-*/
+bool youku_impl::wait_for_complete()
+{
+	m_work_thread.join();
+	if (m_abort == true)
+		return false;
+	return true;
+}
+
+void youku_impl::async_request_youku()
+{
+	video_info &info = m_video_group[query_quality()];
+
+	std::string query;
+	int id;
+	for (std::vector<video_clip>::iterator i = info.fs.begin();
+		i != info.fs.end(); i++)
+	{
+		if (i->state == init_state)
+		{
+			i->state = start_state;
+			query = i->url;
+			id = i->id;
+			break;
+		}
+	}
+
+	if (query.empty())
+	{
+		return;
+	}
+
+	avhttp::settings set;
+
+	// ä¸å…è®¸ä½¿ç”¨metaä¸­ä¿å­˜çš„urlé“¾æ¥, å› ä¸ºmetaä¸­ä¿è¯çš„urlä¼šè¿‡æœŸ.
+	set.allow_use_meta_url = false;
+
+	// ç”Ÿæˆå”¯ä¸€çš„metaæ–‡ä»¶å.
+	boost::crc_32_type result;
+	result.process_bytes(m_url.c_str(), m_url.size());
+	std::stringstream ss;
+	ss.imbue(std::locale("C"));
+	ss << std::hex << result.checksum() << id << ".meta";
+	set.meta_file = ss.str();
+
+	// è®¾ç½®request_opts.
+	avhttp::request_opts &opt = set.opts;
+
+	opt.insert(avhttp::http_options::user_agent,
+		"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31");
+	opt.insert(avhttp::http_options::referer, m_url);
+	opt.insert("Accept-Language", "Accept-Language: zh-CN,zh;q=0.8");
+	opt.insert("Accept-Charset", "gb18030,utf-8;q=0.7,*;q=0.3");
+
+	// å¼‚æ­¥è°ƒç”¨å¼€å§‹ä¸‹è½½.
+	m_multi_http.async_start(query, set,
+		boost::bind(&youku_impl::handle_check_download,
+			this,
+			boost::asio::placeholders::error
+		)
+	);
+}
+
+void youku_impl::handle_check_download(const boost::system::error_code &ec)
+{
+	if (ec)
+	{
+		// ç»§ç»­è¯·æ±‚ä¸‹ä¸€ä¸ªè§†é¢‘.
+		async_request_youku();
+		return;
+	}
+
+	// æ£€æŸ¥æ˜¯å¦ä¸‹è½½å®Œæˆ.
+	boost::int64_t file_size = m_multi_http.file_size();
+	boost::int64_t bytes_download = m_multi_http.bytes_download();
+
+	// æœåŠ¡å·²ç»åœæ­¢, é‡æ–°å¯åŠ¨ä»»åŠ¡, å¼€å§‹è¯·æ±‚æ—¶é—´.
+	if (m_multi_http.stopped())
+	{
+		if (file_size != bytes_download) // è¯´æ˜å‡ºäº†é—®é¢˜!!!
+		{
+			LOG_DEBUG("ç³Ÿç³•, è§†é¢‘ä¸‹è½½æœªå®Œæˆ, å‡ºé”™äº†!");
+		}
+		else
+		{
+			LOG_DEBUG("æ­å–œ, ä¸€ä¸ªè§†é¢‘ä¸‹è½½å®Œæˆ!");
+		}
+
+		// ç»§ç»­è¯·æ±‚ä¸‹ä¸€ä¸ªè§†é¢‘.
+		async_request_youku();
+		return;
+	}
+
+	// åœ¨è¿™é‡Œå¯åŠ¨å®šæ—¶å™¨, æ£€æŸ¥æ˜¯å¦ä¸‹è½½å®Œæˆ.
+	m_timer.expires_from_now(boost::posix_time::seconds(1));
+	m_timer.async_wait(boost::bind(&youku_impl::handle_check_download,
+		this, boost::asio::placeholders::error));
+}
+
+youku_impl::video_type youku_impl::query_quality()
+{
+	if (m_quality == high_quality)
+	{
+		if (m_video_group.find(hd2) != m_video_group.end())
+		{
+			return hd2;
+		}
+	}
+	else if (m_quality == normal_quality)
+	{
+		if (m_video_group.find(mp4) != m_video_group.end())
+		{
+			return mp4;
+		}
+	}
+	else if (m_quality == low_quality)
+	{
+		if (m_video_group.find(flv) != m_video_group.end())
+		{
+			return flv;
+		}
+		if (m_video_group.find(gp3hd) != m_video_group.end())
+		{
+			return gp3hd;
+		}
+	}
+	else if (m_quality == mobile_quality)
+	{
+		if (m_video_group.find(m3u8) != m_video_group.end())
+		{
+			return m3u8;
+		}
+	}
+
+	return m_video_group.begin()->first;
+}
 
 }
 

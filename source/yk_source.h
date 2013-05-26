@@ -45,10 +45,6 @@ public:
 	// 重置读取数据.
 	virtual void reset();
 
-	// 解析url.
-	bool parse_url(const std::string &url);
-
-
 private:
 	libyk::youku m_yk_video;
 	bool m_abort;
