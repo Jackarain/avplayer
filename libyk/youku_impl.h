@@ -37,38 +37,6 @@ public:
 	bool wait_for_complete();
 
 private:
-	typedef enum { init_state, start_state, stop_state } video_status;
-	typedef enum { hd2, mp4, gp3hd, flv, gp3, m3u8 } video_type;
-
-	struct video_clip
-	{
-		video_clip()
-			: duration(0)
-			, filesize(0)
-			, id(0)
-			, state(init_state)
-		{}
-
-		std::string url;	// 片段url.
-		int duration;		// 时长.
-		int filesize;		// 文件大小.
-		int id;				// 视频ID.
-		video_status state;	// 当前状态.
-	};
-
-	struct video_info
-	{
-		video_info()
-			: duration(0)
-		{}
-
-		float duration;				// 视频时长.
-		std::vector<video_clip> fs;	// 视频片段文件.
-	};
-
-	typedef std::map<video_type, video_info> video_group;
-
-private:
 
 	void io_service_thread();
 	void async_request_youku();

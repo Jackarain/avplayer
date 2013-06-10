@@ -29,6 +29,37 @@ namespace libyk
 		mobile_quality = 96
 	} video_quality;
 
+	typedef enum { init_state, start_state, stop_state } video_status;
+	typedef enum { hd2, mp4, gp3hd, flv, gp3, m3u8 } video_type;
+
+	struct video_clip
+	{
+		video_clip()
+			: duration(0)
+			, filesize(0)
+			, id(0)
+			, state(init_state)
+		{}
+
+		std::string url;	// 片段url.
+		int duration;		// 时长.
+		int filesize;		// 文件大小.
+		int id;				// 视频ID.
+		video_status state;	// 当前状态.
+	};
+
+	struct video_info
+	{
+		video_info()
+			: duration(0)
+		{}
+
+		float duration;				// 视频时长.
+		std::vector<video_clip> fs;	// 视频片段文件.
+	};
+
+	typedef std::map<video_type, video_info> video_group;
+
 	class youku_impl;
 	// 优酷视频访问实现.
 	class youku : public boost::noncopyable
@@ -52,6 +83,9 @@ namespace libyk
 		///等待下载完成.
 		// 返回true, 表示下载完成, false表示下载未完成时就退出了.
 		bool wait_for_complete();
+
+	public:
+		// 返回文件列表.
 
 	private:
 		youku_impl *m_impl;		

@@ -385,7 +385,7 @@ void youku_impl::handle_check_download(const boost::system::error_code &ec)
 		this, boost::asio::placeholders::error));
 }
 
-youku_impl::video_type youku_impl::query_quality()
+video_type youku_impl::query_quality()
 {
 	if (m_quality == high_quality)
 	{
