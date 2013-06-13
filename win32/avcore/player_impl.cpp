@@ -969,6 +969,8 @@ BOOL player_impl::wait_for_completion()
 
 BOOL player_impl::close()
 {
+	BOOL ret = FALSE;
+
 	EnterCriticalSection(&m_cs);
 	if (m_avplay)
 	{
@@ -977,8 +979,7 @@ BOOL player_impl::close()
 		m_source = NULL;	// m_source 在 read_pkt_thrd 线程退出时, 会自动释放, 这里只需要简单清空即可.
 		m_cur_index = -1;
 		::logger("close avplay.\n");
-		LeaveCriticalSection(&m_cs);
-		return TRUE;
+		ret = TRUE;
 	}
 	else
 	{
@@ -990,7 +991,18 @@ BOOL player_impl::close()
 		}
 	}
 	LeaveCriticalSection(&m_cs);
-	return FALSE;
+
+	// 销毁字幕插件资源.
+	EnterCriticalSection(&m_plugin_cs);
+	if (m_plugin)
+	{
+		m_plugin->subtitle_uninit();
+		delete m_plugin;
+		m_plugin = NULL;
+	}
+	LeaveCriticalSection(&m_plugin_cs);
+
+	return ret;
 }
 
 void player_impl::seek_to(double fact)
@@ -1188,13 +1200,20 @@ int player_impl::draw_frame(struct vo_context *ctx, AVFrame* data, int pix_fmt, 
 				delete this_ptr->m_plugin;
 				this_ptr->m_plugin = NULL;
 			}
+			else// late load subtitle workaround.
+			{
+				int size = this_ptr->m_video_width * this_ptr->m_video_height * 3 / 2;
+				char *tmp = new char[size];
+				this_ptr->m_plugin->subtitle_do(tmp, 0, size);
+				delete []tmp;
+			}
 		}
 
 		this_ptr->m_change_subtitle = false;
 		LeaveCriticalSection(&this_ptr->m_plugin_cs);
 	}
 
-	if (this_ptr->m_plugin)
+	if (this_ptr->m_plugin && !this_ptr->m_subtitle.empty())
 	{
 		// 添加字幕.
 		int size = this_ptr->m_video_width * this_ptr->m_video_height * 3 / 2;
