@@ -7,6 +7,7 @@
 
 #include "avhttp.hpp"
 
+#include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -29,6 +30,9 @@ public:
 	bool open(const std::string &url,
 		std::string save_path = ".", video_quality quality = normal_quality);
 
+	// 读取当前下载的index对应视频的数据.
+	bool read_data(char* data, std::size_t size, std::size_t &read_size);
+
 	// 停止下载.
 	void stop();
 
@@ -36,11 +40,21 @@ public:
 	// 返回true, 表示下载完成, false表示下载未完成时就退出了.
 	bool wait_for_complete();
 
+	// 切换下载的视频文件.
+	bool change_download(int index);
+
+	// 时长信息.
+	duration_info current_duration_info();
+
 private:
 
 	void io_service_thread();
 	void async_request_youku();
 	void handle_check_download(const boost::system::error_code &ec);
+	void handle_change_download(boost::condition &cond, int index);
+	template <typename MutableBufferSequence>
+	void handle_read_data(boost::condition &cond,
+		const MutableBufferSequence &buffers, std::size_t &read_size);
 	video_type query_quality();
 
 private:
@@ -48,10 +62,14 @@ private:
 	boost::thread m_work_thread;
 	video_group m_video_group;
 	avhttp::http_stream m_http_stream;
-	avhttp::multi_download m_multi_http;
+	boost::shared_ptr<avhttp::multi_download> m_multi_http;
 	boost::asio::deadline_timer m_timer;
 	std::string m_url;
 	video_quality m_quality;
+	int m_current_index;
+	boost::int64_t m_offset;
+	std::vector<video_clip> *m_video_info;
+	boost::mutex m_mutex;
 	bool m_abort;
 };
 

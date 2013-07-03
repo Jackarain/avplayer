@@ -30,4 +30,19 @@ bool youku::wait_for_complete()
 	return m_impl->wait_for_complete();
 }
 
+duration_info youku::current_duration_info()
+{
+	return m_impl->current_duration_info();
+}
+
+bool youku::change_download(int index)
+{
+	return m_impl->change_download(index);
+}
+
+bool youku::read_data(char* data, std::size_t size, std::size_t &read_size)
+{
+	return m_impl->read_data(data, size, read_size);
+}
+
 }

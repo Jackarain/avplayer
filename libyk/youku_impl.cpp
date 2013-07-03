@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <strstream>
 #include <boost/crc.hpp>  // for boost::crc_32_type
+#include <boost/thread/condition.hpp>
 #include "youku_impl.h"
 
 namespace libyk {
@@ -72,8 +73,9 @@ void dump_json(Ptree json, Stream &stream, int level = 0)
 
 youku_impl::youku_impl(void)
 	: m_http_stream(m_io_service)
-	, m_multi_http(m_io_service)
 	, m_timer(m_io_service)
+	, m_offset(0)
+	, m_current_index(0)
 	, m_quality(normal_quality)
 {
 #ifdef _DEBUG
@@ -267,6 +269,40 @@ bool youku_impl::open(const std::string &url,
     return true;
 }
 
+bool youku_impl::read_data(char* data, std::size_t size, std::size_t &read_size)
+{
+	boost::condition cond;
+	boost::mutex::scoped_lock lock(m_mutex);
+
+	// 如果停止, 返回false, 表示读取失败.
+	if (m_abort)
+		return false;
+
+	// 通知读取数据.
+	boost::asio::mutable_buffers_1 bufs  = boost::asio::buffer(data, size);
+	m_io_service.post(boost::bind(
+		&youku_impl::handle_read_data<boost::asio::mutable_buffers_1>, this,
+		boost::ref(cond), boost::cref(bufs), boost::ref(read_size)));
+
+	// 等待完成操作.
+	cond.wait(lock);
+
+	return false;
+}
+
+template <typename MutableBufferSequence>
+void youku_impl::handle_read_data(boost::condition &cond,
+	const MutableBufferSequence &buffers, std::size_t &read_size)
+{
+	// 如果http下载组件有效.
+	if (m_multi_http)
+	{
+		read_size = m_multi_http->fetch_data(buffers, m_offset);
+	}
+	// 通知已经读取到数据.
+	cond.notify_one();
+}
+
 void youku_impl::io_service_thread()
 {
 	while (!m_io_service.stopped())
@@ -300,16 +336,19 @@ void youku_impl::async_request_youku()
 	video_info &info = m_video_group[query_quality()];
 
 	std::string query;
-	int id;
 	for (std::vector<video_clip>::iterator i = info.fs.begin();
 		i != info.fs.end(); i++)
 	{
-		if (i->state == init_state)
+		if (i->id >= m_current_index)
 		{
-			i->state = start_state;
-			query = i->url;
-			id = i->id;
-			break;
+			if (i->state != complete_state)	// 如果是stop状态, 继续下载.
+			{
+				i->state = start_state;
+				query = i->url;
+				m_current_index = i->id;
+				m_video_info = &info.fs;
+				break;
+			}
 		}
 	}
 
@@ -328,7 +367,7 @@ void youku_impl::async_request_youku()
 	result.process_bytes(m_url.c_str(), m_url.size());
 	std::stringstream ss;
 	ss.imbue(std::locale("C"));
-	ss << std::hex << result.checksum() << id << ".meta";
+	ss << std::hex << result.checksum() << m_current_index << ".meta";
 	set.meta_file = ss.str();
 
 	// 设置request_opts.
@@ -340,8 +379,19 @@ void youku_impl::async_request_youku()
 	opt.insert("Accept-Language", "Accept-Language: zh-CN,zh;q=0.8");
 	opt.insert("Accept-Charset", "gb18030,utf-8;q=0.7,*;q=0.3");
 
+	// 创建新的对象.
+	if (!m_multi_http)
+	{
+		m_multi_http.reset(new avhttp::multi_download(m_io_service));
+	}
+	else
+	{
+		m_multi_http->stop();
+		m_multi_http.reset(new avhttp::multi_download(m_io_service));
+	}
+
 	// 异步调用开始下载.
-	m_multi_http.async_start(query, set,
+	m_multi_http->async_start(query, set,
 		boost::bind(&youku_impl::handle_check_download,
 			this,
 			boost::asio::placeholders::error
@@ -359,18 +409,21 @@ void youku_impl::handle_check_download(const boost::system::error_code &ec)
 	}
 
 	// 检查是否下载完成.
-	boost::int64_t file_size = m_multi_http.file_size();
-	boost::int64_t bytes_download = m_multi_http.bytes_download();
+	boost::int64_t file_size = m_multi_http->file_size();
+	boost::int64_t bytes_download = m_multi_http->bytes_download();
 
 	// 服务已经停止, 重新启动任务, 开始请求时间.
-	if (m_multi_http.stopped())
+	if (m_multi_http->stopped())
 	{
 		if (file_size != bytes_download) // 说明出了问题!!!
 		{
+			// 改变为停止状态, 以便下一次继续下载, 完成整个视频下载.
+			m_video_info->at(m_current_index).state = stop_state;
 			LOG_DEBUG("糟糕, 视频下载未完成, 出错了!");
 		}
 		else
 		{
+			m_video_info->at(m_current_index).state = complete_state;
 			LOG_DEBUG("恭喜, 一个视频下载完成!");
 		}
 
@@ -421,6 +474,56 @@ video_type youku_impl::query_quality()
 	}
 
 	return m_video_group.begin()->first;
+}
+
+bool youku_impl::change_download(int index)
+{
+	boost::condition cond;
+	boost::mutex::scoped_lock lock(m_mutex);
+
+	// 如果下载index没有发生改变, 则返回false.
+	if (index == m_current_index)
+		return false;
+
+	// 通知下载位置改变.
+	m_io_service.post(boost::bind(&youku_impl::handle_change_download, this, boost::ref(cond), index));
+
+	// 等待完成操作.
+	cond.wait(lock);
+
+	return true;
+}
+
+void youku_impl::handle_change_download(boost::condition &cond, int index)
+{
+	// 保存需要下载的index, 重置读取数据偏移为0.
+	m_current_index = index;
+	m_offset = 0;
+
+	// 异步发起请求.
+	async_request_youku();
+
+	// 通知change完成.
+	cond.notify_one();
+}
+
+duration_info youku_impl::current_duration_info()
+{
+	duration_info ret;
+	video_group::iterator f;
+
+	f = m_video_group.find(query_quality());
+	if (f == m_video_group.end())
+		return ret;
+	std::vector<video_clip> &fs = f->second.fs;
+	for (std::vector<video_clip>::iterator i = fs.begin();
+		i != fs.end(); i++)
+	{
+		// 将视频文件id和对应的时长信息插件到容口.
+		ret.insert(std::make_pair(i->id, i->duration));
+	}
+
+	return ret;
 }
 
 }

@@ -29,7 +29,7 @@ namespace libyk
 		mobile_quality = 96
 	} video_quality;
 
-	typedef enum { init_state, start_state, stop_state } video_status;
+	typedef enum { init_state, start_state, stop_state, complete_state } video_status;
 	typedef enum { hd2, mp4, gp3hd, flv, gp3, m3u8 } video_type;
 
 	struct video_clip
@@ -58,7 +58,10 @@ namespace libyk
 		std::vector<video_clip> fs;	// 视频片段文件.
 	};
 
+	// 视频信息.
 	typedef std::map<video_type, video_info> video_group;
+	// 视频时长信息, key为视频index, value为视频时长, 单位秒.
+	typedef std::map<int, int> duration_info;
 
 	class youku_impl;
 	// 优酷视频访问实现.
@@ -77,6 +80,9 @@ namespace libyk
 		bool open(const std::string &url,
 			std::string save_path = ".", video_quality quality = normal_quality);
 
+		// 读取当前下载的index对应视频的数据.
+		bool read_data(char* data, std::size_t size, std::size_t &read_size);
+
 		///停止下载.
 		void stop();
 
@@ -84,8 +90,11 @@ namespace libyk
 		// 返回true, 表示下载完成, false表示下载未完成时就退出了.
 		bool wait_for_complete();
 
-	public:
-		// 返回文件列表.
+		// 切换下载的视频文件.
+		bool change_download(int index);
+
+		// 当前视频的时长信息, 每个key对应一个视频文件的时长.
+		duration_info current_duration_info();
 
 	private:
 		youku_impl *m_impl;		
