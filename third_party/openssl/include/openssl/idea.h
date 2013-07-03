@@ -1,4 +1,4 @@
-﻿/* crypto/idea/idea.h */
+/* crypto/idea/idea.h */
 /* Copyright (C) 1995-1997 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -87,7 +87,7 @@ void idea_ecb_encrypt(const unsigned char *in, unsigned char *out,
 void private_idea_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
 #endif
 void idea_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
-void idea_set_decrypt_key(const IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
+void idea_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
 void idea_cbc_encrypt(const unsigned char *in, unsigned char *out,
 	long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,int enc);
 void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,

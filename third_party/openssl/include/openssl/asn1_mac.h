@@ -1,4 +1,4 @@
-﻿/* crypto/asn1/asn1_mac.h */
+/* crypto/asn1/asn1_mac.h */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -151,6 +151,13 @@ err:\
 		== (V_ASN1_UNIVERSAL|(type)))) \
 		{ \
 		M_ASN1_D2I_get(b,func); \
+		}
+
+#define M_ASN1_D2I_get_int_opt(b,func,type) \
+	if ((c.slen != 0) && ((M_ASN1_next & (~V_ASN1_CONSTRUCTED)) \
+		== (V_ASN1_UNIVERSAL|(type)))) \
+		{ \
+		M_ASN1_D2I_get_int(b,func); \
 		}
 
 #define M_ASN1_D2I_get_imp(b,func, type) \
