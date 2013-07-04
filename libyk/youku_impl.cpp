@@ -4,6 +4,10 @@
 #include <boost/thread/condition.hpp>
 #include "youku_impl.h"
 
+#ifndef AVSEEK_SIZE
+#define AVSEEK_SIZE 0x10000
+#endif
+
 namespace libyk {
 
 using boost::property_tree::wptree;
@@ -279,7 +283,7 @@ bool youku_impl::read_data(char* data, std::size_t size, std::size_t &read_size)
 		return false;
 
 	// 通知读取数据.
-	boost::asio::mutable_buffers_1 bufs  = boost::asio::buffer(data, size);
+	boost::asio::mutable_buffers_1 bufs = boost::asio::buffer(data, size);
 	m_io_service.post(boost::bind(
 		&youku_impl::handle_read_data<boost::asio::mutable_buffers_1>, this,
 		boost::ref(cond), boost::cref(bufs), boost::ref(read_size)));
@@ -524,6 +528,62 @@ duration_info youku_impl::current_duration_info()
 	}
 
 	return ret;
+}
+
+boost::int64_t youku_impl::read_seek(boost::uint64_t offset, int whence)
+{
+	boost::condition cond;
+	boost::mutex::scoped_lock lock(m_mutex);
+
+	// 通知下载位置改变.
+	m_io_service.post(boost::bind(&youku_impl::handle_read_seek,
+		this, boost::ref(cond), boost::ref(offset), whence));
+
+	// 等待完成操作.
+	cond.wait(lock);
+
+	return offset;
+}
+
+void youku_impl::handle_read_seek(boost::condition &cond, boost::uint64_t &offset, int whence)
+{
+	if (!m_multi_http)
+	{
+		switch (whence)
+		{
+		case SEEK_SET:		// 文件起始位置计算.
+			{
+				// 只更新下载地址.
+				m_offset = offset;
+				char buf[1];
+				m_multi_http->fetch_data(boost::asio::buffer(&buf[0], 0), m_offset);
+			}
+			break;
+		case SEEK_CUR:		// 文件指针当前位置开始计算.
+			{
+				m_offset += offset;
+				char buf[1];
+				m_multi_http->fetch_data(boost::asio::buffer(&buf[0], 0), m_offset);
+				offset = m_offset;
+			}
+			break;
+		case SEEK_END:		// 文件尾开始计算.
+			{
+				m_offset = m_multi_http->file_size() - offset;
+				char buf[1];
+				m_multi_http->fetch_data(boost::asio::buffer(&buf[0], 0), m_offset);
+				offset = m_offset;
+			}
+			break;
+		case AVSEEK_SIZE:	// 文件大小.
+			{
+				offset = m_multi_http->file_size();
+			}
+			break;
+		}
+	}
+
+	cond.notify_one();
 }
 
 }

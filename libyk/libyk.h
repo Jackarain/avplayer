@@ -83,6 +83,9 @@ namespace libyk
 		// 读取当前下载的index对应视频的数据.
 		bool read_data(char* data, std::size_t size, std::size_t &read_size);
 
+		// seek文件位置.
+		boost::int64_t read_seek(boost::uint64_t offset, int whence);
+
 		///停止下载.
 		void stop();
 

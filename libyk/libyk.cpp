@@ -45,4 +45,9 @@ bool youku::read_data(char* data, std::size_t size, std::size_t &read_size)
 	return m_impl->read_data(data, size, read_size);
 }
 
+boost::int64_t youku::read_seek(boost::uint64_t offset, int whence)
+{
+	return m_impl->read_seek(offset, whence);
+}
+
 }
