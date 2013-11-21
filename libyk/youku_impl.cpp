@@ -112,8 +112,8 @@ bool youku_impl::open(const std::string &url,
 	// 下载视频文件列表json.
 	std::string prefix_query_url =
 		"https://openapi.youku.com/v2/videos/files.json?"
-		"client_id=e57bc82b1a9dcd2f&"
-		"client_secret=a361608273b857415ee91a8285a16b4a&video_id=";
+		"client_id=none&"
+		"client_secret=none&video_id=";
 
 	// 添加id.
 	std::string query = prefix_query_url + vid;
@@ -424,6 +424,3 @@ youku_impl::video_type youku_impl::query_quality()
 }
 
 }
-
-
-
