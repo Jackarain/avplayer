@@ -2,7 +2,7 @@
 // yk_source.h
 // ~~~~~~~~~~~
 //
-// Copyright (c) 2013 InvXp (invidentxp@gmail.com)
+// Copyright (c) 2013 invwin7
 //
 
 #ifndef __LIBYK_H__

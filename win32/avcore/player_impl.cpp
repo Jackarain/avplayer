@@ -903,7 +903,7 @@ BOOL player_impl::open(const char *movie, int media_type, int render_type)
 
 	strcpy(filename, movie);
 
-	uint64_t file_lentgh = 0;
+	int64_t file_lentgh = 0;
 	if (media_type == MEDIA_TYPE_FILE || media_type == MEDIA_TYPE_BT)
 	{
 		file_lentgh = file_size(movie);
