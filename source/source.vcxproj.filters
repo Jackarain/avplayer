@@ -24,12 +24,6 @@
     <ClCompile Include="source.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="torrent_source.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="yk_source.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="av_source.h">
@@ -39,12 +33,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="source.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="torrent_source.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="yk_source.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="internal.h">

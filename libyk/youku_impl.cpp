@@ -589,4 +589,3 @@ void youku_impl::handle_read_seek(boost::condition &cond, boost::uint64_t &offse
 }
 
 
-

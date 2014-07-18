@@ -257,6 +257,11 @@ bool generic_demux::open(boost::any ctx)
 	return true;
 
 FAILED_FLG:
+	if (m_source_ctx)
+	{
+		free_media_source(m_source_ctx);
+		m_source_ctx = NULL;
+	}
 	if (m_format_ctx)
 	{
 		avformat_close_input(&m_format_ctx);

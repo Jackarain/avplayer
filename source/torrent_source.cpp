@@ -239,8 +239,8 @@ int64_t torrent_source::read_seek(uint64_t offset, int whence)
 		break;
 	case SEEK_END:	// 文件尾开始计算.
 		{
-			m_current_video.offset = m_current_video.base_offset + m_current_video.data_size + offset;
-			new_offset = m_current_video.data_size + offset;
+			m_current_video.offset = m_current_video.base_offset + m_current_video.data_size - offset;
+			new_offset = m_current_video.data_size - offset;
 			if (m_current_video.offset > m_current_video.data_size ||
 				m_current_video.offset < m_current_video.base_offset)
 				return -1;

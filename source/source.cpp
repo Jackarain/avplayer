@@ -17,22 +17,14 @@
 
 #ifdef USE_YK
 #include "yk_source.h"
-#include "utf8.h"
 #endif // USE_YK
+
+// 默认使用avhttp来转换字符编码.
+#include "../third_party/avhttp/include/avhttp/detail/utf8.hpp"
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
-
-static
-void ansi_wide(std::string &ansi, std::wstring &wide)
-{
-	if (ansi.size() == 0)
-		return ;
-	wide.resize(ansi.size());
-	std::size_t size = ansi.size();
-	mbstowcs((wchar_t*)wide.c_str(), ansi.c_str(), size);
-}
 
 EXPORT_API int file_init_source(struct source_context *ctx)
 {
@@ -121,18 +113,13 @@ EXPORT_API int bt_init_source(struct source_context *ctx)
 	// windows平台才需要，Linux下就是utf8,无需转化.
 	std::string ansi;
 
-#ifdef _WIN32
-	std::wstring path;
-	setlocale(LC_ALL, "chs");
-#endif
-
 	// 得到保存路径, 如果为空, 则下载数据保存在当前目录下.
 	if (!strlen(bt_info.save_path))
 	{
 		ansi = boost::filesystem::current_path().string();
+
 #ifdef _WIN32
-		ansi_wide(ansi, path);
-		libtorrent::wchar_utf8(path, ansi);
+		ansi = avhttp::detail::ansi_utf8(ansi);
 #endif
 		// 更新保存路径.
 		otd->save_path = ansi;
@@ -141,9 +128,9 @@ EXPORT_API int bt_init_source(struct source_context *ctx)
 	else
 	{
 		ansi = std::string(bt_info.save_path);
+
 #ifdef _WIN32
-		ansi_wide(ansi, path);
-		libtorrent::wchar_utf8(path, ansi);
+		ansi = avhttp::detail::ansi_utf8(ansi);
 #endif
 		// 更新保存路径.
 		otd->save_path = ansi;
@@ -285,8 +272,8 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 	{
 		ansi = boost::filesystem::current_path().string();
 #ifdef _WIN32
-		ansi_wide(ansi, path);
-		ansi = libyk::wide_utf8(path);
+		path = avhttp::detail::ansi_wide(ansi);
+		ansi = avhttp::detail::wide_utf8(path);
 #endif
 		// 更新保存路径.
 		yd->save_path = ansi;
@@ -296,8 +283,8 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
 	{
 		ansi = std::string(yk_info.save_path);
 #ifdef _WIN32
-		ansi_wide(ansi, path);
-		ansi = libyk::wide_utf8(path);
+		path = avhttp::detail::ansi_wide(ansi);
+		ansi = avhttp::detail::wide_utf8(path);
 #endif
 		// 更新保存路径.
 		yd->save_path = ansi;
@@ -318,43 +305,32 @@ EXPORT_API int yk_init_source(struct source_context *ctx)
     return 0;
 }
 
-EXPORT_API int yk_media_info(struct source_context *ctx, char *name, int64_t *pos, int64_t *size)
+EXPORT_API int yk_media_info(struct source_context *ctx, youku_video **list, int *size)
+{
+#ifdef USE_YK
+	
+	return -1;
+#else
+    return -1;
+#endif // USE_YK
+}
+
+
+EXPORT_API int yk_free_media_info(struct source_context *ctx, youku_video **list)
 {
 #ifdef USE_YK
 	return -1;
-//     source_context *sc = (source_context*)ctx;
-//     yk_source *ts = (yk_source*)sc->io_dev;
-// 
-//     if (!ts)
-//         return -1;
-// 
-//     std::vector<std::string> videos;
-//     if (ts->m_yk_video.parse_video_files(videos)==0)
-//     {
-//         int i=0;
-//         BOOST_FOREACH(std::string& video,videos)
-//         {
-//             yk_video_file_info v;
-//             v.source=video;
-//             v.index=i;
-//             ts->m_videos.push_back(v);
-//             ++i;
-//         }
-//     }
-//     else
-//         return -1;
-//     
-//     
-//     std::vector<yk_video_file_info> vfi = ts->video_list();
-// 
-//     yk_video_file_info &info = vfi.at(0);
-// 
-//     strcpy(name, info.source.c_str());
-//     *size=1;//videos.size();
-// 
-//     return videos.size();
 #else
-    return -1;
+	return -1;
+#endif // USE_YK
+}
+
+EXPORT_API int yk_change_file(struct source_context *ctx, int index)
+{
+#ifdef USE_YK
+	return -1;
+#else
+	return -1;
 #endif // USE_YK
 }
 

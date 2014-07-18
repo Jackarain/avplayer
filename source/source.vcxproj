@@ -24,7 +24,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -54,7 +54,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\third_party\ffmpeg\include;..\third_party\include;..\libyk;..\libtorrent\include;..\third_party\openssl\include;..\libav;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;TORRENT_USE_OPENSSL;USE_TORRENT;USE_YK;SOURCE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501;WIN32_LEAN_AND_MEAN;BOOST_ASIO_SEPARATE_COMPILATION;TORRENT_USE_OPENSSL;SOURCE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -95,24 +95,12 @@
     <ClCompile Include="asio.cpp" />
     <ClCompile Include="file_source.cpp" />
     <ClCompile Include="source.cpp" />
-    <ClCompile Include="torrent_source.cpp" />
-    <ClCompile Include="yk_source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="av_source.h" />
     <ClInclude Include="file_source.h" />
     <ClInclude Include="internal.h" />
     <ClInclude Include="source.h" />
-    <ClInclude Include="torrent_source.h" />
-    <ClInclude Include="yk_source.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\libtorrent\include\libtorrent.vcxproj">
-      <Project>{0795f713-7b86-4250-8b4e-4f4663af6956}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\libyk\libyk.vcxproj">
-      <Project>{46cd66db-40a1-4677-91b4-f3226fab8941}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,7 +11,7 @@
 struct open_yk_data 
 {
 	std::string url;		// 播放youku的url.
-	int type;				// 当前请求播放的类型, 有hd2,mp4,3gp,3gphd,flv,m3u8.
+	int type;				// 当前请求播放的类型, 有hd2,mp4,3gp,3gphd,flv,m3u8, 默认为自动高清.
 	std::string save_path;	// 下载的youku视频保存位置.
 };
 
@@ -45,8 +45,15 @@ public:
 	// 重置读取数据.
 	virtual void reset();
 
+	// 返回视频文件列表信息.
+	bool youku_video_list(struct youku_video *list);
+
+	// 返回视频文件个数.
+	int youku_video_list_size();
+
 private:
 	libyk::youku m_yk_video;
+	open_yk_data m_open_data;
 	bool m_abort;
 	bool m_reset;
 };

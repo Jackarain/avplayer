@@ -163,6 +163,119 @@ typedef void WINAPI subtitle_uninit_vobsub_func();
 typedef BOOL WINAPI subtitle_open_vobsub_func(char* fileName, int w, int h);
 typedef void WINAPI subtitle_vobsub_do_func(void* data, LONGLONG curTime, LONG size);
 
+class avsubtitles_interface
+	: public subtitle_plugin
+{
+	typedef void* av_subtitle_handle;
+	typedef av_subtitle_handle alloc_subtitle();
+	typedef void free_subtitle(av_subtitle_handle handle);
+	typedef int open_subtitle(av_subtitle_handle handle,
+		const char* filename, int width, int height, int index);
+	typedef void subtitle_do_func(av_subtitle_handle handle,
+		void* yuv420_data, long long time_stamp);
+	typedef void close_subtitle(av_subtitle_handle handle);
+
+public:
+	avsubtitles_interface(const std::string avsubtitles = "")
+		: m_avsubtitles(NULL)
+		, m_handle(NULL)
+		, m_alloc_subtitle(NULL)
+		, m_free_subtitle(NULL)
+		, m_open_subtitle(NULL)
+		, m_subtitle_do(NULL)
+		, m_close_subtitle(NULL)
+	{
+		if (!avsubtitles.empty())
+			m_avsubtitles = LoadLibraryA(avsubtitles.c_str());
+		if (m_avsubtitles)
+		{
+			m_alloc_subtitle = (alloc_subtitle*)
+				GetProcAddress(m_avsubtitles, "alloc_subtitle");
+			m_close_subtitle = (close_subtitle*)
+				GetProcAddress(m_avsubtitles, "close_subtitle");
+			m_open_subtitle = (open_subtitle*)
+				GetProcAddress(m_avsubtitles, "open_subtitle");
+			m_subtitle_do = (subtitle_do_func*)
+				GetProcAddress(m_avsubtitles, "subtitle_do");
+			m_free_subtitle = (free_subtitle*)
+				GetProcAddress(m_avsubtitles, "free_subtitle");
+
+			// 加载失败则释放.
+			if (!(m_alloc_subtitle &&
+				m_alloc_subtitle &&
+				m_open_subtitle &&
+				m_subtitle_do &&
+				m_free_subtitle))
+			{
+				FreeLibrary(m_avsubtitles);
+				m_avsubtitles = NULL;
+			}
+		}
+	}
+
+	virtual ~avsubtitles_interface()
+	{
+		if (m_avsubtitles)
+			FreeLibrary(m_avsubtitles);
+		m_avsubtitles = NULL;
+	}
+
+	// 初始化字幕插件.
+	virtual bool subtitle_init()
+	{
+		if (!subtitle_is_load())
+			return false;
+		m_handle = m_alloc_subtitle();
+		if (!m_handle)
+			return false;
+		return true;
+	}
+
+	// 反初始化字幕插件.
+	virtual void subtitle_uninit()
+	{
+		if (!subtitle_is_load())
+			return ;
+		if (m_handle)
+		{
+			m_close_subtitle(m_handle);
+			m_free_subtitle(m_handle);
+			m_handle = NULL;
+		}
+	}
+
+	// 打开字幕文件, 并指定视频宽高.
+	virtual bool subtitle_open(char* filename, int w, int h)
+	{
+		if (!subtitle_is_load())
+			return false;
+		return m_open_subtitle(m_handle, filename, w, h, 0) == 0 ? true : false;
+	}
+
+	// 渲染一帧yuv视频数据. 传入当前时间戳和yuv视频数据及大小.
+	virtual void subtitle_do(void* yuv_data, int64_t cur_time, long size)
+	{
+		if (!subtitle_is_load())
+			return ;
+		m_subtitle_do(m_handle, yuv_data, cur_time);
+	}
+
+	// 判断插件是否加载.
+	virtual bool subtitle_is_load()
+	{
+		return m_avsubtitles ? true : false;
+	}
+
+private:
+	HMODULE m_avsubtitles;
+	av_subtitle_handle m_handle;
+	alloc_subtitle* m_alloc_subtitle;
+	free_subtitle* m_free_subtitle;
+	open_subtitle* m_open_subtitle;
+	subtitle_do_func* m_subtitle_do;
+	close_subtitle* m_close_subtitle;
+};
+
 class vsfilter_interface
 	: public subtitle_plugin
 {
@@ -1164,7 +1277,7 @@ BOOL player_impl::load_subtitle(const char *subtitle)
 {
 	EnterCriticalSection(&m_plugin_cs);
 	if (!m_plugin)
-		m_plugin = new vsfilter_interface("vsfilter.dll");
+		m_plugin = new avsubtitles_interface("avsubtitle.dll");// vsfilter_interface("avsubtitle.dll");
 	if (subtitle)
 		m_subtitle = subtitle;
 	else
@@ -1217,7 +1330,7 @@ int player_impl::draw_frame(struct vo_context *ctx, AVFrame* data, int pix_fmt, 
 	{
 		// 添加字幕.
 		int size = this_ptr->m_video_width * this_ptr->m_video_height * 3 / 2;
-		int64_t nanosecond = this_ptr->curr_play_time() * 10000000;
+		int64_t nanosecond = this_ptr->curr_play_time() * 1000;
 		this_ptr->m_plugin->subtitle_do(data->data[0], nanosecond, size);
 	}
 

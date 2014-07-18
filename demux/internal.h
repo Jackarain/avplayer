@@ -28,6 +28,7 @@ extern "C"
 #include <string>
 #include <iostream>
 
+#include <boost/assert.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>

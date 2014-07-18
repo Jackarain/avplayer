@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-// 未知的数据类型.
+// 除非特定的视频数据, 统一使用以下函数来demux, 实际上就是使用ffmpeg来实现demux.
 EXPORT_API int generic_init_demux(struct demux_context *demux_ctx);
 EXPORT_API int generic_read_packet(struct demux_context *demux_ctx, AVPacket *pkt);
 EXPORT_API int generic_packet_seek(struct demux_context *demux_ctx, int64_t timestamp);
@@ -32,6 +32,15 @@ EXPORT_API int generic_stream_index(struct demux_context *demux_ctx, enum AVMedi
 EXPORT_API enum AVCodecID generic_query_avcodec_id(struct demux_context *demux_ctx, int index);
 EXPORT_API void generic_destory(struct demux_context *demux_ctx);
 
+// 优酷视频demux, 由于youku视频是分段的flv, 所以必须处理各段的数据, 以保证看起来像是同一个文件.
+EXPORT_API int youku_init_demux(struct demux_context *demux_ctx);
+EXPORT_API int youku_read_packet(struct demux_context *demux_ctx, AVPacket *pkt);
+EXPORT_API int youku_packet_seek(struct demux_context *demux_ctx, int64_t timestamp);
+EXPORT_API int youku_read_pause(struct demux_context *demux_ctx);
+EXPORT_API int youku_read_play(struct demux_context *demux_ctx);
+EXPORT_API int youku_stream_index(struct demux_context *demux_ctx, enum AVMediaType type);
+EXPORT_API enum AVCodecID youku_query_avcodec_id(struct demux_context *demux_ctx, int index);
+EXPORT_API void youku_destory(struct demux_context *demux_ctx);
 
 #ifdef  __cplusplus
 }

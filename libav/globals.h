@@ -194,8 +194,9 @@ typedef struct source_context
  */
 typedef enum source_type
 {
-	generic_source_type,		/* 未知的类型. */
-	source_type_flv,		/* TODO: 普通的flv, 一个小示例. */
+	generic_source_type,		/* 未知的类型, 使用ffmpeg统一处理各种非特定的demux. */
+	source_type_youku,			/* youku视频数据. */
+	source_type_flv,			/* TODO: 普通的flv, 一个小示例. */
 } source_type;
 
 /* generic_type的信息, 由demux内部去实现分析. */
@@ -203,6 +204,12 @@ typedef struct generic_demux_info
 {
 	char file_name[MAX_URI_PATH];	/* 文件名. */
 } generic_demux_info;
+
+/* source_type_youku的信息, 由demux内部去实现分析. */
+typedef struct youku_demux_info
+{
+	char youku_url[MAX_URI_PATH];	/* 优酷链接. */
+} youku_demux_info;
 
 /* TODO: source_type_flv的信息, 由demux使用. */
 typedef struct flv_demux_info
@@ -213,7 +220,8 @@ typedef struct flv_demux_info
 /* 包含具体的demux_info的信息共用. */
 typedef union demux_info
 {
-	generic_demux_info generic;	/* 未知的文件格式. */
+	generic_demux_info generic;	/* 未知的文件格式, 使用ffmpeg统一处理各种非特定的demux. */
+	youku_demux_info youku;		/* 优酷视频. */
 	flv_demux_info flv;			/* TODO: flv格式. */
 } demux_info;
 
@@ -317,11 +325,17 @@ typedef struct demux_context
 	/*
 	 * 指定的类型, 可以取source_type或youku_source_type中的类型.
 	 * 备注: 目前实现的type, 只有以下几个:
+	 * MEDIA_TYPE_FILE
+	 * MEDIA_TYPE_BT
+	 * MEDIA_TYPE_HTTP
+	 * MEDIA_TYPE_RTSP
+	 * MEDIA_TYPE_YK
 	 */
 	int type;
 
 	/*
-	 * demux信息, 用于保存一些demux时需要用到的信息, 以及和外部通信的信息.
+	 * demux信息, 用于保存一些demux时需要用到的信息, 以及和外部通信的信息
+	 * 比如使用demux的模块把url或file path通过它传入进来.
 	 */
 	demux_info info;
 

@@ -105,4 +105,3 @@ namespace libyk
 }
 
 #endif // __LIBYK_H__
-
